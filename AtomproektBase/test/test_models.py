@@ -38,8 +38,11 @@ class SetUp(TestCase):
             safety_category='2')
         self.system1_2.buildings.add(self.building1_1)
         self.system1_2.buildings.add(self.building1_2)
+        self.clean_all()
 
-        for item in self.__dict__:  # just full-clean all self-models.
+    def clean_all(self):
+        """Full-clean all self-models"""
+        for item in self.__dict__:
             if hasattr(item, 'full_clean'):
                 item.full_clean()
 

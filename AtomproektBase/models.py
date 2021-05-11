@@ -22,6 +22,9 @@ class SlugBase(models.Model):
             self.slug = slugify(self.__getattribute__(self.field_to_slugify))
         super(SlugBase, self).save(*args, **kwargs)
 
+    def __str__(self):
+        return self.slug
+
     class Meta:
         abstract = True
 
