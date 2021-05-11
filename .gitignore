@@ -3,3 +3,5 @@
 /AtomREST/settings.py
 /AtomproektBase/migrations/
 /NavisWEB/migrations/
+/.coverage
+/htmlcov/
