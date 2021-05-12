@@ -13,7 +13,7 @@ router.register(r'systems', base_views.SystemViewSet)
 router.register(r'models', model_views.Model3DViewSet)
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('v1/', include(router.urls)),
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework'))
 ]

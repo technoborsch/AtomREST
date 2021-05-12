@@ -16,14 +16,14 @@ class SlugBase(models.Model):
     def save(self, *args, **kwargs):
         if not self.slug:
             if not self.field_to_slugify:
-                raise ValueError('Specify a field to slugify')
+                raise ValueError('Specify field to slugify')
             elif not hasattr(self, self.field_to_slugify):
                 raise ValueError('Wrong field to slugify - here is no such field')
             self.slug = slugify(self.__getattribute__(self.field_to_slugify))
         super(SlugBase, self).save(*args, **kwargs)
 
     def __str__(self):
-        return self.slug
+        return self.slug  # pragma: no cover
 
     class Meta:
         abstract = True

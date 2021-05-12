@@ -9,3 +9,7 @@ class Model3DViewSet(viewsets.ModelViewSet):
     queryset = models.Model3D.objects.all()
     serializer_class = serializers.Model3DSerializer
     permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'building'
+
+    def get_object(self):
+        return models.Model3D.objects.get(building__slug=self.kwargs['building'])

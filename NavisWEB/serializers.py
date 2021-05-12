@@ -8,3 +8,7 @@ class Model3DSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = models.Model3D
         fields = ['url', 'building', 'nwd']
+        lookup_field = 'building'
+        extra_kwargs = {
+            'url': {'lookup_field': 'building'},
+        }

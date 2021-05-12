@@ -12,6 +12,7 @@ django-celery-results==2.0.1
 django-constrainedfilefield==4.0.0
 django-cors-headers==3.7.0
 djangorestframework==3.12.4
+drf-nested-routers==0.93.3
 kombu==5.0.2
 prompt-toolkit==3.0.18
 psycopg2==2.8.6

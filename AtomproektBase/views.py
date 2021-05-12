@@ -9,6 +9,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
     queryset = models.Project.objects.all()
     serializer_class = serializers.ProjectSerializer
     permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'slug'
 
 
 class BuildingViewSet(viewsets.ModelViewSet):
@@ -16,6 +17,7 @@ class BuildingViewSet(viewsets.ModelViewSet):
     queryset = models.Building.objects.all()
     serializer_class = serializers.BuildingSerializer
     permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'slug'
 
 
 class SystemViewSet(viewsets.ModelViewSet):
@@ -23,3 +25,4 @@ class SystemViewSet(viewsets.ModelViewSet):
     queryset = models.System.objects.all()
     serializer_class = serializers.SystemSerializer
     permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'slug'
