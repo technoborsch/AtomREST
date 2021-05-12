@@ -5,9 +5,10 @@ from pytils.translit import slugify
 class SlugBase(models.Model):
     """Base to add a slug field to a model"""
 
-    field_to_slugify = ''
+    fields_to_slugify = []
 
     slug = models.SlugField(
+        unique=True,
         allow_unicode=True,
         blank=True,
         null=True,
@@ -15,12 +16,37 @@ class SlugBase(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            if not self.field_to_slugify:
-                raise ValueError('Specify field to slugify')
-            elif not hasattr(self, self.field_to_slugify):
-                raise ValueError('Wrong field to slugify - here is no such field')
-            self.slug = slugify(self.__getattribute__(self.field_to_slugify))
+            self._check_fields_to_slugify()
+            self._save_slug()
         super(SlugBase, self).save(*args, **kwargs)
+
+    def _check_fields_to_slugify(self):
+        """It checks if fields to slugify were set correctly"""
+        if not self.fields_to_slugify:
+            raise ValueError('Specify fields to slugify')
+        elif not isinstance(self.fields_to_slugify, list):
+            raise ValueError('Fields to slugify should be instance of list')
+        for field in self.fields_to_slugify:
+            if not hasattr(self, field):
+                raise ValueError(f'Wrong field "{field}" to slugify - here is no such field')
+            attribute = self.__getattribute__(field)
+            # so attribute is either a model
+            if isinstance(attribute, models.Model):
+                if not hasattr(attribute, 'slug'):
+                    raise ValueError(f'{attribute} model has no slug field, which is required')
+            # or it's a string
+            elif not isinstance(attribute, str):
+                raise ValueError('Field to slugify should be either a model with slug or string')
+
+    def _save_slug(self):
+        """It collects all data to produce a slug and saves it"""
+        slug_list = []
+        for field in self.fields_to_slugify:
+            attribute = self.__getattribute__(field)
+            if isinstance(attribute, models.Model):
+                attribute = attribute.slug
+            slug_list.append(attribute)
+        self.slug = '_'.join(map(slugify, slug_list))
 
     def __str__(self):
         return self.slug  # pragma: no cover
@@ -37,7 +63,7 @@ class Project(SlugBase):
     description = models.TextField(max_length=1000, verbose_name='Описание')
     stage = models.CharField(max_length=10, verbose_name='Текущая стадия')
 
-    field_to_slugify = 'name'
+    fields_to_slugify = ['name']
 
 
 class Building(SlugBase):
@@ -55,16 +81,10 @@ class Building(SlugBase):
         verbose_name='Проект, которому принадлежит здание',
     )
 
-    field_to_slugify = 'kks'
+    fields_to_slugify = ['project', 'kks']
 
     class Meta:
         ordering = ['kks']
-        constraints = [
-            models.UniqueConstraint(
-                fields=['kks', 'project'],
-                name='Здание с таким KKS-кодом уже присутсвует в данном проекте',
-            )  # To raise validation error when trying to add an existing building to a project
-        ]
 
 
 class System(SlugBase):
@@ -105,13 +125,7 @@ class System(SlugBase):
     seismic_category = models.CharField(max_length=3, choices=SEISMIC_CATEGORIES)
     safety_category = models.CharField(max_length=3, choices=SAFETY_CATEGORIES)
 
-    field_to_slugify = 'kks'
+    fields_to_slugify = ['project', 'kks']
 
     class Meta:
         ordering = ['kks']
-        constraints = [
-            models.UniqueConstraint(
-                fields=['kks', 'project'],
-                name='Система с таким KKS-кодом уже присутсвует в данном проекте'
-            )  # To raise validation error when trying to add an existing building to a project
-        ]

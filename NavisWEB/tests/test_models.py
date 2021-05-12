@@ -14,4 +14,4 @@ class Model3DTest(SetUp):
 
     def test_upload_path(self):
         """Checks the filepath for a model"""
-        self.assertEqual(models.get_upload_path(self.model1, '10UGB.nwd'), 'models/10uja/10UGB.nwd')
+        self.assertEqual(models.get_upload_path(self.model1, '10UGB.nwd'), 'models/superstantsiya-1_10uja/10UGB.nwd')

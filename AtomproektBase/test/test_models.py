@@ -93,8 +93,8 @@ class BuildingTest(SetUp):
     def test_slug(self):
         """Checks if slug for model is correct"""
         cases = [
-            (self.building1_1, "10uja"),
-            (self.building1_2, "10uka"),
+            (self.building1_1, "superstantsiya-1_10uja"),
+            (self.building1_2, "superstantsiya-1_10uka"),
         ]
         for project, slug in cases:
             with self.subTest(msg=str(project)):
@@ -107,8 +107,8 @@ class SystemTest(SetUp):
     def test_slug(self):
         """Checks if slug for model is correct"""
         cases = [
-            (self.system1_1, "10jrt"),
-            (self.system1_2, "10kaa"),
+            (self.system1_1, "superstantsiya-1_10jrt"),
+            (self.system1_2, "superstantsiya-1_10kaa"),
         ]
         for project, slug in cases:
             with self.subTest(msg=str(project)):

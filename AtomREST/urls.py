@@ -2,7 +2,7 @@
 
 from django.contrib import admin
 from django.urls import path, include
-from rest_framework import routers
+from rest_framework_nested import routers
 from AtomproektBase import views as base_views
 from NavisWEB import views as model_views
 

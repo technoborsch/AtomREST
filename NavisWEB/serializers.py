@@ -11,4 +11,5 @@ class Model3DSerializer(serializers.HyperlinkedModelSerializer):
         lookup_field = 'building'
         extra_kwargs = {
             'url': {'lookup_field': 'building'},
+            'building': {'lookup_field': 'slug'}
         }

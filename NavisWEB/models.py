@@ -1,5 +1,4 @@
 from django.db import models
-from constrainedfilefield.fields import ConstrainedFileField
 
 from AtomproektBase import models as base_models
 
@@ -17,8 +16,8 @@ class Model3D(models.Model):
         verbose_name='Здание',
         on_delete=models.CASCADE,
         related_name='model')
-    nwd = ConstrainedFileField(
-        verbose_name='Модель в формате .nwd',
+    nwd = models.FileField(
+        verbose_name='Модель здания (формат .nwd)',
         upload_to=get_upload_path,
         blank=True,
         null=True,
