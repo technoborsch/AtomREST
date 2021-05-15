@@ -81,7 +81,7 @@ class Building(SlugBase):
         verbose_name='Проект, которому принадлежит здание',
     )
 
-    fields_to_slugify = ['project', 'kks']
+    fields_to_slugify = ['kks']
 
     class Meta:
         ordering = ['kks']
@@ -125,7 +125,7 @@ class System(SlugBase):
     seismic_category = models.CharField(max_length=3, choices=SEISMIC_CATEGORIES)
     safety_category = models.CharField(max_length=3, choices=SAFETY_CATEGORIES)
 
-    fields_to_slugify = ['project', 'kks']
+    fields_to_slugify = ['kks']
 
     class Meta:
         ordering = ['kks']

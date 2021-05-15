@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block main %}
+
+<div class="container-fluid px-2">
+<div class="row">
+{% include 'sidebar.html' %}
+</div>
+<main class="col-md-9 ms-auto col-lg-10 py-1">
+{% block content %}
+    <h3 class="text-info">Тестовый заголовок</h3>
+    <p>{% lorem %}</p>
+{% endblock %}
+</main>
+</div>
+{% endblock %}

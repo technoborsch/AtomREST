@@ -1,0 +1,39 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="NavisWEB interface">
+    <meta name="author" content="Nikita Nikiforov">
+    <link rel="icon" href="{% static 'icons/globe.svg' %}" sizes="32x32" type="image/png">
+    <link rel="icon" href="{% static 'icons/globe.svg' %}" sizes="16x16" type="image/png">
+    <link rel="mask-icon" href="{% static 'icons/globe.svg' %}" color="#7952b3">
+    <link rel="icon" href="{% static 'icons/globe.svg' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
+    <link type="text/css" rel="stylesheet" href="{% static 'NavisWEB/css/sidebar.css' %}">
+    <!--Custom styles here-->
+    {% block style %}
+    <link rel="stylesheet" type="text/css" href="{% static 'NavisWEB/css/index.css' %}">
+    {% endblock %}
+    <script type="text/javascript" src="{% static 'jquery/jquery-3.6.js' %}"></script>
+
+    <!--Title block-->
+    <title>{% block title %}NavisWEB{% endblock %}</title>
+</head>
+
+<body>
+    {% include 'navbar.html' %}
+    {% block main %}
+        <!--Content under navbar goes here-->
+    {% endblock %}
+
+    <!--Custom scripts here-->
+    {% block script %}
+    {% endblock %}
+
+    <script src="{% static 'NavisWEB/js/state_saver.js' %}"></script>
+    <script type="text/javascript" src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
+
+</body>
+</html>
