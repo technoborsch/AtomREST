@@ -1,7 +1,7 @@
 {% load static %}
 {% load custom_tags %}
 <link type="text/css" rel="stylesheet" href="{% static 'NavisWEB/css/sidebar.css' %}">
-<nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light overflow-auto sidebar">
+<aside id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light overflow-auto sidebar">
   <ul class="list-unstyled ps-0 mt-4">
     {% for project in projects %}
     <li class="mb-0">
@@ -20,4 +20,4 @@
     </li>
         {% endfor %}
   </ul>
-</nav>
+</aside>
