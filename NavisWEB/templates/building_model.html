@@ -4,6 +4,7 @@
 {% block content %}
     <div id="viewer_settings"
          model_url="{{ model.gltf.url }}"
+         project_slug="{{ model.building.project.slug }}"
          building_slug="{{ model.building.slug }}"
          viewpoint_url="{% url 'create_view_point' %}">
     <script type="module" src="{% static 'NavisWEB/js/main.js' %}"></script>

@@ -1,4 +1,5 @@
 from django.db import models
+from django.urls import reverse
 
 from AtomproektBase import models as base_models
 
@@ -38,11 +39,14 @@ class Model3D(models.Model):
 # View point
 def save_view_point(data):
     """Takes data from AJAX and creates a view point off it"""
-    building = Model3D.objects.get(building__slug=str(data['building']))
-    print(data['direction[x]'])
+    print(str(data['project']), str(data['building']))
+    model = Model3D.objects.get(
+        building__project__slug=str(data['project']),
+        building__slug=str(data['building']),
+    )
 
     ViewPoint.objects.create(
-        building=building,
+        model=model,
         position_x=float(data['position[x]']),
         position_y=float(data['position[y]']),
         position_z=float(data['position[z]']),
@@ -54,7 +58,7 @@ def save_view_point(data):
 
 class ViewPoint(models.Model):
     """A model to describe a viewpoint inside a building model"""
-    building = models.ForeignKey(Model3D, on_delete=models.CASCADE, related_name='view_points')
+    model = models.ForeignKey(Model3D, on_delete=models.CASCADE, related_name='view_points')
     position_x = models.FloatField()
     position_y = models.FloatField()
     position_z = models.FloatField()
@@ -72,14 +76,11 @@ class ViewPoint(models.Model):
     def get_direction(self):
         return self.direction_x, self.direction_y, self.direction_z
 
-    def get_absolute_url(self):
+    def get_absolute_url(self):  # TODO move to another view 'viewpoint'
         return reverse(
             'building_model',
             kwargs={
-                'building': self.building,
+                'model': self.model,
                 'position': self.get_position(),
                 'direction': self.get_direction(),
             })
-
-    def get_list_url(self):
-        return reverse('view_points')

@@ -20,6 +20,7 @@ class BuildingModelView(DetailView):
     context_object_name = 'model'
 
     def get_object(self, queryset=None):
+        print(self.kwargs['project'], self.kwargs['building'])
         return models.Model3D.objects.get(
             building__project__slug=self.kwargs['project'],
             building__slug=self.kwargs['building'],

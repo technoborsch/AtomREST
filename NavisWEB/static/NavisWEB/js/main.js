@@ -11,7 +11,8 @@ let camera, scene, renderer, controls, environment, pmremGenerator;
 // get settings here from DOM which were set by django templates
 const settingsElement = document.getElementById('viewer_settings');
 const modelURL = settingsElement.getAttribute('model_url');
-const buildingSlug = settingsElement.getAttribute('building_slug')
+const projectSlug = settingsElement.getAttribute('project_slug');
+const buildingSlug = settingsElement.getAttribute('building_slug');
 const viewpointURL = settingsElement.getAttribute('viewpoint_url');
 
 const params = {
@@ -29,6 +30,8 @@ const zSpeed = 1000;
 const speed = 1000;
 
 const viewDirection = new THREE.Vector3();
+const boundBox = new THREE.Box3();
+const modelCenter = new THREE.Vector3();
 
 init();
 render();
@@ -52,24 +55,27 @@ function init() {
     scene.environment = pmremGenerator.fromScene( environment ).texture;
 
     camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 200000 );
-    camera.position.set( 0, 0, 0 );
 
     // TODO should try other controls
     controls = new OrbitControls( camera, renderer.domElement );
     controls.addEventListener( 'change', render );
     controls.zoomSpeed = 3;
     controls.minDistance = 1;
-    controls.maxDistance = 1000000;
+    controls.maxDistance = 100000;
     controls.enablePan = false;
 
     const group = new THREE.Group();
-    const bound_box = new THREE.Box3();
 
     // loading manager to manage loading screen
     const loadingManager = new THREE.LoadingManager( () => {
         const loadingScreen = document.getElementById( 'loading-screen' );
 		loadingScreen.classList.add( 'fade-out' );
 		loadingScreen.addEventListener( 'transitionend', onTransitionEnd );
+		boundBox.setFromObject( scene );
+		boundBox.getCenter( modelCenter );
+		controls.target = modelCenter;
+		camera.position.set( boundBox.max.x , boundBox.max.y, boundBox.max.z );
+		controls.update();
 	});
 
     const ktx2Loader = new KTX2Loader()
@@ -88,27 +94,14 @@ function init() {
             }
         });
 
-        const box = new THREE.Box3().setFromObject( gltf.scene );
-        const center = box.getCenter( new THREE.Vector3() );
+        boundBox.setFromObject( gltf.scene ).getCenter( modelCenter );
 
         // FIXME some fuckery that should be removed by using right controls
-        gltf.scene.position.x += ( gltf.scene.position.x - 2 * center.x );
-        gltf.scene.position.y += ( gltf.scene.position.y - 2 * center.y );
-        gltf.scene.position.z += ( gltf.scene.position.z + center.z );
+        gltf.scene.position.x += ( gltf.scene.position.x - 2 * modelCenter.x );
+        gltf.scene.position.y += ( gltf.scene.position.y - 2 * modelCenter.y );
+        gltf.scene.position.z += ( gltf.scene.position.z + modelCenter.z );
 
-        bound_box.setFromObject(gltf.scene);
         group.add( gltf.scene );
-
-        gui.add( params, 'planeConstant', bound_box.min.y, bound_box.max.y )
-            .step( 10 )
-            .name( 'plane constant' )
-            .onChange( function ( value ) {
-
-                for ( let j = 0; j < clipPlanes.length; j ++ ) {
-                    clipPlanes[ j ].constant = value;
-                }
-                render();
-				});
 
         render();
 
@@ -125,6 +118,16 @@ function init() {
     scene.add( group );
 
     const gui = new GUI();
+
+    gui.add( params, 'planeConstant', boundBox.min.y, boundBox.max.y )
+        .step( 10 )
+        .name( 'plane constant' )
+        .onChange( function ( value ) {
+            for ( let j = 0; j < clipPlanes.length; j ++ ) {
+                clipPlanes[ j ].constant = value;
+            }
+            render();
+        });
 
     gui.close();
 
@@ -154,9 +157,9 @@ function init() {
         } else if (keyCode === 68) {
             group.position.x += xSpeed;
         } else if (keyCode === 32) {
-            saveViewPoint( buildingSlug, group.position, viewDirection );
+            saveViewPoint( projectSlug, buildingSlug, group.position, viewDirection );
             console.log(viewDirection);
-            console.log(group.position);
+            console.log(camera.position);
         } else if (keyCode === 16) {
             group.position.y -= zSpeed;
             clipPlanes[0].constant -= zSpeed;
@@ -179,7 +182,7 @@ function render() {
     renderer.render(scene, camera);
 }
 
-function saveViewPoint(building, position, direction) {
+function saveViewPoint(project, building, position, direction) {
     let current_position = {
         x: position.x,
         y: position.y,
@@ -190,10 +193,11 @@ function saveViewPoint(building, position, direction) {
         y: direction.y,
         z: direction.z,
     }
-    console.log("saving: " + building + ", " + current_position + ", " + current_direction)
+    console.log("saving: " + project + ", " + building + ", " + current_position + ", " + current_direction)
     $.get(
         viewpointURL,
         {
+            project: project,
             building: building,
             position: current_position,
             direction: current_direction,

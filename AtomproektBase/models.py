@@ -8,7 +8,6 @@ class SlugBase(models.Model):
     fields_to_slugify = []
 
     slug = models.SlugField(
-        unique=True,
         allow_unicode=True,
         blank=True,
         null=True,
