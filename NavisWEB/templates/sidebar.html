@@ -1,23 +1,27 @@
 {% load static %}
 {% load custom_tags %}
 <link type="text/css" rel="stylesheet" href="{% static 'NavisWEB/css/sidebar.css' %}">
-<aside id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light overflow-auto sidebar">
-  <ul class="list-unstyled ps-0 mt-4">
+<aside id="sidebarMenu" class="sidebar bg-light">
+  <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&#8249;</a>
+    <ul class="list-unstyled">
     {% for project in projects %}
-    <li class="mb-0">
-    <div class="btn-group">
-        <button class="btn btn-toggle{% show_insert "d" project.slug "collapse" %} align-items-center rounded {% show_insert "collapsed" project.slug "collapse" reverse=True %} {% if not project.buildings.all %}disabled{% endif %}" data-bs-toggle="collapse" data-bs-target="#{{ project.slug }}-collapse">
+        <li>
+        <button
+                class="btn btn-outline-primary align-items-center rounded
+                {% show_insert "collapsed" project.slug "collapse" reverse=True %}
+                {% if not project.buildings.all %}disabled{% endif %}"
+                data-bs-toggle="collapse"
+                data-bs-target="#{{ project.slug }}-collapse">
+        {{ project.name }}
         </button>
-        <a class="link" href="#"><button class="btn btn-next-toggle align-items-center rounded">{{ project.name }}</button></a>
-    </div>
-      <div class="collapse {% show_insert "show" project.slug "collapse" %}" id="{{ project.slug }}-collapse">
+        <div class="collapse {% show_insert "show" project.slug "collapse" %}" id="{{ project.slug }}-collapse">
           <ul class="btn-toggle-nav list-unstyled fw-normal ms-4 small">
               {% for building in project.buildings.all %}
                   <li><a href="{% url 'building_model' building.project.slug building.slug %}" class="link-dark rounded mx-4">{{ building.kks }}</a></li>
               {% endfor %}
-        </ul>
-      </div>
-    </li>
-        {% endfor %}
-  </ul>
+          </ul>
+        </div>
+        </li>
+    {% endfor %}
+    </ul>
 </aside>

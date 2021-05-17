@@ -15,6 +15,7 @@ const projectSlug = settingsElement.getAttribute('project_slug');
 const buildingSlug = settingsElement.getAttribute('building_slug');
 const viewpointURL = settingsElement.getAttribute('viewpoint_url');
 
+// for GUI
 const params = {
     clipIntersection: true,
     planeConstant: 0,
@@ -24,10 +25,6 @@ const params = {
 const clipPlanes = [
     new THREE.Plane( new THREE.Vector3( 0, -1, 0 ), 0 ),
 ];
-
-const xSpeed = 1000; // those speeds can be removed then
-const zSpeed = 1000;
-const speed = 1000;
 
 const viewDirection = new THREE.Vector3();
 const boundBox = new THREE.Box3();
@@ -41,10 +38,10 @@ function init() {
     renderer = new THREE.WebGLRenderer( { antialias: true } );
     renderer.setPixelRatio( window.devicePixelRatio );
     // TODO should get size from container element
-    renderer.setSize( window.innerWidth/1.25, window.innerHeight/1.25, false );
+    renderer.setSize( window.innerWidth, window.innerHeight, false );
     renderer.outputEncoding = THREE.sRGBEncoding;
     renderer.localClippingEnabled = true;
-    document.body.appendChild( renderer.domElement );
+    settingsElement.appendChild( renderer.domElement );
 
     scene = new THREE.Scene();
 
@@ -136,36 +133,11 @@ function init() {
     window.addEventListener( 'keydown', onDocumentKeyDown, false);
 
     function onDocumentKeyDown(event) {
-        camera.getWorldDirection( viewDirection );
-        const xChange = viewDirection.x * speed;
-        const yChange = viewDirection.y * speed;
-        const zChange = viewDirection.z * speed;
-
         const keyCode = event.which;
-        if (keyCode === 87) {
-            group.position.x -= xChange;
-            group.position.y -= yChange;
-            group.position.z -= zChange;
-            clipPlanes[0].constant -= yChange;
-        } else if (keyCode === 83) {
-            group.position.x += xChange;
-            group.position.y += yChange;
-            group.position.z += zChange;
-            clipPlanes[0].constant += yChange;
-        } else if (keyCode === 65) {
-            group.position.x -= xSpeed;
-        } else if (keyCode === 68) {
-            group.position.x += xSpeed;
-        } else if (keyCode === 32) {
+        if (keyCode === 32) {
             saveViewPoint( projectSlug, buildingSlug, group.position, viewDirection );
             console.log(viewDirection);
             console.log(camera.position);
-        } else if (keyCode === 16) {
-            group.position.y -= zSpeed;
-            clipPlanes[0].constant -= zSpeed;
-        } else if (keyCode === 17) {
-            group.position.y += zSpeed;
-            clipPlanes[0].constant += zSpeed;
         }
         render();
     }

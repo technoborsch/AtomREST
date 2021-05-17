@@ -1,182 +1,63 @@
+/* The sidebar menu */
 .sidebar {
-  position: fixed;
+  height: 100%; /* 100% Full-height */
+  width: 0; /* 0 width - change this with JavaScript */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Stay on top */
   top: 0;
-  /* rtl:raw:
-  right: 0;
-  */
-  bottom: 0;
-  /* rtl:remove */
   left: 0;
-  z-index: 100; /* Behind the navbar */
-  padding-top: 70px; /* Height of navbar */
-  box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+  overflow-x: hidden; /* Disable horizontal scroll */
+  padding-top: 70px; /* Place content 60px from the top */
+  transition: 0.5s; /* 0.5 second transition effect to slide in the sidebar */
 }
 
-@media (max-width: 768px) {
-  .sidebar {
-    top: 5rem;
-  }
-}
-
-.sidebar-sticky {
-  position: relative;
-  top: 0;
-  height: calc(100vh - 48px);
-  padding-top: .5rem;
-  overflow-x: hidden;
-  overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
-}
-
-.sidebar .nav-link {
-  font-weight: 500;
-  color: #333;
-}
-
-.sidebar .nav-link .feather {
-  margin-right: 4px;
-  color: #727272;
-}
-
-.sidebar .nav-link.active {
-  color: #007bff;
-}
-
-.sidebar .nav-link:hover .feather,
-.sidebar .nav-link.active .feather {
-  color: inherit;
-}
-
-.sidebar-heading {
-  font-size: .75rem;
-  text-transform: uppercase;
-}
-
-.bi {
-  vertical-align: -.125em;
-  pointer-events: none;
-  fill: currentColor;
-}
-
-.dropdown-toggle { outline: 0; }
-
-.nav-flush .nav-link {
-  border-radius: 0;
-}
-
-.btn-toggle {
-  display: inline-flex;
-  align-items: center;
-  font-weight: 600;
-  color: rgba(0, 0, 0, .65);
-  background-color: transparent;
-  border: 0;
-}
-
-.btn-toggled {
-  display: inline-flex;
-  align-items: center;
-  font-weight: 600;
-  color: rgba(0, 0, 0, .65);
-  background-color: transparent;
-  border: 0;
-  transform: rotate(90deg);
-}
-
-.btn-next-toggle {
-  display: inline-flex;
-  font-weight: 600;
-  color: rgba(0, 0, 0, .65);
-  background-color: transparent;
-  border: 0;
-  padding-left: 5px;
-}
-
-.btn-toggle::before {
-  width: 1.25em;
-  line-height: 0;
-  content: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='rgba%280,0,0,.5%29' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 14l6-6-6-6'/%3e%3c/svg%3e");
-  transition: transform .35s ease;
-}
-
-.btn-toggled::before {
-  width: 1.25em;
-  line-height: 0;
-  content: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='rgba%280,0,0,.5%29' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 14l6-6-6-6'/%3e%3c/svg%3e");
-  transition: transform .35s ease;
-}
-
-
-.btn-toggle:hover,
-.btn-toggle:focus {
-  color: rgba(0, 0, 0, .85);
-  background-color: #99dae0;
-}
-
-.btn-toggled:hover,
-.btn-toggled:focus {
-  color: rgba(0, 0, 0, .85);
-  background-color: #99dae0;
-}
-
-
-.btn-next-toggle:hover,
-.btn-next-toggle:focus {
-  color: rgba(0, 0, 0, 0.85);
-  background-color: #d2f4ea;
-}
-
-.btn-toggle::before {
-  width: 1.25em;
-  line-height: 0;
-}
-
-.btn-toggle[aria-expanded="true"] {
-  color: rgba(0, 0, 0, .85);
-}
-.btn-toggle[aria-expanded="true"]::before {
-  transform: rotate(90deg);
-}
-
-.btn-toggled::before {
-  width: 1.25em;
-  line-height: 0;
-}
-
-.btn-toggled[aria-expanded="false"] {
-  color: rgba(0, 0, 0, .85);
-}
-.btn-toggled[aria-expanded="false"]::before {
-  transform: rotate(-90deg);
-}
-
-
-.btn-toggle-nav a {
-  display: inline-flex;
-  padding: .1875rem .5rem;
-  margin-top: .125rem;
-  margin-left: 1.25rem;
+/* The sidebar links */
+.sidebar a {
+  padding: 8px 8px 8px 32px;
   text-decoration: none;
-}
-.btn-toggle-nav a:hover,
-.btn-toggle-nav a:focus {
-  background-color: #d2f4ea;
-}
-
-.scrollarea {
-  overflow-y: auto;
+  font-size: 25px;
+  color: #818181;
+  display: block;
+  transition: 0.3s;
 }
 
-.fw-semibold { font-weight: 600; }
-.lh-tight { line-height: 1.25; }
-
-.link {
-  text-decoration: none;
+/* When you mouse over the navigation links, change their color */
+.sidebar a:hover {
+  color: #f1f1f1;
 }
 
-.project-icon {
-  align-items: center;
-  width: 32px;
-  height: 22px;
-  margin-right: 5px;
-  border-radius: .2rem;
+/* Position and style the close button (top right corner) */
+.sidebar .closebtn {
+  position: absolute;
+  top: 70px;
+  right: 25px;
+  font-size: 36px;
+  margin-left: 50px;
+}
+
+/* The button used to open the sidebar */
+.openbtn {
+  font-size: 25px;
+  cursor: pointer;
+  border-radius: 10px;
+  background-color: inherit;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+}
+
+.openbtn:hover {
+  background-color: rgba(141, 169, 184, 0.34);
+}
+
+/* Style page content - use this if you want to push the page content to the right when you open the side navigation */
+.main {
+  transition: margin-left .5s; /* If you want a transition effect */
+  padding: 20px;
+}
+
+/* On smaller screens, where height is less than 450px, change the style of the sidenav (less padding and a smaller font size) */
+@media screen and (max-height: 450px) {
+  .sidebar {padding-top: 15px;}
+  .sidebar a {font-size: 18px;}
 }

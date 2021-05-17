@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.contrib.staticfiles.urls import static
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
-from rest_framework_nested import routers
+from rest_framework import routers
 
 from AtomREST import settings
 from AtomproektBase import views as base_views

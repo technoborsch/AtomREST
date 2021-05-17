@@ -9,14 +9,11 @@ click-repl==0.1.6
 coverage==5.5
 Django==3.2.2
 django-celery-results==2.0.1
-django-constrainedfilefield==4.0.0
 django-cors-headers==3.7.0
 djangorestframework==3.12.4
-drf-nested-routers==0.93.3
 kombu==5.0.2
 prompt-toolkit==3.0.18
 psycopg2==2.8.6
-python-magic==0.4.22
 pytils==0.3
 pytz==2021.1
 six==1.16.0
