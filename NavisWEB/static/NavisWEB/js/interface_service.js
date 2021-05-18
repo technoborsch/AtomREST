@@ -16,6 +16,8 @@ $(document).ready(function () {
 
     let sidebarOpen = false;
 
+    $('#openbtn').click();
+
     //If click occurs on one of the collapse buttons, send the ajax with unique id to /session/
     //Also saves states of collapsible elements into local storage
     $("button[data-bs-toggle=collapse]").on("click", function () {

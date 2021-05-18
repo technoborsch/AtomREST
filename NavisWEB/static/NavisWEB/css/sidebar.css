@@ -7,9 +7,8 @@
   top: 0;
   left: 0;
   overflow-x: hidden; /* Disable horizontal scroll */
-  padding-top: 75px; /* Compensation for navbar */
+  padding-top: 73px; /* Compensation for navbar */
   transition: 0.5s; /* 0.5 second transition effect to slide in the sidebar */
-  border-right: solid 1px #b6effb;
 }
 
 .sidebar-shifted { /* apply to make it shift */
@@ -31,15 +30,6 @@
   background-color: rgba(141, 169, 184, 0.34)!important;
 }
 
-#main {
-  transition: margin-left .5s; /* If you want a transition effect */
-  height: 100vh;
-}
-
-.main-shifted {
-  margin-left: 270px;
-}
-
 /* On smaller screens, where height is less than 450px, change the style of the sidenav (less padding and a smaller font size) */
 @media screen and (max-height: 450px) {
   .sidebar div {font-size: 18px;}
@@ -49,6 +39,20 @@ div.list-group {
   border-radius: 0;
 }
 
+button.list-group-item, div.list-group div.list-group {
+  margin-top: -1px;
+  margin-bottom: -1px;
+}
+
+a.list-group-item {
+  padding-left: 40px;
+}
+
 button.list-group-item:hover {
   background-color: #c5d7f2;
+}
+
+a.list-group-item, button.list-group-item {
+  white-space: nowrap;
+  overflow-x: hidden;
 }

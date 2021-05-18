@@ -1,3 +1,18 @@
+body {
+    height: 100vh;
+}
+
+#main {
+  transition: margin-left .5s;
+  height: calc(100vh - 73px);
+  overflow: hidden;
+}
+
+.main-shifted {
+  margin-left: 270px;
+}
+
+
 #loading-screen {
 	position: absolute;
 	z-index: 2;
