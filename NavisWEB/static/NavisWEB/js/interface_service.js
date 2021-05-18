@@ -14,6 +14,8 @@ function send_state(url, key, value) {
 
 $(document).ready(function () {
 
+    let sidebarOpen = false;
+
     //If click occurs on one of the collapse buttons, send the ajax with unique id to /session/
     //Also saves states of collapsible elements into local storage
     $("button[data-bs-toggle=collapse]").on("click", function () {
@@ -30,21 +32,27 @@ $(document).ready(function () {
         }
     });
 
-
-    $("#logoutButton").on("click", function () {
-        console.log("local storage cleared")
-        localStorage.clear()
+    $("#openbtn").on("click", function () {
+        if (sidebarOpen) {
+            closeNav();
+            sidebarOpen = !sidebarOpen;
+        } else {
+            openNav();
+            sidebarOpen = !sidebarOpen;
+        }
     });
+
+    /* Set the width of the sidebar to 250px and the left margin of the page content to 250px */
+    function openNav() {
+      document.getElementById("sidebarMenu").classList.add("sidebar-shifted");
+      document.getElementById("main").classList.add("main-shifted");
+      document.getElementById("openbtn").classList.add("openbtn-pressed");
+    }
+
+    /* Set the width of the sidebar to 0 and the left margin of the page content to 0 */
+    function closeNav() {
+      document.getElementById("sidebarMenu").classList.remove("sidebar-shifted");
+      document.getElementById("main").classList.remove("main-shifted");
+      document.getElementById("openbtn").classList.remove("openbtn-pressed");
+    }
 });
-
-/* Set the width of the sidebar to 250px and the left margin of the page content to 250px */
-function openNav() {
-  document.getElementById("sidebarMenu").style.width = "250px";
-  document.getElementById("main").style.marginLeft = "250px";
-}
-
-/* Set the width of the sidebar to 0 and the left margin of the page content to 0 */
-function closeNav() {
-  document.getElementById("sidebarMenu").style.width = "0";
-  document.getElementById("main").style.marginLeft = "0";
-}
