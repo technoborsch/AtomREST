@@ -30,7 +30,7 @@ const viewDirection = new THREE.Vector3();
 const boundBox = new THREE.Box3();
 const modelCenter = new THREE.Vector3();
 
-const raycaster = new THREE.Raycaster();
+const raycaster = new THREE.Raycaster(); // replace then with faster raycaster
 const mouse = new THREE.Vector2();
 
 init();
@@ -56,7 +56,7 @@ function init() {
 
     controls = new OrbitControls( camera, renderer.domElement );
     controls.addEventListener( 'change', render );
-    controls.zoomSpeed = 3;
+    controls.zoomSpeed = 4;
     controls.minDistance = 1;
     controls.maxDistance = 100000;
     controls.enablePan = false;
@@ -66,8 +66,16 @@ function init() {
         const loadingScreen = document.getElementById( 'loading-screen' );
 		loadingScreen.classList.add( 'fade-out' );
 		loadingScreen.addEventListener( 'transitionend', onTransitionEnd );
-		controls.target = modelCenter;
-		camera.position.set( boundBox.max.x , boundBox.max.y, boundBox.max.z );
+		controls.target.set(
+		    modelCenter.x,
+            modelCenter.y,
+            modelCenter.z
+        );
+		camera.position.set(
+		    boundBox.max.x,
+            boundBox.max.y,
+            boundBox.max.z,
+        );
 		controls.update();
 		onWindowResize();
 	});
@@ -85,18 +93,13 @@ function init() {
         gltf.scene.traverse((o) => {
             if (o.isMesh) {
                 o.material.side = THREE.DoubleSide;
-                o.material.clippingPlanes = clipPlanes;
+                //o.material.clippingPlanes = clipPlanes;
             }
         });
 
         gltf.scene.name = 'GLTF';
 
         boundBox.setFromObject( gltf.scene ).getCenter( modelCenter );
-
-        // FIXME some fuckery that should be removed by using right controls
-        gltf.scene.position.x += ( gltf.scene.position.x - 2 * modelCenter.x );
-        gltf.scene.position.y += ( gltf.scene.position.y - 2 * modelCenter.y );
-        gltf.scene.position.z += ( gltf.scene.position.z + modelCenter.z );
 
         scene.add( gltf.scene );
 
@@ -129,8 +132,6 @@ function init() {
     window.addEventListener( 'keydown', onDocumentKeyDown, false);
 
     window.addEventListener('click', onMouseClick, false);
-
-    window.addEventListener( 'mousemove', onMouseMove, false );
 
     function onDocumentKeyDown(event) {
         const keyCode = event.which;
@@ -180,24 +181,16 @@ function saveViewPoint(project, building, position, direction) {
         });
 }
 
-function onMouseMove( event ) {
+function onMouseClick( event ) {
+    let intersected;
 
-	// calculate mouse position in normalized device coordinates
-	// (-1 to +1) for both components
-
-	mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+    mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
 	mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 
-}
-
-function onMouseClick( event ) {
-    console.log(scene.children);
-    let intersected;
     raycaster.setFromCamera( mouse, camera );
     const intersects = raycaster.intersectObjects(scene.children[0].children[1].children);
     if (intersects.length > 0) {
         intersected = intersects[0];
-	    intersected.object.material.color.set( 0xff0000 );
     }
     render();
 }
