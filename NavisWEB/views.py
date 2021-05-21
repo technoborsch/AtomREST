@@ -20,7 +20,6 @@ class BuildingModelView(DetailView):
     context_object_name = 'model'
 
     def get_object(self, queryset=None):
-        print(self.kwargs['project'], self.kwargs['building'])
         return models.Model3D.objects.get(
             building__project__slug=self.kwargs['project'],
             building__slug=self.kwargs['building'],
@@ -28,13 +27,29 @@ class BuildingModelView(DetailView):
 
 
 # View points
+
+
+class ViewPointView(DetailView):
+    """A view to show a viewpoint in a model"""
+
+    model = models.ViewPoint
+    template_name = 'view_point.html'
+    context_object_name = 'view_point'
+
+    def get_queryset(self):
+        return models.ViewPoint.objects.filter(
+            model__building__project__slug=self.kwargs['project'],
+            model__building__slug=self.kwargs['building'],
+        )
+
+
 class ViewPointCreateView(views.View):
     """AJAX-view to save view points"""
     def get(self, request: HttpRequest):
         if request.is_ajax():
             try:
-                models.save_view_point(data=request.GET)
-                return JsonResponse({"status": "ok"})
+                url = models.save_view_point(data=request.GET).get_absolute_url()
+                return JsonResponse({"status": "ok", "url": url})
             except (KeyError, ValueError):
                 return JsonResponse({"status": "error", "description": "wrong request"})
         else:

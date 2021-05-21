@@ -39,21 +39,23 @@ class Model3D(models.Model):
 # View point
 def save_view_point(data):
     """Takes data from AJAX and creates a view point off it"""
-    print(str(data['project']), str(data['building']))
     model = Model3D.objects.get(
         building__project__slug=str(data['project']),
         building__slug=str(data['building']),
     )
 
-    ViewPoint.objects.create(
+    created_viewpoint = ViewPoint.objects.create(
         model=model,
         position_x=float(data['position[x]']),
         position_y=float(data['position[y]']),
         position_z=float(data['position[z]']),
-        direction_x=float(data['direction[x]']),
-        direction_y=float(data['direction[y]']),
-        direction_z=float(data['direction[z]']),
+        target_x=float(data['target[x]']),
+        target_y=float(data['target[y]']),
+        target_z=float(data['target[z]']),
+        clip_constant=float(data['clipConstant']),
     )
+    created_viewpoint.save()
+    return created_viewpoint
 
 
 class ViewPoint(models.Model):
@@ -62,9 +64,10 @@ class ViewPoint(models.Model):
     position_x = models.FloatField()
     position_y = models.FloatField()
     position_z = models.FloatField()
-    direction_x = models.FloatField()
-    direction_y = models.FloatField()
-    direction_z = models.FloatField()
+    target_x = models.FloatField()
+    target_y = models.FloatField()
+    target_z = models.FloatField()
+    clip_constant = models.FloatField()
     date_time = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -73,14 +76,14 @@ class ViewPoint(models.Model):
     def get_position(self):
         return self.position_x, self.position_y, self.position_z
 
-    def get_direction(self):
-        return self.direction_x, self.direction_y, self.direction_z
+    def get_target(self):
+        return self.target_x, self.target_y, self.target_z
 
-    def get_absolute_url(self):  # TODO move to another view 'viewpoint'
+    def get_absolute_url(self):  # TODO move to API
         return reverse(
-            'building_model',
+            'view_point',
             kwargs={
-                'model': self.model,
-                'position': self.get_position(),
-                'direction': self.get_direction(),
+                'project': self.model.building.project.slug,
+                'building': self.model.building.slug,
+                'pk': self.pk,
             })

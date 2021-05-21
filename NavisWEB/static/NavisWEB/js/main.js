@@ -14,23 +14,38 @@ const modelURL = settingsElement.getAttribute('model_url');
 const projectSlug = settingsElement.getAttribute('project_slug');
 const buildingSlug = settingsElement.getAttribute('building_slug');
 const viewpointURL = settingsElement.getAttribute('viewpoint_url');
+const position_x = parseFloat(settingsElement.getAttribute('position_x'));
+const position_y = parseFloat(settingsElement.getAttribute('position_y'));
+const position_z = parseFloat(settingsElement.getAttribute('position_z'));
+const target_x = parseFloat(settingsElement.getAttribute('target_x'));
+const target_y = parseFloat(settingsElement.getAttribute('target_y'));
+const target_z = parseFloat(settingsElement.getAttribute('target_z'));
+const planeConstant = parseFloat(settingsElement.getAttribute('plane_constant'));
 
 // for GUI
 const params = {
-    clipIntersection: true,
-    planeConstant: 0,
-    showHelpers: false
+    //planeConstantX: 0,
+    //planeConstantXNeg: 0,
+    planeConstantY: 0,
+    //planeConstantYNeg: 0,
+    //planeConstantZ: 0,
+    //planeConstantZneg: 0,
 };
 
 const clipPlanes = [
     new THREE.Plane( new THREE.Vector3( 0, -1, 0 ), 0 ),
+    //new THREE.Plane( new THREE.Vector3( 0, 1, 0 ), 0 ),
+    //new THREE.Plane( new THREE.Vector3( -1, 0, 0 ), 0 ),
+    //new THREE.Plane( new THREE.Vector3( 1, 0, 0 ), 0 ),
+    //new THREE.Plane( new THREE.Vector3( 0, 0, -1 ), 0 ),
+    //new THREE.Plane( new THREE.Vector3( 0, 0, 1 ), 0 ),
 ];
 
-const viewDirection = new THREE.Vector3();
 const boundBox = new THREE.Box3();
 const modelCenter = new THREE.Vector3();
 
-const raycaster = new THREE.Raycaster(); // replace then with faster raycaster
+//const raycaster = new THREE.Raycaster();
+// replace then with faster raycaster
 const mouse = new THREE.Vector2();
 
 init();
@@ -56,27 +71,30 @@ function init() {
 
     controls = new OrbitControls( camera, renderer.domElement );
     controls.addEventListener( 'change', render );
-    controls.zoomSpeed = 4;
+    controls.zoomSpeed = 5;
+    controls.panSpeed = 1;
     controls.minDistance = 1;
     controls.maxDistance = 100000;
-    controls.enablePan = false;
+    controls.enablePan = true;
 
     // loading manager to define actions after model's load
     const loadingManager = new THREE.LoadingManager( () => {
         const loadingScreen = document.getElementById( 'loading-screen' );
 		loadingScreen.classList.add( 'fade-out' );
 		loadingScreen.addEventListener( 'transitionend', onTransitionEnd );
-		controls.target.set(
-		    modelCenter.x,
-            modelCenter.y,
-            modelCenter.z
-        );
-		camera.position.set(
-		    boundBox.max.x,
-            boundBox.max.y,
-            boundBox.max.z,
-        );
+
+		setTarget();
+		setPosition();
+		setClipping();
+
 		controls.update();
+		gui.add( params, 'planeConstantY', boundBox.min.y, boundBox.max.y ).step( 10 )
+            .name( 'Сечение сверху' )
+            .onChange( function ( value ) {
+                clipPlanes[ 0 ].constant = value;
+                render();
+            });
+
 		onWindowResize();
 	});
 
@@ -93,7 +111,7 @@ function init() {
         gltf.scene.traverse((o) => {
             if (o.isMesh) {
                 o.material.side = THREE.DoubleSide;
-                //o.material.clippingPlanes = clipPlanes;
+                o.material.clippingPlanes = clipPlanes;
             }
         });
 
@@ -115,33 +133,74 @@ function init() {
 
     const gui = new GUI();
 
-    gui.add( params, 'planeConstant', boundBox.min.y, boundBox.max.y )
-        .step( 10 )
-        .name( 'plane constant' )
-        .onChange( function ( value ) {
-            for ( let j = 0; j < clipPlanes.length; j ++ ) {
-                clipPlanes[ j ].constant = value;
-            }
-            render();
-        });
-
-    gui.close();
-
     window.addEventListener( 'resize', onWindowResize );
-
-    window.addEventListener( 'keydown', onDocumentKeyDown, false);
 
     window.addEventListener('click', onMouseClick, false);
 
-    function onDocumentKeyDown(event) {
-        const keyCode = event.which;
-        if (keyCode === 32) {
-            saveViewPoint( projectSlug, buildingSlug, camera.position, viewDirection );
-            console.log(viewDirection);
-            console.log(camera.position);
-        }
-        render();
+    document.getElementById('camera').addEventListener('click', onCameraClick);
+
+    function onCameraClick() {
+        saveViewPoint( projectSlug, buildingSlug, camera.position, controls.target , clipPlanes[0].constant );
     }
+
+    function onMouseClick( event ) {
+    //let intersected;
+
+    mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+	mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+    //raycaster.setFromCamera( mouse, camera );
+    //const intersects = raycaster.intersectObjects(scene.children[0].children[1].children);
+    //if (intersects.length) {
+    //    console.log(intersects);
+    //    intersected = intersects[0];
+    //    intersected.object.material.color.set( 0xff0000 );
+    //}
+    //render();
+    }
+
+    function setTarget() {
+        if (target_x && target_y && target_z) {
+            controls.target.set(
+                target_x,
+                target_y,
+                target_z
+            );
+        } else {
+            controls.target.set(
+                modelCenter.x,
+                modelCenter.y,
+                modelCenter.z
+            );
+        }
+    }
+
+    function setPosition() {
+        if (position_x && position_y && position_z) {
+            camera.position.set(
+                position_x,
+                position_y,
+                position_z
+            );
+        } else {
+            camera.position.set(
+                2 * boundBox.max.x,
+                2 * boundBox.max.y,
+                2 * boundBox.max.z,
+            );
+        }
+    }
+
+    function setClipping() {
+        if (planeConstant) {
+            clipPlanes[0].constant = planeConstant;
+            params.planeConstantY = planeConstant;
+        } else {
+            clipPlanes[0].constant = boundBox.max.y;
+            params.planeConstantY = boundBox.max.y;
+        }
+    }
+
 }
 
 function onWindowResize() {
@@ -156,43 +215,36 @@ function render() {
     renderer.render(scene, camera);
 }
 
-function saveViewPoint(project, building, position, direction) {
-    let current_position = {
+function saveViewPoint(project, building, position, target, clipConstant) {
+    console.log("saving: " + project + ", " + building + ", " + position + ", " + target)
+    const camera_position = {
         x: position.x,
         y: position.y,
         z: position.z,
     }
-    let current_direction = {
-        x: direction.x,
-        y: direction.y,
-        z: direction.z,
+    const target_position = {
+        x: target.x,
+        y: target.y,
+        z: target.z,
     }
-    console.log("saving: " + project + ", " + building + ", " + current_position + ", " + current_direction)
     $.get(
         viewpointURL,
         {
             project: project,
             building: building,
-            position: current_position,
-            direction: current_direction,
+            position: camera_position,
+            target: target_position,
+            clipConstant: clipConstant,
         },
         function (response) {
-            console.log(response)
+            console.log(response);
+            if (response.status === 'ok') {
+                alert('Точка обзора сохранена, ссылка: http://127.0.01:8000' + response.url );
+            }
+            else {
+                alert('Что-то пошло не так');
+            }
         });
-}
-
-function onMouseClick( event ) {
-    let intersected;
-
-    mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-	mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
-
-    raycaster.setFromCamera( mouse, camera );
-    const intersects = raycaster.intersectObjects(scene.children[0].children[1].children);
-    if (intersects.length > 0) {
-        intersected = intersects[0];
-    }
-    render();
 }
 
 function onTransitionEnd( event ) {
