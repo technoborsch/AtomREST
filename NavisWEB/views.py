@@ -26,9 +26,6 @@ class BuildingModelView(DetailView):
         )
 
 
-# View points
-
-
 class ViewPointView(DetailView):
     """A view to show a viewpoint in a model"""
 
@@ -43,7 +40,7 @@ class ViewPointView(DetailView):
         )
 
 
-class ViewPointCreateView(views.View):
+class ViewPointCreateView(views.View):  # TODO remove then
     """AJAX-view to save view points"""
     def get(self, request: HttpRequest):
         if request.is_ajax():
@@ -63,8 +60,17 @@ class Model3DViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.Model3DSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
-    def get_object(self):
-        return models.Model3D.objects.get(building__slug=self.kwargs['building'])
+
+class ViewPointViewSet(viewsets.ModelViewSet):
+    """View set for view points"""
+    queryset = models.ViewPoint.objects.all()
+    serializer_class = serializers.ViewPointSerializer
+
+
+class NotesViewSet(viewsets.ModelViewSet):
+    """View set for notes model"""
+    queryset = models.Note.objects.all()
+    serializer_class = serializers.NoteSerializer
 
 
 # AJAX views here

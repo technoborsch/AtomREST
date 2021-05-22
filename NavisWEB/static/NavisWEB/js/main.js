@@ -67,8 +67,10 @@ function init() {
     scene.background = new THREE.Color( 0xf5f5f5 );
     scene.environment = pmremGenerator.fromScene( environment ).texture;
 
+    //camera settings
     camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 200000 );
 
+    //controls settings
     controls = new OrbitControls( camera, renderer.domElement );
     controls.addEventListener( 'change', render );
     controls.zoomSpeed = 5;
@@ -115,14 +117,14 @@ function init() {
             }
         });
 
-        gltf.scene.name = 'GLTF';
-
+        //set bound box and model center here off the scene to use it later
         boundBox.setFromObject( gltf.scene ).getCenter( modelCenter );
 
         scene.add( gltf.scene );
 
         },
 
+        //callback on loading process
         function ( xhr ) {
         console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
         },
@@ -139,10 +141,12 @@ function init() {
 
     document.getElementById('camera').addEventListener('click', onCameraClick);
 
+    //actions on click of camera button
     function onCameraClick() {
         saveViewPoint( projectSlug, buildingSlug, camera.position, controls.target , clipPlanes[0].constant );
     }
 
+    //actions on click on the model
     function onMouseClick( event ) {
     //let intersected;
 
@@ -150,7 +154,7 @@ function init() {
 	mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 
     //raycaster.setFromCamera( mouse, camera );
-    //const intersects = raycaster.intersectObjects(scene.children[0].children[1].children);
+    //const intersects = raycaster.intersectObjects(scene.children, true);
     //if (intersects.length) {
     //    console.log(intersects);
     //    intersected = intersects[0];
@@ -159,6 +163,7 @@ function init() {
     //render();
     }
 
+    //set the target either to given coordinates or to model center if they aren't presented
     function setTarget() {
         if (target_x && target_y && target_z) {
             controls.target.set(
@@ -175,6 +180,7 @@ function init() {
         }
     }
 
+    //set the target either to given coordinates or to model center if they aren't presented
     function setPosition() {
         if (position_x && position_y && position_z) {
             camera.position.set(
@@ -191,6 +197,7 @@ function init() {
         }
     }
 
+    //set clipping either to given value or set to default
     function setClipping() {
         if (planeConstant) {
             clipPlanes[0].constant = planeConstant;
@@ -203,6 +210,7 @@ function init() {
 
 }
 
+//function to handle window resizing
 function onWindowResize() {
     const main = document.getElementById('main');
     renderer.setSize( main.clientWidth, main.clientHeight);
@@ -211,12 +219,13 @@ function onWindowResize() {
     render();
 }
 
+//main function here - render the scene
 function render() {
     renderer.render(scene, camera);
 }
 
+//this function saves a viewpoint by sending an AJAX request back to server
 function saveViewPoint(project, building, position, target, clipConstant) {
-    console.log("saving: " + project + ", " + building + ", " + position + ", " + target)
     const camera_position = {
         x: position.x,
         y: position.y,
@@ -237,7 +246,6 @@ function saveViewPoint(project, building, position, target, clipConstant) {
             clipConstant: clipConstant,
         },
         function (response) {
-            console.log(response);
             if (response.status === 'ok') {
                 alert('Точка обзора сохранена, ссылка: http://127.0.01:8000' + response.url );
             }
@@ -247,6 +255,7 @@ function saveViewPoint(project, building, position, target, clipConstant) {
         });
 }
 
+//to remove the loading screen
 function onTransitionEnd( event ) {
 	const element = event.target;
 	element.remove();

@@ -15,6 +15,8 @@ router.register(r'projects', base_views.ProjectViewSet)
 router.register(r'buildings', base_views.BuildingViewSet)
 router.register(r'systems', base_views.SystemViewSet)
 router.register(r'models', model_views.Model3DViewSet)
+router.register(r'view_points', model_views.ViewPointViewSet)
+router.register(r'notes', model_views.NotesViewSet)
 
 urlpatterns = [
     path('', include('NavisWEB.urls')),

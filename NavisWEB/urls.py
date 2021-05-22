@@ -8,6 +8,6 @@ urlpatterns = [
     path('<slug:project>/<slug:building>/<pk>', views.ViewPointView.as_view(), name='view_point'),
     path('create_view_point', views.ViewPointCreateView.as_view(), name='create_view_point'),  # TODO move to API
 
-    # AJAX manipulations TODO move to API calls
+    # AJAX manipulations TODO move to API or remove
     path('session/', views.SessionModifier.as_view(), name='session'),
 ]

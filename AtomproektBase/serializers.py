@@ -18,7 +18,7 @@ class BuildingSerializer(serializers.HyperlinkedModelSerializer):
         model = models.Building
         fields = ('url', 'kks', 'name', 'project', 'systems', 'model')
         extra_kwargs = {
-            'model': {'lookup_field': 'building', 'required': False, 'allow_null': True}
+            'model': {'required': False, 'allow_null': True}
         }
 
 
