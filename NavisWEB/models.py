@@ -28,7 +28,7 @@ class Model3D(models.Model):
         null=True,
     )
     gltf = models.FileField(
-        verbose_name='Модель здания (формат .gltf)',
+        verbose_name='Модель здания (формат .gltf или .glb)',
         upload_to=get_upload_path,
         blank=True,
         null=True,
@@ -40,27 +40,6 @@ class Model3D(models.Model):
 
 
 # View point
-def save_view_point(data):
-    """Takes data from AJAX and creates a view point off it"""  # TODO to API
-    model = Model3D.objects.get(
-        building__project__slug=str(data['project']),
-        building__slug=str(data['building']),
-    )
-
-    created_viewpoint = ViewPoint.objects.create(
-        model=model,
-        position_x=float(data['position[x]']),
-        position_y=float(data['position[y]']),
-        position_z=float(data['position[z]']),
-        target_x=float(data['target[x]']),
-        target_y=float(data['target[y]']),
-        target_z=float(data['target[z]']),
-        clip_constant=float(data['clipConstant']),
-    )
-    created_viewpoint.save()
-    return created_viewpoint
-
-
 class ViewPoint(models.Model):
     """A model to describe a viewpoint inside a building model"""
     model = models.ForeignKey(Model3D, on_delete=models.CASCADE, related_name='view_points')
@@ -70,7 +49,12 @@ class ViewPoint(models.Model):
     target_x = models.FloatField()
     target_y = models.FloatField()
     target_z = models.FloatField()
-    clip_constant = models.FloatField()
+    clip_constant_y = models.FloatField()
+    clip_constant_y_neg = models.FloatField()
+    clip_constant_x = models.FloatField()
+    clip_constant_x_neg = models.FloatField()
+    clip_constant_z = models.FloatField()
+    clip_constant_z_neg = models.FloatField()
     date_time = models.DateTimeField(auto_now_add=True)
 
     class Meta:

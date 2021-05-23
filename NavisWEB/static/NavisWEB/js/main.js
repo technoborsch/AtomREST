@@ -17,38 +17,39 @@ const settingsElement = document.getElementById('viewer_settings');
 const viewPointToast = new bootstrap.Toast(document.getElementById('viewPointToast'));
 
 const model = await apiService.getModelByPK(settingsElement.getAttribute('model_pk'));
-const building = await apiService.getObject(model.building);
 const initialViewPointPK = settingsElement.getAttribute('view_point_pk');
 let initialViewPoint;
 if (initialViewPointPK) {
     initialViewPoint = await apiService.getViewPointByPK(initialViewPointPK);
+    console.log(initialViewPoint);
 }
 
 // for GUI
 const params = {
-    //planeConstantX: 0,
-    //planeConstantXNeg: 0,
+    planeConstantX: 0,
+    planeConstantXNeg: 0,
     planeConstantY: 0,
-    //planeConstantYNeg: 0,
-    //planeConstantZ: 0,
-    //planeConstantZneg: 0,
+    planeConstantYNeg: 0,
+    planeConstantZ: 0,
+    planeConstantZNeg: 0,
 };
+
 GUI.TEXT_CLOSED = 'Закрыть панель управления';
 GUI.TEXT_OPEN = 'Открыть панель управления';
 
 const clipPlanes = [
     new THREE.Plane( new THREE.Vector3( 0, -1, 0 ), 0 ),
-    //new THREE.Plane( new THREE.Vector3( 0, 1, 0 ), 0 ),
-    //new THREE.Plane( new THREE.Vector3( -1, 0, 0 ), 0 ),
-    //new THREE.Plane( new THREE.Vector3( 1, 0, 0 ), 0 ),
-    //new THREE.Plane( new THREE.Vector3( 0, 0, -1 ), 0 ),
-    //new THREE.Plane( new THREE.Vector3( 0, 0, 1 ), 0 ),
+    new THREE.Plane( new THREE.Vector3( 0, 1, 0 ), 0 ),
+    new THREE.Plane( new THREE.Vector3( -1, 0, 0 ), 0 ),
+    new THREE.Plane( new THREE.Vector3( 1, 0, 0 ), 0 ),
+    new THREE.Plane( new THREE.Vector3( 0, 0, -1 ), 0 ),
+    new THREE.Plane( new THREE.Vector3( 0, 0, 1 ), 0 ),
 ];
 
 const boundBox = new THREE.Box3();
 const modelCenter = new THREE.Vector3();
 
-//const raycaster = new THREE.Raycaster();
+const raycaster = new THREE.Raycaster();
 // replace then with faster raycaster
 const mouse = new THREE.Vector2();
 
@@ -77,8 +78,6 @@ function init() {
     //controls settings
     controls = new OrbitControls( camera, renderer.domElement );
     controls.addEventListener( 'change', render );
-    controls.zoomSpeed = 5;
-    controls.panSpeed = 1;
     controls.minDistance = 1;
     controls.maxDistance = 100000;
     controls.enablePan = true;
@@ -96,13 +95,50 @@ function init() {
 		    setDefaultView();
         }
 
-		gui.add( params, 'planeConstantY', boundBox.min.y, boundBox.max.y ).step( 10 )
-            .name( 'Сечение сверху' )
+		const clipping = gui.addFolder('Сечения');
+
+		clipping.add( params, 'planeConstantY', boundBox.min.y, boundBox.max.y ).step( 10 )
+            .name( 'Сверху' )
             .onChange( function ( value ) {
                 clipPlanes[ 0 ].constant = value;
                 render();
             });
 
+		clipping.add( params, 'planeConstantYNeg', boundBox.min.y, boundBox.max.y ).step( 10 )
+            .name( 'Снизу' )
+            .onChange( function ( value ) {
+                clipPlanes[ 1 ].constant = - value;
+                render();
+            });
+
+		clipping.add( params, 'planeConstantX', boundBox.min.x, boundBox.max.x ).step( 10 )
+            .name( 'Спереди' )
+            .onChange( function ( value ) {
+                clipPlanes[ 2 ].constant = value;
+                render();
+            });
+
+		clipping.add( params, 'planeConstantXNeg', boundBox.min.x, boundBox.max.x ).step( 10 )
+            .name( 'Сзади' )
+            .onChange( function ( value ) {
+                clipPlanes[ 3 ].constant = - value;
+                render();
+            });
+
+		clipping.add( params, 'planeConstantZ', boundBox.min.z, boundBox.max.z ).step( 10 )
+            .name( 'Слева' )
+            .onChange( function ( value ) {
+                clipPlanes[ 4 ].constant = value;
+                render();
+            });
+
+		clipping.add( params, 'planeConstantZNeg', boundBox.min.z, boundBox.max.z ).step( 10 )
+            .name( 'Справа' )
+            .onChange( function ( value ) {
+                clipPlanes[ 5 ].constant = - value;
+                render();
+            });
+        clipping.open();
 		onWindowResize();
 	});
 
@@ -165,14 +201,14 @@ function init() {
     mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
 	mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 
-    //raycaster.setFromCamera( mouse, camera );
-    //const intersects = raycaster.intersectObjects(scene.children, true);
-    //if (intersects.length) {
-    //    console.log(intersects);
+    raycaster.setFromCamera( mouse, camera );
+    const intersects = raycaster.intersectObjects(scene.children, true);
+    if (intersects.length) {
+        console.log(intersects);
     //    intersected = intersects[0];
     //    intersected.object.material.color.set( 0xff0000 );
-    //}
-    //render();
+        }
+    render();
     }
 
     //set the target either to given coordinates or to model center if they aren't presented
@@ -187,8 +223,19 @@ function init() {
             point.position_y,
             point.position_z,
         );
-        clipPlanes[0].constant = point.clip_constant;
-        params.planeConstantY = point.clip_constant;
+        clipPlanes[0].constant = point.clip_constant_y;
+        params.planeConstantY = point.clip_constant_y;
+        clipPlanes[1].constant = - point.clip_constant_y_neg;
+        params.planeConstantYNeg = point.clip_constant_y_neg;
+        clipPlanes[2].constant = point.clip_constant_x;
+        params.planeConstantX = point.clip_constant_x;
+        clipPlanes[3].constant = - point.clip_constant_x_neg;
+        params.planeConstantXNeg = point.clip_constant_x_neg;
+        clipPlanes[4].constant = point.clip_constant_z;
+        params.planeConstantZ = point.clip_constant_z;
+        clipPlanes[5].constant = - point.clip_constant_z_neg;
+        params.planeConstantZNeg = point.clip_constant_z_neg;
+
         controls.update();
     }
 
@@ -206,6 +253,17 @@ function init() {
         );
         clipPlanes[0].constant = boundBox.max.y;
         params.planeConstantY = boundBox.max.y;
+        clipPlanes[1].constant = - boundBox.min.y;
+        params.planeConstantYNeg = boundBox.min.y;
+        clipPlanes[2].constant = boundBox.max.x;
+        params.planeConstantX = boundBox.max.x;
+        clipPlanes[3].constant = - boundBox.min.x;
+        params.planeConstantXNeg = boundBox.min.x;
+        clipPlanes[4].constant = boundBox.max.z;
+        params.planeConstantZ = boundBox.max.z;
+        clipPlanes[5].constant = - boundBox.min.z;
+        params.planeConstantZNeg = boundBox.min.z;
+
         controls.update();
     }
 }
@@ -233,7 +291,12 @@ async function saveViewPoint(model, position, target, clipPlanes) {
         target_x: target.x,
         target_y: target.y,
         target_z: target.z,
-        clip_constant: clipPlanes[0].constant,
+        clip_constant_y: clipPlanes[0].constant,
+        clip_constant_y_neg: - clipPlanes[1].constant,
+        clip_constant_x: clipPlanes[2].constant,
+        clip_constant_x_neg: - clipPlanes[3].constant,
+        clip_constant_z: clipPlanes[4].constant,
+        clip_constant_z_neg:  - clipPlanes[5].constant,
         model: model
     }
     return await apiService.addViewPoint(view_point);
