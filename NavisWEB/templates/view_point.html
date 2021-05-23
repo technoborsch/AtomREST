@@ -1,15 +1,8 @@
 {% extends 'building_model.html' %}
 
+{% block title %}{{ view_point.model.building.kks }}/ Точка обзора {{ view_point.pk }}{% endblock %}
+
 {% block viewpoint_data %}
-    model_url="{{ view_point.model.gltf.url }}"
-    project_slug="{{ view_point.model.building.project.slug }}"
-    building_slug="{{ view_point.model.building.slug }}"
-    viewpoint_url="{% url 'create_view_point' %}"
-    position_x="{{ view_point.position_x }}"
-    position_y="{{ view_point.position_y }}"
-    position_z="{{ view_point.position_z }}"
-    target_x="{{ view_point.target_x }}"
-    target_y="{{ view_point.target_y }}"
-    target_z="{{ view_point.target_z }}"
-    plane_constant="{{ view_point.clip_constant }}"
+    model_pk="{{ view_point.model.pk }}"
+    view_point_pk="{{ view_point.pk }}"
 {% endblock %}

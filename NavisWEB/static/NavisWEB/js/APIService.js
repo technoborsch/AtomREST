@@ -1,5 +1,3 @@
-import axios from "../../axios/index.js";
-
 const APIRootURL = "http://127.0.0.1:8000/v1";
 
 export default class APIService {
@@ -7,8 +5,8 @@ export default class APIService {
     constructor() {}
 
     //returns a model by its primary key
-    getModel(pk) {
-        const url = `${APIRootURL}/models/${pk}`;
+    getModelByPK(pk) {
+        const url = `${APIRootURL}/models/${pk}/`;
         return axios.get(url).then(response => response.data);
     }
 
@@ -18,16 +16,32 @@ export default class APIService {
         return axios.get(url).then(response => response.data);
     }
 
-    //returns a viewpoint by link
-    getViewPoint(link) {
-        const url = `${APIRootURL}${link}`;
+    //gets a view point by its pk
+    getViewPointByPK(pk) {
+        const url = `${APIRootURL}/view_points/${pk}/`;
         return axios.get(url).then(response => response.data);
     }
 
-    //deletes a viewpoint by link
-    deleteViewPoint(link) {
-        const url = `${APIRootURL}${link}`;
-        return axios.delete(url);
+    //gets an object by link
+    getObject(link) {
+        return axios.get(link).then(response => response.data);
+    }
+
+    //deletes an object by link
+    deleteObject(link) {
+        return axios.delete(link);
+    }
+
+    //adds new viewpoint
+    addViewPoint(viewPoint) {
+        const url = `${APIRootURL}/view_points/`;
+        return axios.post(url, viewPoint).then(result => result.data);
+    }
+
+    //adds new note
+    addNote(note) {
+        const url =`${APIRootURL}/notes/`;
+        return axios.post(url, note);
     }
 
 }

@@ -6,21 +6,23 @@ import { MeshoptDecoder } from '../../threejs/examples/jsm/libs/meshopt_decoder.
 import { OrbitControls } from '../../threejs/examples/jsm/controls/OrbitControls.js';
 import { RoomEnvironment } from '../../threejs/examples/jsm/environments/RoomEnvironment.js';
 
+import APIService from "./APIService.js";
+
 let camera, scene, renderer, controls, environment, pmremGenerator;
+
+const apiService = new APIService();
 
 // get settings here from DOM which were set by django templates
 const settingsElement = document.getElementById('viewer_settings');
-const modelURL = settingsElement.getAttribute('model_url');
-const projectSlug = settingsElement.getAttribute('project_slug');
-const buildingSlug = settingsElement.getAttribute('building_slug');
-const viewpointURL = settingsElement.getAttribute('viewpoint_url');
-const position_x = parseFloat(settingsElement.getAttribute('position_x'));
-const position_y = parseFloat(settingsElement.getAttribute('position_y'));
-const position_z = parseFloat(settingsElement.getAttribute('position_z'));
-const target_x = parseFloat(settingsElement.getAttribute('target_x'));
-const target_y = parseFloat(settingsElement.getAttribute('target_y'));
-const target_z = parseFloat(settingsElement.getAttribute('target_z'));
-const planeConstant = parseFloat(settingsElement.getAttribute('plane_constant'));
+const viewPointToast = new bootstrap.Toast(document.getElementById('viewPointToast'));
+
+const model = await apiService.getModelByPK(settingsElement.getAttribute('model_pk'));
+const building = await apiService.getObject(model.building);
+const initialViewPointPK = settingsElement.getAttribute('view_point_pk');
+let initialViewPoint;
+if (initialViewPointPK) {
+    initialViewPoint = await apiService.getViewPointByPK(initialViewPointPK);
+}
 
 // for GUI
 const params = {
@@ -31,6 +33,8 @@ const params = {
     //planeConstantZ: 0,
     //planeConstantZneg: 0,
 };
+GUI.TEXT_CLOSED = 'Закрыть панель управления';
+GUI.TEXT_OPEN = 'Открыть панель управления';
 
 const clipPlanes = [
     new THREE.Plane( new THREE.Vector3( 0, -1, 0 ), 0 ),
@@ -64,7 +68,7 @@ function init() {
     environment = new RoomEnvironment();
     pmremGenerator = new THREE.PMREMGenerator( renderer );
 
-    scene.background = new THREE.Color( 0xf5f5f5 );
+    scene.background = new THREE.Color( 0xe8f9fc );
     scene.environment = pmremGenerator.fromScene( environment ).texture;
 
     //camera settings
@@ -85,11 +89,13 @@ function init() {
 		loadingScreen.classList.add( 'fade-out' );
 		loadingScreen.addEventListener( 'transitionend', onTransitionEnd );
 
-		setTarget();
-		setPosition();
-		setClipping();
+		//set view here either to given view point or to default
+		if (initialViewPoint) {
+		    setViewFromViewPoint(initialViewPoint);
+        } else {
+		    setDefaultView();
+        }
 
-		controls.update();
 		gui.add( params, 'planeConstantY', boundBox.min.y, boundBox.max.y ).step( 10 )
             .name( 'Сечение сверху' )
             .onChange( function ( value ) {
@@ -107,7 +113,7 @@ function init() {
     const loader = new GLTFLoader( loadingManager );
     loader.setKTX2Loader( ktx2Loader );
     loader.setMeshoptDecoder( MeshoptDecoder );
-    loader.load( modelURL, function ( gltf ) {
+    loader.load( model.gltf, function ( gltf ) {
 
         //traversing of scene - elements can be manipulated here
         gltf.scene.traverse((o) => {
@@ -143,8 +149,14 @@ function init() {
 
     //actions on click of camera button
     function onCameraClick() {
-        saveViewPoint( projectSlug, buildingSlug, camera.position, controls.target , clipPlanes[0].constant );
-    }
+        saveViewPoint(model.url, camera.position, controls.target, clipPlanes)
+            .then((savedViewPoint) => {
+                navigator.clipboard.writeText(savedViewPoint.viewer_url)
+                    .then(() => {
+                        viewPointToast.show();
+                    });
+            });
+     }
 
     //actions on click on the model
     function onMouseClick( event ) {
@@ -164,50 +176,38 @@ function init() {
     }
 
     //set the target either to given coordinates or to model center if they aren't presented
-    function setTarget() {
-        if (target_x && target_y && target_z) {
-            controls.target.set(
-                target_x,
-                target_y,
-                target_z
-            );
-        } else {
-            controls.target.set(
-                modelCenter.x,
-                modelCenter.y,
-                modelCenter.z
-            );
-        }
+    function setViewFromViewPoint(point) {
+        controls.target.set(
+            point.target_x,
+            point.target_y,
+            point.target_z
+        );
+        camera.position.set(
+            point.position_x,
+            point.position_y,
+            point.position_z,
+        );
+        clipPlanes[0].constant = point.clip_constant;
+        params.planeConstantY = point.clip_constant;
+        controls.update();
     }
 
-    //set the target either to given coordinates or to model center if they aren't presented
-    function setPosition() {
-        if (position_x && position_y && position_z) {
-            camera.position.set(
-                position_x,
-                position_y,
-                position_z
-            );
-        } else {
-            camera.position.set(
-                2 * boundBox.max.x,
-                2 * boundBox.max.y,
-                2 * boundBox.max.z,
-            );
-        }
+    //set the view to default point
+    function setDefaultView() {
+        controls.target.set(
+            modelCenter.x,
+            modelCenter.y,
+            modelCenter.z,
+        );
+        camera.position.set(
+            2 * boundBox.max.x,
+            2 * boundBox.max.y,
+            2 * boundBox.max.z,
+        );
+        clipPlanes[0].constant = boundBox.max.y;
+        params.planeConstantY = boundBox.max.y;
+        controls.update();
     }
-
-    //set clipping either to given value or set to default
-    function setClipping() {
-        if (planeConstant) {
-            clipPlanes[0].constant = planeConstant;
-            params.planeConstantY = planeConstant;
-        } else {
-            clipPlanes[0].constant = boundBox.max.y;
-            params.planeConstantY = boundBox.max.y;
-        }
-    }
-
 }
 
 //function to handle window resizing
@@ -224,38 +224,22 @@ function render() {
     renderer.render(scene, camera);
 }
 
-//this function saves a viewpoint by sending an AJAX request back to server
-function saveViewPoint(project, building, position, target, clipConstant) {
-    const camera_position = {
-        x: position.x,
-        y: position.y,
-        z: position.z,
+//the function saves a viewpoint by calling an API
+async function saveViewPoint(model, position, target, clipPlanes) {
+    const view_point = {
+        position_x: position.x,
+        position_y: position.y,
+        position_z: position.z,
+        target_x: target.x,
+        target_y: target.y,
+        target_z: target.z,
+        clip_constant: clipPlanes[0].constant,
+        model: model
     }
-    const target_position = {
-        x: target.x,
-        y: target.y,
-        z: target.z,
-    }
-    $.get(
-        viewpointURL,
-        {
-            project: project,
-            building: building,
-            position: camera_position,
-            target: target_position,
-            clipConstant: clipConstant,
-        },
-        function (response) {
-            if (response.status === 'ok') {
-                alert('Точка обзора сохранена, ссылка: http://127.0.01:8000' + response.url );
-            }
-            else {
-                alert('Что-то пошло не так');
-            }
-        });
+    return await apiService.addViewPoint(view_point);
 }
 
-//to remove the loading screen
+//to remove the loading screen on load
 function onTransitionEnd( event ) {
 	const element = event.target;
 	element.remove();

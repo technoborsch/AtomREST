@@ -40,19 +40,6 @@ class ViewPointView(DetailView):
         )
 
 
-class ViewPointCreateView(views.View):  # TODO remove then
-    """AJAX-view to save view points"""
-    def get(self, request: HttpRequest):
-        if request.is_ajax():
-            try:
-                url = models.save_view_point(data=request.GET).get_absolute_url()
-                return JsonResponse({"status": "ok", "url": url})
-            except (KeyError, ValueError):
-                return JsonResponse({"status": "error", "description": "wrong request"})
-        else:
-            return HttpResponse(status=404)
-
-
 # REST API
 class Model3DViewSet(viewsets.ModelViewSet):
     """View set for a 3D model"""
@@ -71,57 +58,3 @@ class NotesViewSet(viewsets.ModelViewSet):
     """View set for notes model"""
     queryset = models.Note.objects.all()
     serializer_class = serializers.NoteSerializer
-
-
-# AJAX views here
-class SessionModifier(views.View):
-    """A view to handle AJAX session manipulations"""
-
-    def get(self, request: HttpRequest, *args, **kwargs):
-        """
-        It manipulates with the key of a session ["shown_ids"], which is a list of ids of HTML elements of the site
-        that have to appear in shown state on reload. Maybe this is an inventing of bicycle here, but why not
-        """
-        if request.is_ajax():  # only ajax here, else 404
-            try:
-                key, value = str(request.GET["key"]), str(request.GET["value"])
-                # create here this list if it doesn't exists (first visit for example)
-                if "shown_ids" not in request.session.keys():
-                    request.session["shown_ids"] = list()
-                if key == "hide":
-                    return self._handle_hide(request, value)
-                elif key == "show":
-                    return self._handle_show(request, value)
-                else:  # there was some unknown key
-                    return JsonResponse({"status": "error", "description": "no matching keys"})
-            except (KeyError, ValueError):
-                return JsonResponse({"status": "error", "description": "wrong request"})
-        else:
-            # do not allow to access this address via browser
-            return HttpResponse(status=404)
-
-    @staticmethod
-    def _handle_show(request: HttpRequest, value: str):
-        """Handle session keys when receive "show" command"""
-        shown_ids_list = request.session["shown_ids"]
-        if value not in shown_ids_list:
-            # add this id to the list
-            shown_ids_list.append(value)
-            request.session["shown_ids"] = shown_ids_list
-            return JsonResponse({"status": "OK", "shown": value})
-        else:
-            # do nothing
-            return JsonResponse({"status": "already shown"})
-
-    @staticmethod
-    def _handle_hide(request: HttpRequest, value: str):
-        """Handle session keys when receive "hide" command"""
-        shown_ids_list = request.session["shown_ids"]
-        if value in shown_ids_list:
-            # then remove this id from the list
-            shown_ids_list.remove(value)
-            request.session["shown_ids"] = shown_ids_list
-            return JsonResponse({"status": "OK", "hide": value})
-        else:
-            # do nothing
-            return JsonResponse({"status": "already hidden"})

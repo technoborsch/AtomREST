@@ -1,40 +1,18 @@
-function send_state(url, key, value) {
-    console.log("sending: " + key + ", " + value)
-    $.get(
-        url,
-        {
-            "key": key,
-            "value": value,
-        },
-        function (response) {
-            console.log(response)
-        }
-    );
-}
 
-$(document).ready(function () {
+document.addEventListener("DOMContentLoaded",() => {
 
     let sidebarOpen = false;
-
-    $('#openbtn').click();
-
-    //If click occurs on one of the collapse buttons, send the ajax with unique id to /session/
-    //Also saves states of collapsible elements into local storage
-    $("button[data-bs-toggle=collapse]").on("click", function () {
-        const id_ = $(this).attr("data-bs-target").slice(1);
-        if (localStorage.getItem(id_) === "show") {
-            console.log("hide " + id_);
-            localStorage.removeItem(id_);
-            send_state("/session/", "hide", id_);
+    const openBtn = document.getElementById('openbtn');
+    const sideBarCollapseButtons = document.querySelectorAll('#sidebarMenu button.list-group-item');
+    sideBarCollapseButtons.forEach(function (node) {
+            node.addEventListener("click", function () {
+                    node.firstChild.nextSibling.classList.toggle('rotated');
+                }
+            );
         }
-        else {
-            console.log("show " + id_);
-            localStorage.setItem(id_, "show");
-            send_state("/session/", "show", id_);
-        }
-    });
+    );
 
-    $("#openbtn").on("click", function () {
+    openBtn.addEventListener("click", () => {
         if (sidebarOpen) {
             closeNav();
             sidebarOpen = !sidebarOpen;
@@ -44,14 +22,14 @@ $(document).ready(function () {
         }
     });
 
-    /* Set the width of the sidebar to 250px and the left margin of the page content to 250px */
+    /* Change classes to shifted position */
     function openNav() {
       document.getElementById("sidebarMenu").classList.add("sidebar-shifted");
       document.getElementById("main").classList.add("main-shifted");
       document.getElementById("openbtn").classList.add("openbtn-pressed");
     }
 
-    /* Set the width of the sidebar to 0 and the left margin of the page content to 0 */
+    /* Change classes to default position */
     function closeNav() {
       document.getElementById("sidebarMenu").classList.remove("sidebar-shifted");
       document.getElementById("main").classList.remove("main-shifted");

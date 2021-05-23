@@ -37,22 +37,46 @@
 
 div.list-group {
   border-radius: 0;
+  color: white;
 }
 
-button.list-group-item, div.list-group div.list-group {
+#sidebarMenu button.list-group-item, div.list-group div.list-group {
+  background-color: inherit;
+  color: white;
   margin-top: -1px;
   margin-bottom: -1px;
 }
 
-a.list-group-item {
+#sidebarMenu a.list-group-item {
+  background-color: white;
+  color: black;
   padding-left: 40px;
 }
 
-button.list-group-item:hover {
-  background-color: #c5d7f2;
+#sidebarMenu a.list-group-item:hover {
+  background-color: #7bb6e8;
+}
+
+#sidebarMenu button.list-group-item.disabled {
+  color: #7b7979;
+}
+
+#sidebarMenu button.list-group-item:hover {
+  background-color: #525558;
 }
 
 a.list-group-item, button.list-group-item {
   white-space: nowrap;
   overflow-x: hidden;
+}
+
+svg.bi.bi-chevron-right {
+  -webkit-transition: transform 0.35s ease-in-out;
+  transition: transform 0.35s ease-in-out;
+}
+
+svg.bi.bi-chevron-right.rotated {
+  -ms-transform: rotate(90deg);
+  -webkit-transform: rotate(90deg);
+  transform: rotate(90deg);
 }
