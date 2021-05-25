@@ -43,6 +43,7 @@ class Model3D(models.Model):
 class ViewPoint(models.Model):
     """A model to describe a viewpoint inside a building model"""
     model = models.ForeignKey(Model3D, on_delete=models.CASCADE, related_name='view_points')
+    description = models.TextField(blank=True, null=True)
     position_x = models.FloatField()
     position_y = models.FloatField()
     position_z = models.FloatField()
@@ -75,12 +76,20 @@ class NoteManager(models.Manager):
     def get_queryset(self):
         now = datetime.now()
         min_created_at = now - timedelta(days=NOTE_EXPIRY_DAYS)
+        # TODO add logic to return only if attached to a viewpoint or not expired
         return super(NoteManager, self).get_queryset().filter(time_created__gt=min_created_at)
 
 
 class Note(models.Model):
     """Class that represents a note that user can leave in a model"""
     model = models.ForeignKey(Model3D, on_delete=models.CASCADE, related_name='notes')
+    view_point = models.ForeignKey(
+        ViewPoint,
+        on_delete=models.CASCADE,
+        related_name='attached_notes',
+        blank=True,
+        null=True,
+    )
     text = models.TextField()
     position_x = models.FloatField()
     position_y = models.FloatField()

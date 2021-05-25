@@ -9,9 +9,13 @@
     >
     <script type="module" src="{% static 'NavisWEB/js/main.js' %}"></script>
     </div>
+
+    <!--Camera buttton-->
     <button id="camera" class="float-action-button">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-camera" viewBox="0 0 16 16"><path d="M15 12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h1.172a3 3 0 0 0 2.12-.879l.83-.828A1 1 0 0 1 6.827 3h2.344a1 1 0 0 1 .707.293l.828.828A3 3 0 0 0 12.828 5H14a1 1 0 0 1 1 1v6zM2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4H2z"></path><path d="M8 11a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5zm0 1a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM3 6.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0z"></path></svg>
     </button>
+
+    <!--Toast to show notifications-->
     <div class="position-fixed bottom-0 start-50 translate-middle-x p-3">
     <div id="viewPointToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
       <div class="toast-header bg-info">
@@ -24,7 +28,61 @@
       </div>
     </div>
     </div>
+
+    <!--Toast to show description of a viewpoint-->
+    <div class="position-fixed bottom-0 start-0 p-3">
+    <div id="viewPointDescriptionToast"
+         class="toast"
+         data-bs-delay="50000"
+         role="alert"
+         aria-live="assertive"
+         aria-atomic="true">
+      <div class="toast-header bg-info">
+        <img src="{% static 'icons/card-text.svg' %}" class="rounded me-2" alt="NoteIcon">
+        <strong class="me-auto">Описание</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+      <div class="toast-body">
+        <p id="descriptionText">Если вы видете это сообщение, то что-то пошло не так. Но ничего страшного!
+            Хорошего Вам дня</p>
+      </div>
+    </div>
+    </div>
+
+    <!--Modal to provide interface of viewpoint saving-->
+    <div class="modal fade"
+         id="viewPointModal"
+         data-bs-backdrop="static"
+         data-bs-keyboard="false"
+         tabindex="-1"
+         aria-labelledby="viewPointModalLabel"
+         aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="viewPointModalLabel">Новая точка обзора</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+          </div>
+          <div class="modal-body">
+            <div class="form-floating mb-3">
+              <input type="text"
+                     class="form-control"
+                     id="descriptionInput"
+                     placeholder="Ваша вентиляционная труба проходит через реактор">
+              <label for="descriptionInput">Описание точки</label>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+            <button type="button" id="saveViewPoint" class="btn btn-primary" data-bs-dismiss="modal">Сохранить</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!--Loading screen that disappears after model loading-->
     <section id="loading-screen">
 	<div id="loader"></div>
     </section>
+
 {% endblock %}

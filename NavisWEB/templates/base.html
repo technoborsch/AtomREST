@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="NavisWEB interface">
+    <meta name="description" content="NavisWEB application interface">
     <meta name="author" content="Nikita Nikiforov">
     <link rel="icon" href="{% static 'icons/globe.svg' %}" sizes="32x32" type="image/png">
     <link rel="icon" href="{% static 'icons/globe.svg' %}" sizes="16x16" type="image/png">
@@ -35,6 +35,36 @@
 
     <script src="{% static 'NavisWEB/js/interface_service.js' %}"></script>
     <script type="text/javascript" src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
+
+    <!--Model to show "about" information-->
+    <div class="modal fade" id="aboutModal" tabindex="-1" aria-labelledby="aboutModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <img src="{% static 'icons/info-square-fill.svg' %}" class="rounded me-2" alt="InfoIcon">
+            <h5 class="modal-title" id="aboutModalLabel">О приложении</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+          </div>
+          <div class="modal-body">
+            <p>Приложение NavisWEB было разработано по личной инициативе
+                <a href="mailto:NSNikiforov@atomproekt.com"> одним сотрудником Атомпроекта</a>, которому очень
+            надоело отсылать миллионы скриншотов, чтобы объяснить коллегам, что нужно поменять в модели.<br>
+                <br>
+                Веб-приложение разработано на основе компонентов с открытым исходным кодом и имеет открытый
+                исходный код, выложенный в <a href="https://github.com/technoborsch/AtomREST">репозитории</a> на гитхабе.
+                <br>Любые пулл-реквесты приветствуются!
+                <br>Предложения по улучшению приложения очень ценятся мной и их можно присылать
+                <a href="mailto:NSNikiforov@atomproekt.com"> сюда</a>,
+                <a href="https://t.me/niki4ov">сюда</a> и, может быть, даже
+                <a href="https://www.instagram.com/niki4ov/">сюда</a>.
+            </p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
 </body>
 </html>

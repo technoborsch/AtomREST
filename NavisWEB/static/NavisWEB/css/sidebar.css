@@ -80,3 +80,8 @@ svg.bi.bi-chevron-right.rotated {
   -webkit-transform: rotate(90deg);
   transform: rotate(90deg);
 }
+
+aside div button.btn.btn-link {
+  color: grey;
+  font-size: small;
+}

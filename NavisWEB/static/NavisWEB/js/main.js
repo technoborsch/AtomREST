@@ -5,6 +5,9 @@ import { KTX2Loader } from '../../threejs/examples/jsm/loaders/KTX2Loader.js';
 import { MeshoptDecoder } from '../../threejs/examples/jsm/libs/meshopt_decoder.module.js';
 import { OrbitControls } from '../../threejs/examples/jsm/controls/OrbitControls.js';
 import { RoomEnvironment } from '../../threejs/examples/jsm/environments/RoomEnvironment.js';
+//import { MeshBVH, acceleratedRaycast } from "../../three-mesh-bvh/src/index.js";
+
+//THREE.Mesh.prototype.raycast = acceleratedRaycast;
 
 import APIService from "./APIService.js";
 
@@ -15,13 +18,15 @@ const apiService = new APIService();
 // get settings here from DOM which were set by django templates
 const settingsElement = document.getElementById('viewer_settings');
 const viewPointToast = new bootstrap.Toast(document.getElementById('viewPointToast'));
+const viewPointModal = new bootstrap.Modal(document.getElementById('viewPointModal'));
+const viewPointDescriptionToast = new bootstrap.Toast(document.getElementById('viewPointDescriptionToast'));
+const descriptionText = document.getElementById('descriptionText');
 
 const model = await apiService.getModelByPK(settingsElement.getAttribute('model_pk'));
 const initialViewPointPK = settingsElement.getAttribute('view_point_pk');
 let initialViewPoint;
 if (initialViewPointPK) {
     initialViewPoint = await apiService.getViewPointByPK(initialViewPointPK);
-    console.log(initialViewPoint);
 }
 
 // for GUI
@@ -49,7 +54,8 @@ const clipPlanes = [
 const boundBox = new THREE.Box3();
 const modelCenter = new THREE.Vector3();
 
-const raycaster = new THREE.Raycaster();
+//const raycaster = new THREE.Raycaster();
+//raycaster.firstHitOnly = true;
 // replace then with faster raycaster
 const mouse = new THREE.Vector2();
 
@@ -81,6 +87,7 @@ function init() {
     controls.minDistance = 1;
     controls.maxDistance = 100000;
     controls.enablePan = true;
+    controls.panSpeed =2;
 
     // loading manager to define actions after model's load
     const loadingManager = new THREE.LoadingManager( () => {
@@ -183,15 +190,22 @@ function init() {
 
     document.getElementById('camera').addEventListener('click', onCameraClick);
 
+    document.getElementById('saveViewPoint').addEventListener('click', onSaveViewPointClick);
+
     //actions on click of camera button
     function onCameraClick() {
-        saveViewPoint(model.url, camera.position, controls.target, clipPlanes)
-            .then((savedViewPoint) => {
-                navigator.clipboard.writeText(savedViewPoint.viewer_url)
-                    .then(() => {
-                        viewPointToast.show();
-                    });
-            });
+        viewPointModal.show();
+     }
+
+     function onSaveViewPointClick() {
+        const description = document.getElementById('descriptionInput').value;
+         saveViewPoint(model.url, camera.position, controls.target, clipPlanes, description)
+             .then((savedViewPoint) => {
+                 navigator.clipboard.writeText(savedViewPoint.viewer_url)
+                     .then(() => {
+                         viewPointToast.show();
+                     });
+             });
      }
 
     //actions on click on the model
@@ -201,14 +215,14 @@ function init() {
     mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
 	mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 
-    raycaster.setFromCamera( mouse, camera );
-    const intersects = raycaster.intersectObjects(scene.children, true);
-    if (intersects.length) {
-        console.log(intersects);
+	//raycaster.setFromCamera( mouse, camera );
+    //const intersects = raycaster.intersectObjects(scene.children, true);
+    //console.dir(scene);
+    //if (intersects.length) {
+    //    console.log(intersects);
     //    intersected = intersects[0];
-    //    intersected.object.material.color.set( 0xff0000 );
-        }
-    render();
+    //    }
+    //render();
     }
 
     //set the target either to given coordinates or to model center if they aren't presented
@@ -235,6 +249,11 @@ function init() {
         params.planeConstantZ = point.clip_constant_z;
         clipPlanes[5].constant = - point.clip_constant_z_neg;
         params.planeConstantZNeg = point.clip_constant_z_neg;
+
+        if (point.description) {
+            descriptionText.innerText = point.description;
+            viewPointDescriptionToast.show();
+        }
 
         controls.update();
     }
@@ -283,7 +302,7 @@ function render() {
 }
 
 //the function saves a viewpoint by calling an API
-async function saveViewPoint(model, position, target, clipPlanes) {
+async function saveViewPoint(model, position, target, clipPlanes, description) {
     const view_point = {
         position_x: position.x,
         position_y: position.y,
@@ -297,12 +316,13 @@ async function saveViewPoint(model, position, target, clipPlanes) {
         clip_constant_x_neg: - clipPlanes[3].constant,
         clip_constant_z: clipPlanes[4].constant,
         clip_constant_z_neg:  - clipPlanes[5].constant,
-        model: model
+        model: model,
+        description: description,
     }
     return await apiService.addViewPoint(view_point);
 }
 
-//to remove the loading screen on load
+//to remove loading screen on load
 function onTransitionEnd( event ) {
 	const element = event.target;
 	element.remove();
