@@ -5,3 +5,4 @@
 /NavisWEB/migrations/
 /.coverage
 /htmlcov/
+/database

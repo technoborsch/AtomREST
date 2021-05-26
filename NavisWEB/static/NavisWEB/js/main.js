@@ -42,6 +42,8 @@ const params = {
 GUI.TEXT_CLOSED = 'Закрыть панель управления';
 GUI.TEXT_OPEN = 'Открыть панель управления';
 
+const gui = new GUI();
+
 const clipPlanes = [
     new THREE.Plane( new THREE.Vector3( 0, -1, 0 ), 0 ),
     new THREE.Plane( new THREE.Vector3( 0, 1, 0 ), 0 ),
@@ -182,8 +184,6 @@ function init() {
         console.log('An error happened' + error);
     });
 
-    const gui = new GUI();
-
     window.addEventListener( 'resize', onWindowResize );
 
     window.addEventListener('click', onMouseClick, false);
@@ -198,7 +198,7 @@ function init() {
      }
 
      function onSaveViewPointClick() {
-        const description = document.getElementById('descriptionInput').value;
+        let description = document.getElementById('descriptionInput').value;
          saveViewPoint(model.url, camera.position, controls.target, clipPlanes, description)
              .then((savedViewPoint) => {
                  navigator.clipboard.writeText(savedViewPoint.viewer_url)
@@ -293,6 +293,9 @@ function onWindowResize() {
     renderer.setSize( main.clientWidth, main.clientHeight);
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
+    if (main.clientWidth < 600) {
+        gui.close();
+    }
     render();
 }
 

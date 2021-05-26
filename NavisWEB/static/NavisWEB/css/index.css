@@ -98,8 +98,18 @@ body {
     }
 }
 
-@media (min-width: 992px) {
+@media screen and (min-width: 992px) {
   .rounded-lg-3 { border-radius: .3rem; }
+}
+
+.toast-placer {
+    margin-bottom: 3rem;
+}
+
+@media screen and (max-width: 570px) {
+    .toast-placer {
+        margin-bottom: 13rem;
+    }
 }
 
 body div.dg.ac {
@@ -113,19 +123,27 @@ button.float-action-button {
     display: flex;
     justify-content: center;
     align-items: center;
-    bottom: 2rem;
     right: 2rem;
     width: 4rem;
     height: 4rem;
     border-radius: 100%;
-    background: #0b5ed7;
     border: none;
     outline: none;
-    color: #FFF;
     font-size: 3rem;
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
     transition: .3s;
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    z-index: 1;
+}
+
+#camera {
+    bottom: 2rem;
+    color: #FFF;
+}
+
+#note {
+    bottom: 8rem;
+    color: black;
 }
 
 button.float-action-button:hover {

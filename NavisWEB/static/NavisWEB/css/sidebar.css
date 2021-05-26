@@ -71,8 +71,8 @@ a.list-group-item, button.list-group-item {
 }
 
 svg.bi.bi-chevron-right {
-  -webkit-transition: transform 0.35s ease-in-out;
-  transition: transform 0.35s ease-in-out;
+  -webkit-transition: transform 0.35s ease;
+  transition: transform 0.35s ease;
 }
 
 svg.bi.bi-chevron-right.rotated {
