@@ -54,7 +54,7 @@
     </div>
     </div>
 
-    <!--Modal to provide interface of viewpoint saving-->
+    <!--Modal to provide interface to viewpoint saving-->
     <div class="modal fade"
          id="viewPointModal"
          data-bs-backdrop="static"
@@ -80,6 +80,37 @@
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
             <button type="button" id="saveViewPoint" class="btn btn-primary" data-bs-dismiss="modal">Сохранить</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!--Modal to provide interface of notes saving-->
+    <div class="modal fade"
+         id="noteModal"
+         data-bs-backdrop="static"
+         data-bs-keyboard="false"
+         tabindex="-1"
+         aria-labelledby="noteModalLabel"
+         aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="noteModalLabel">Новая заметка</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+          </div>
+          <div class="modal-body">
+            <div class="form-floating mb-3">
+              <input type="text"
+                     class="form-control"
+                     id="noteTextInput"
+                     placeholder="Текст">
+              <label for="noteTextInput">Текст заметки</label>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+            <button type="button" id="saveNote" class="btn btn-primary disabled" data-bs-dismiss="modal">Указать точку</button>
           </div>
         </div>
       </div>

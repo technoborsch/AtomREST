@@ -1,13 +1,11 @@
 import * as THREE from '../../threejs/build/three.module.js';
-import { GUI } from '../../threejs/examples/jsm/libs/dat.gui.module.js';
-import { GLTFLoader } from  '../../threejs/examples/jsm/loaders/GLTFLoader.js';
-import { KTX2Loader } from '../../threejs/examples/jsm/loaders/KTX2Loader.js';
-import { MeshoptDecoder } from '../../threejs/examples/jsm/libs/meshopt_decoder.module.js';
-import { OrbitControls } from '../../threejs/examples/jsm/controls/OrbitControls.js';
-import { RoomEnvironment } from '../../threejs/examples/jsm/environments/RoomEnvironment.js';
-//import { MeshBVH, acceleratedRaycast } from "../../three-mesh-bvh/src/index.js";
-
-//THREE.Mesh.prototype.raycast = acceleratedRaycast;
+import {GUI} from '../../threejs/examples/jsm/libs/dat.gui.module.js';
+import {GLTFLoader} from '../../threejs/examples/jsm/loaders/GLTFLoader.js';
+import {KTX2Loader} from '../../threejs/examples/jsm/loaders/KTX2Loader.js';
+import {MeshoptDecoder} from '../../threejs/examples/jsm/libs/meshopt_decoder.module.js';
+import {OrbitControls} from '../../threejs/examples/jsm/controls/OrbitControls.js';
+import {RoomEnvironment} from '../../threejs/examples/jsm/environments/RoomEnvironment.js';
+import SpriteText from "../../three-spritetext/src/index.js";
 
 import APIService from "./APIService.js";
 
@@ -19,6 +17,7 @@ const apiService = new APIService();
 const settingsElement = document.getElementById('viewer_settings');
 const viewPointToast = new bootstrap.Toast(document.getElementById('viewPointToast'));
 const viewPointModal = new bootstrap.Modal(document.getElementById('viewPointModal'));
+const noteModal = new bootstrap.Modal(document.getElementById('noteModal'));
 const viewPointDescriptionToast = new bootstrap.Toast(document.getElementById('viewPointDescriptionToast'));
 const descriptionText = document.getElementById('descriptionText');
 
@@ -56,8 +55,8 @@ const clipPlanes = [
 const boundBox = new THREE.Box3();
 const modelCenter = new THREE.Vector3();
 
-//const raycaster = new THREE.Raycaster();
-//raycaster.firstHitOnly = true;
+const raycaster = new THREE.Raycaster();
+let isWaitingForNote = false;
 // replace then with faster raycaster
 const mouse = new THREE.Vector2();
 
@@ -158,7 +157,7 @@ function init() {
     const loader = new GLTFLoader( loadingManager );
     loader.setKTX2Loader( ktx2Loader );
     loader.setMeshoptDecoder( MeshoptDecoder );
-    loader.load( model.gltf, function ( gltf ) {
+    loader.load( model.gltf, ( gltf ) => {
 
         //traversing of scene - elements can be manipulated here
         gltf.scene.traverse((o) => {
@@ -176,11 +175,11 @@ function init() {
         },
 
         //callback on loading process
-        function ( xhr ) {
+        ( xhr ) => {
         console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
         },
         // called when loading has errors
-        function ( error ) {
+        ( error ) => {
         console.log('An error happened' + error);
     });
 
@@ -188,13 +187,21 @@ function init() {
 
     window.addEventListener('click', onMouseClick, false);
 
-    document.getElementById('camera').addEventListener('click', onCameraClick);
+    document.getElementById('camera').addEventListener('click', onCameraClick, false);
+
+    document.getElementById('note').addEventListener('click', onNoteClick, false);
 
     document.getElementById('saveViewPoint').addEventListener('click', onSaveViewPointClick);
+
+    document.getElementById('saveNote').addEventListener('click', onSaveNoteClick);
 
     //actions on click of camera button
     function onCameraClick() {
         viewPointModal.show();
+     }
+
+     function onNoteClick() {
+        noteModal.show();
      }
 
      function onSaveViewPointClick() {
@@ -208,22 +215,44 @@ function init() {
              });
      }
 
+     function onSaveNoteClick() {
+        setTimeout(() => {isWaitingForNote = true;}, 1);
+     }
+
     //actions on click on the model
     function onMouseClick( event ) {
-    //let intersected;
 
-    mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-	mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+        let intersected;
 
-	//raycaster.setFromCamera( mouse, camera );
-    //const intersects = raycaster.intersectObjects(scene.children, true);
-    //console.dir(scene);
-    //if (intersects.length) {
-    //    console.log(intersects);
-    //    intersected = intersects[0];
-    //    }
-    //render();
-    }
+        if (isWaitingForNote) {
+
+            mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+            mouse.y = - ( (event.clientY - 36) / window.innerHeight ) * 2 + 1;
+
+            raycaster.setFromCamera( mouse, camera );
+            const intersects = raycaster.intersectObjects(scene.children, true);
+            if (intersects.length) {
+                intersected = intersects[0];
+                insertNote(intersected.point);
+                }
+            }
+        }
+
+     function insertNote(position) {
+        let text = document.getElementById('noteTextInput').value;
+        text = prettify( text, 20 );
+        const note = new SpriteText(text, 400, 'black');
+        note.backgroundColor = 'white';
+        note.padding = 10;
+        note.borderRadius = 10;
+        note.position.set( position.x, position.y, position.z );
+        note.material.depthTest = false;
+        note.material.transparent = true;
+        note.material.opacity = 0.5;
+        scene.add( note );
+        isWaitingForNote = false;
+        render();
+     }
 
     //set the target either to given coordinates or to model center if they aren't presented
     function setViewFromViewPoint(point) {
@@ -329,4 +358,30 @@ async function saveViewPoint(model, position, target, clipPlanes, description) {
 function onTransitionEnd( event ) {
 	const element = event.target;
 	element.remove();
+}
+
+//adds spacing to long strings
+function prettify (text, maxLength) {
+    const space = ' ';
+    let wordsArray = text.split(space);
+    let stringsArray = [];
+    let string = [];
+    let lettersCounter = 0;
+
+    wordsArray.forEach(( word ) => {
+        lettersCounter += word.length;
+        if ( lettersCounter > maxLength ) {
+            stringsArray.push( string );
+            string = [];
+            lettersCounter = word.length;
+        }
+        string.push( word );
+    })
+    stringsArray.push( string );
+    const joinedStringsArray = []
+    stringsArray.forEach(( string ) => {
+        joinedStringsArray.push( string.join( space ) );
+    })
+
+    return joinedStringsArray.join('\n');
 }
