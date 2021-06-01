@@ -1,9 +1,8 @@
-from datetime import datetime, timedelta
-
 from django.db import models
 from django.urls import reverse
+from django.contrib.postgres.fields import ArrayField
 
-from AtomREST.settings import NOTE_EXPIRY_DAYS
+from AtomREST.settings import CURRENT_HOST, CURRENT_PORT
 from AtomproektBase import models as base_models
 
 
@@ -39,45 +38,32 @@ class Model3D(models.Model):
         return f'Model of {self.building} building'  # pragma: no cover
 
 
-# View point
 class ViewPoint(models.Model):
     """A model to describe a viewpoint inside a building model"""
     model = models.ForeignKey(Model3D, on_delete=models.CASCADE, related_name='view_points')
     description = models.TextField(blank=True, null=True)
-    position_x = models.FloatField()
-    position_y = models.FloatField()
-    position_z = models.FloatField()
-    target_x = models.FloatField()
-    target_y = models.FloatField()
-    target_z = models.FloatField()
-    clip_constant_y = models.FloatField()
-    clip_constant_y_neg = models.FloatField()
-    clip_constant_x = models.FloatField()
-    clip_constant_x_neg = models.FloatField()
-    clip_constant_z = models.FloatField()
-    clip_constant_z_neg = models.FloatField()
-    date_time = models.DateTimeField(auto_now_add=True)
+    position = ArrayField(models.FloatField(), size=3)  # x, y, z
+    quaternion = ArrayField(models.FloatField(), size=4)  # x, y, z, w
+    distance_to_target = models.FloatField(blank=True, null=True)
+    clip_constants = ArrayField(  # x, x negative, y, y negative, z, z negative
+        models.FloatField(), size=6, blank=True, null=True
+    )
+    creation_time = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['-date_time']
+        ordering = ['-creation_time']
 
     def get_absolute_url(self):
-        return 'http://127.0.0.1:8000' + reverse(  # FIXME Hard-coded hostname
+        port = ''
+        if CURRENT_PORT:
+            port = ':' + str(CURRENT_PORT)
+        return CURRENT_HOST + port + reverse(
             'view_point',
             kwargs={
                 'project': self.model.building.project.slug,
                 'building': self.model.building.slug,
                 'pk': self.pk,
             })
-
-
-class NoteManager(models.Manager):
-    """A manager for Note model to override standard query and simulate auto-deletion on specific time"""
-    def get_queryset(self):
-        now = datetime.now()
-        min_created_at = now - timedelta(days=NOTE_EXPIRY_DAYS)
-        # TODO add logic to return only if attached to a viewpoint or not expired
-        return super(NoteManager, self).get_queryset().filter(time_created__gt=min_created_at)
 
 
 class Note(models.Model):
@@ -87,14 +73,10 @@ class Note(models.Model):
         ViewPoint,
         on_delete=models.CASCADE,
         related_name='attached_notes',
-        blank=True,
-        null=True,
     )
     text = models.TextField()
-    position_x = models.FloatField()
-    position_y = models.FloatField()
-    position_z = models.FloatField()
-    time_created = models.DateTimeField(auto_now_add=True, db_index=True)
+    position = ArrayField(models.FloatField(), size=3, null=True)  # x, y, z
+    creation_time = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
-        ordering = ['-time_created']
+        ordering = ['-creation_time']

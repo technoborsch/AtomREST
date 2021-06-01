@@ -44,10 +44,10 @@ GUI.TEXT_OPEN = 'Открыть панель управления';
 const gui = new GUI();
 
 const clipPlanes = [
-    new THREE.Plane( new THREE.Vector3( 0, -1, 0 ), 0 ),
-    new THREE.Plane( new THREE.Vector3( 0, 1, 0 ), 0 ),
     new THREE.Plane( new THREE.Vector3( -1, 0, 0 ), 0 ),
     new THREE.Plane( new THREE.Vector3( 1, 0, 0 ), 0 ),
+    new THREE.Plane( new THREE.Vector3( 0, -1, 0 ), 0 ),
+    new THREE.Plane( new THREE.Vector3( 0, 1, 0 ), 0 ),
     new THREE.Plane( new THREE.Vector3( 0, 0, -1 ), 0 ),
     new THREE.Plane( new THREE.Vector3( 0, 0, 1 ), 0 ),
 ];
@@ -88,7 +88,7 @@ function init() {
     controls.minDistance = 1;
     controls.maxDistance = 100000;
     controls.enablePan = true;
-    controls.panSpeed =2;
+    controls.panSpeed = 2;
 
     // loading manager to define actions after model's load
     const loadingManager = new THREE.LoadingManager( () => {
@@ -206,7 +206,7 @@ function init() {
 
      function onSaveViewPointClick() {
         let description = document.getElementById('descriptionInput').value;
-         saveViewPoint(model.url, camera.position, controls.target, clipPlanes, description)
+         saveViewPoint(model.url, camera, controls, clipPlanes, description)
              .then((savedViewPoint) => {
                  navigator.clipboard.writeText(savedViewPoint.viewer_url)
                      .then(() => {
@@ -227,19 +227,19 @@ function init() {
         if (isWaitingForNote) {
 
             mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-            mouse.y = - ( (event.clientY - 36) / window.innerHeight ) * 2 + 1;
+            mouse.y = - ( ( event.clientY - 36 ) / window.innerHeight ) * 2 + 1;
 
             raycaster.setFromCamera( mouse, camera );
             const intersects = raycaster.intersectObjects(scene.children, true);
             if (intersects.length) {
+                const text = document.getElementById('noteTextInput').value;
                 intersected = intersects[0];
-                insertNote(intersected.point);
+                insertNote( intersected.point, text );
                 }
             }
         }
 
-     function insertNote(position) {
-        let text = document.getElementById('noteTextInput').value;
+     function insertNote( position, text ) {
         text = prettify( text, 20 );
         const note = new SpriteText(text, 400, 'black');
         note.backgroundColor = 'white';
@@ -256,34 +256,23 @@ function init() {
 
     //set the target either to given coordinates or to model center if they aren't presented
     function setViewFromViewPoint(point) {
-        controls.target.set(
-            point.target_x,
-            point.target_y,
-            point.target_z
-        );
-        camera.position.set(
-            point.position_x,
-            point.position_y,
-            point.position_z,
-        );
-        clipPlanes[0].constant = point.clip_constant_y;
-        params.planeConstantY = point.clip_constant_y;
-        clipPlanes[1].constant = - point.clip_constant_y_neg;
-        params.planeConstantYNeg = point.clip_constant_y_neg;
-        clipPlanes[2].constant = point.clip_constant_x;
-        params.planeConstantX = point.clip_constant_x;
-        clipPlanes[3].constant = - point.clip_constant_x_neg;
-        params.planeConstantXNeg = point.clip_constant_x_neg;
-        clipPlanes[4].constant = point.clip_constant_z;
-        params.planeConstantZ = point.clip_constant_z;
-        clipPlanes[5].constant = - point.clip_constant_z_neg;
-        params.planeConstantZNeg = point.clip_constant_z_neg;
+        camera.position.set( point.position[0], point.position[1], point.position[2] );
+        camera.quaternion.set( point.quaternion[0], point.quaternion[1], point.quaternion[2], point.quaternion[3] );
+        const direction = new THREE.Vector3( 0, 0, -1 ).applyQuaternion( camera.quaternion ).normalize();
+        const target = new THREE.Vector3().copy( camera.position );
+        let distance = point.distance_to_target;
+        if (!distance) {
+            distance = 2000;
+        }
+        target.add( direction.multiplyScalar( distance ) );
+        controls.target.set( target.x, target.y, target.z );
+
+        set_clipping( point.clip_constants );
 
         if (point.description) {
             descriptionText.innerText = point.description;
             viewPointDescriptionToast.show();
         }
-
         controls.update();
     }
 
@@ -295,24 +284,35 @@ function init() {
             modelCenter.z,
         );
         camera.position.set(
-            2 * boundBox.max.x,
-            2 * boundBox.max.y,
-            2 * boundBox.max.z,
+            boundBox.min.x + 2 * ( boundBox.max.x - boundBox.min.x ),
+            boundBox.min.y + 2 * ( boundBox.max.y - boundBox.min.y ),
+            boundBox.min.z + 2 * ( boundBox.max.z - boundBox.min.z ),
         );
-        clipPlanes[0].constant = boundBox.max.y;
-        params.planeConstantY = boundBox.max.y;
-        clipPlanes[1].constant = - boundBox.min.y;
-        params.planeConstantYNeg = boundBox.min.y;
-        clipPlanes[2].constant = boundBox.max.x;
-        params.planeConstantX = boundBox.max.x;
-        clipPlanes[3].constant = - boundBox.min.x;
-        params.planeConstantXNeg = boundBox.min.x;
-        clipPlanes[4].constant = boundBox.max.z;
-        params.planeConstantZ = boundBox.max.z;
-        clipPlanes[5].constant = - boundBox.min.z;
-        params.planeConstantZNeg = boundBox.min.z;
+
+        set_clipping();
 
         controls.update();
+    }
+
+    function set_clipping( clip_constants ) {
+        let array;
+        if (clip_constants) {
+            array = clip_constants;
+        } else {
+            array = [boundBox.max.x, boundBox.min.x, boundBox.max.y, boundBox.min.y, boundBox.max.z, boundBox.min.z];
+        }
+        for (let i = 0; i < array.length; i++) {
+            clipPlanes[i].constant = (-1)**i * array[i];
+            switch (i) {
+                case 0: { params.planeConstantX = array[i]; break;}
+                case 1: { params.planeConstantXNeg = array[i]; break;}
+                case 2: { params.planeConstantY = array[i]; break;}
+                case 3: { params.planeConstantYNeg = array[i]; break;}
+                case 4: { params.planeConstantZ = array[i]; break;}
+                case 5: { params.planeConstantZNeg = array[i]; break;}
+                default: { console.log('Some troubles with plane constants') }
+            }
+        }
     }
 }
 
@@ -334,20 +334,17 @@ function render() {
 }
 
 //the function saves a viewpoint by calling an API
-async function saveViewPoint(model, position, target, clipPlanes, description) {
+async function saveViewPoint(model, camera, controls, clipPlanes, description) {
+    const distance = camera.position.distanceTo( controls.target );
     const view_point = {
-        position_x: position.x,
-        position_y: position.y,
-        position_z: position.z,
-        target_x: target.x,
-        target_y: target.y,
-        target_z: target.z,
-        clip_constant_y: clipPlanes[0].constant,
-        clip_constant_y_neg: - clipPlanes[1].constant,
-        clip_constant_x: clipPlanes[2].constant,
-        clip_constant_x_neg: - clipPlanes[3].constant,
-        clip_constant_z: clipPlanes[4].constant,
-        clip_constant_z_neg:  - clipPlanes[5].constant,
+        position: camera.position.toArray(),
+        quaternion: camera.quaternion.toArray(),
+        distance_to_target: distance,
+        clip_constants: [
+            clipPlanes[0].constant, - clipPlanes[1].constant,
+            clipPlanes[2].constant, - clipPlanes[3].constant,
+            clipPlanes[4].constant, - clipPlanes[5].constant
+        ],
         model: model,
         description: description,
     }

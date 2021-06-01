@@ -20,6 +20,9 @@ document.addEventListener("DOMContentLoaded",() => {
             openNav();
             sidebarOpen = !sidebarOpen;
         }
+        if (viewpointsMenuOpen) {
+            viewpointsMenuToggleButton.click();
+        }
     });
 
     /* Change classes to shifted position */
@@ -47,6 +50,24 @@ document.addEventListener("DOMContentLoaded",() => {
             saveNoteButton.classList.toggle('disabled');
             buttonEnabled = !buttonEnabled;
         }
+    }
+
+    let viewpointsMenuOpen = false;
+
+    const viewpointsMenuToggleButton = document.getElementById('viewpointsMenuToggleButton');
+    viewpointsMenuToggleButton.addEventListener('click', handleViewpointMenuToggle);
+
+    function handleViewpointMenuToggle() {
+        if (!viewpointsMenuOpen) {
+            document.getElementById('viewpointsMenu').classList.add('sidebar-shifted');
+            document.getElementById('btnPlacer').classList.add('button-placer-shifted');
+            document.getElementById('viewpointsMenuToggleButton').firstChild.nextSibling.classList.add('rotated');
+        } else {
+            document.getElementById('viewpointsMenu').classList.remove('sidebar-shifted');
+            document.getElementById('btnPlacer').classList.remove('button-placer-shifted');
+            document.getElementById('viewpointsMenuToggleButton').firstChild.nextSibling.classList.remove('rotated');
+        }
+        viewpointsMenuOpen = !viewpointsMenuOpen;
     }
 
 });

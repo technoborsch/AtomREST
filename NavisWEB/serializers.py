@@ -14,7 +14,7 @@ class ViewPointSerializer(serializers.HyperlinkedModelSerializer):
     """Serializer for view points"""
     class Meta:
         model = models.ViewPoint
-        exclude = ['date_time']
+        exclude = ['creation_time']
 
     viewer_url = serializers.CharField(source='get_absolute_url', read_only=True)
 
@@ -23,4 +23,4 @@ class NoteSerializer(serializers.HyperlinkedModelSerializer):
     """Serializer for notes"""
     class Meta:
         model = models.Note
-        exclude = ['time_created']
+        exclude = ['creation_time']
