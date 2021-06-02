@@ -1,6 +1,6 @@
 from AtomproektBase.test.test_models import SetUp
 
-from NavisWEB import models
+from EasyView import models
 
 
 class Model3DTest(SetUp):

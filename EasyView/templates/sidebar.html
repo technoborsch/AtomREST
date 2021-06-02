@@ -1,8 +1,9 @@
 {% load static %}
-<link type="text/css" rel="stylesheet" href="{% static 'NavisWEB/css/sidebar.css' %}">
+<link type="text/css" rel="stylesheet" href="{% static 'EasyView/css/sidebar.css' %}">
 <aside id="sidebarMenu" class="sidebar bg-dark">
     <div class="list-group">
     {% for project in projects %}
+
         <button
                 class="list-group-item list-group-item-action
                 {% if not project.buildings.all %}disabled bg-dark{% endif %}"
@@ -11,20 +12,25 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"></path></svg>
             <span class="d-inline-block">&#160;{{ project.name }}</span>
         </button>
+
         <div class="collapse" id="{{ project.slug }}-collapse">
           <div class="list-group">
               {% for building in project.buildings.all %}
+                  {% if building.model %}
                   <a
                           href="{% url 'building_model' building.project.slug building.slug %}"
                           class="list-group-item list-group-item-action list-group-item-dark">
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-building" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M14.763.075A.5.5 0 0 1 15 .5v15a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5V14h-1v1.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V10a.5.5 0 0 1 .342-.474L6 7.64V4.5a.5.5 0 0 1 .276-.447l8-4a.5.5 0 0 1 .487.022zM6 8.694L1 10.36V15h5V8.694zM7 15h2v-1.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 .5.5V15h2V1.309l-7 3.5V15z"></path><path d="M2 11h1v1H2v-1zm2 0h1v1H4v-1zm-2 2h1v1H2v-1zm2 0h1v1H4v-1zm4-4h1v1H8V9zm2 0h1v1h-1V9zm-2 2h1v1H8v-1zm2 0h1v1h-1v-1zm2-2h1v1h-1V9zm0 2h1v1h-1v-1zM8 7h1v1H8V7zm2 0h1v1h-1V7zm2 0h1v1h-1V7zM8 5h1v1H8V5zm2 0h1v1h-1V5zm2 0h1v1h-1V5zm0-2h1v1h-1V3z"></path></svg>
                       <span class="d-inline-block">&#160;{{ building.kks }}</span>
                   </a>
+                  {% endif %}
               {% endfor %}
           </div>
         </div>
+
         </div>
     {% endfor %}
+
     <div class="position-absolute bottom-0">
     <button type="button" class="btn btn-link m-2" data-bs-toggle="modal" data-bs-target="#aboutModal">
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle-fill" viewBox="0 0 16 16"><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412l-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"></path></svg>

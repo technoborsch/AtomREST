@@ -8,7 +8,7 @@ from rest_framework import routers
 
 from AtomREST import settings
 from AtomproektBase import views as base_views
-from NavisWEB import views as model_views
+from EasyView import views as model_views
 
 router = routers.DefaultRouter()
 router.register(r'projects', base_views.ProjectViewSet)
@@ -19,7 +19,7 @@ router.register(r'view_points', model_views.ViewPointViewSet)
 router.register(r'notes', model_views.NotesViewSet)
 
 urlpatterns = [
-    path('', include('NavisWEB.urls')),
+    path('', include('EasyView.urls')),
     path('v1/', include(router.urls)),
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework'))

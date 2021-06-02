@@ -68,11 +68,10 @@ class ViewPoint(models.Model):
 
 class Note(models.Model):
     """Class that represents a note that user can leave in a model"""
-    model = models.ForeignKey(Model3D, on_delete=models.CASCADE, related_name='notes')
     view_point = models.ForeignKey(
         ViewPoint,
         on_delete=models.CASCADE,
-        related_name='attached_notes',
+        related_name='notes',
     )
     text = models.TextField()
     position = ArrayField(models.FloatField(), size=3, null=True)  # x, y, z

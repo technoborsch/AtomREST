@@ -12,6 +12,7 @@ import APIService from "./APIService.js";
 let camera, scene, renderer, controls, environment, pmremGenerator;
 
 const apiService = new APIService();
+let currentNotesList = [];
 
 // get settings here from DOM which were set by django templates
 const settingsElement = document.getElementById('viewer_settings');
@@ -20,6 +21,7 @@ const viewPointModal = new bootstrap.Modal(document.getElementById('viewPointMod
 const noteModal = new bootstrap.Modal(document.getElementById('noteModal'));
 const viewPointDescriptionToast = new bootstrap.Toast(document.getElementById('viewPointDescriptionToast'));
 const descriptionText = document.getElementById('descriptionText');
+const notesInsideModal = document.getElementById( 'notesInsideModal' );
 
 const model = await apiService.getModelByPK(settingsElement.getAttribute('model_pk'));
 const initialViewPointPK = settingsElement.getAttribute('view_point_pk');
@@ -36,6 +38,7 @@ const params = {
     planeConstantYNeg: 0,
     planeConstantZ: 0,
     planeConstantZNeg: 0,
+    areNotesShowed: true,
 };
 
 GUI.TEXT_CLOSED = 'Закрыть панель управления';
@@ -52,6 +55,15 @@ const clipPlanes = [
     new THREE.Plane( new THREE.Vector3( 0, 0, 1 ), 0 ),
 ];
 
+const geometry = new THREE.SphereGeometry(1);
+const material = new THREE.MeshBasicMaterial({
+    color: 0xFF0000,
+    transparent: true,
+    opacity: 0.5,
+});
+
+const guideSphere = new THREE.Mesh( geometry, material );
+
 const boundBox = new THREE.Box3();
 const modelCenter = new THREE.Vector3();
 
@@ -61,7 +73,6 @@ let isWaitingForNote = false;
 const mouse = new THREE.Vector2();
 
 init();
-render();
 
 function init() {
 
@@ -85,6 +96,8 @@ function init() {
     //controls settings
     controls = new OrbitControls( camera, renderer.domElement );
     controls.addEventListener( 'change', render );
+    controls.addEventListener( 'start', showGuideSphere );
+    controls.addEventListener( 'end', hideGuideSphere );
     controls.minDistance = 1;
     controls.maxDistance = 100000;
     controls.enablePan = true;
@@ -108,28 +121,28 @@ function init() {
 		clipping.add( params, 'planeConstantY', boundBox.min.y, boundBox.max.y ).step( 10 )
             .name( 'Сверху' )
             .onChange( function ( value ) {
-                clipPlanes[ 0 ].constant = value;
+                clipPlanes[ 2 ].constant = value;
                 render();
             });
 
 		clipping.add( params, 'planeConstantYNeg', boundBox.min.y, boundBox.max.y ).step( 10 )
             .name( 'Снизу' )
             .onChange( function ( value ) {
-                clipPlanes[ 1 ].constant = - value;
+                clipPlanes[ 3 ].constant = - value;
                 render();
             });
 
 		clipping.add( params, 'planeConstantX', boundBox.min.x, boundBox.max.x ).step( 10 )
             .name( 'Спереди' )
             .onChange( function ( value ) {
-                clipPlanes[ 2 ].constant = value;
+                clipPlanes[ 0 ].constant = value;
                 render();
             });
 
 		clipping.add( params, 'planeConstantXNeg', boundBox.min.x, boundBox.max.x ).step( 10 )
             .name( 'Сзади' )
             .onChange( function ( value ) {
-                clipPlanes[ 3 ].constant = - value;
+                clipPlanes[ 1 ].constant = - value;
                 render();
             });
 
@@ -146,6 +159,18 @@ function init() {
                 clipPlanes[ 5 ].constant = - value;
                 render();
             });
+
+		gui.add( params, 'areNotesShowed' )
+            .name( 'Заметки' )
+            .onChange( ( value ) => {
+                scene.traverse( (o) => {
+                    if (o.isSprite) {
+                        o.material.visible = value;
+                    }
+                } );
+                render();
+            });
+
         clipping.open();
 		onWindowResize();
 	});
@@ -184,16 +209,13 @@ function init() {
     });
 
     window.addEventListener( 'resize', onWindowResize );
-
     window.addEventListener('click', onMouseClick, false);
-
     document.getElementById('camera').addEventListener('click', onCameraClick, false);
-
     document.getElementById('note').addEventListener('click', onNoteClick, false);
-
     document.getElementById('saveViewPoint').addEventListener('click', onSaveViewPointClick);
-
     document.getElementById('saveNote').addEventListener('click', onSaveNoteClick);
+    document.getElementById('cancelNoteButton').addEventListener( 'click', onCameraClick );
+
 
     //actions on click of camera button
     function onCameraClick() {
@@ -202,12 +224,18 @@ function init() {
 
      function onNoteClick() {
         noteModal.show();
+        viewPointModal.hide();
      }
 
      function onSaveViewPointClick() {
         let description = document.getElementById('descriptionInput').value;
          saveViewPoint(model.url, camera, controls, clipPlanes, description)
              .then((savedViewPoint) => {
+                 currentNotesList.forEach((note) => {
+                     note.view_point = savedViewPoint.url;
+                     apiService.addNote( note );
+                 });
+                 currentNotesList = [];
                  navigator.clipboard.writeText(savedViewPoint.viewer_url)
                      .then(() => {
                          viewPointToast.show();
@@ -232,20 +260,27 @@ function init() {
             raycaster.setFromCamera( mouse, camera );
             const intersects = raycaster.intersectObjects(scene.children, true);
             if (intersects.length) {
-                const text = document.getElementById('noteTextInput').value;
-                intersected = intersects[0];
-                insertNote( intersected.point, text );
+                intersected = intersects[0]; //add proper logic that take sectioning into consideration
+                const note = {
+                    text: document.getElementById('noteTextInput').value,
+                    position: intersected.point.toArray(),
+                };
+                currentNotesList.push( note );
+                insertNote( note );
+                addNoteToModal( note );
+                viewPointModal.show();
                 }
             }
         }
 
-     function insertNote( position, text ) {
-        text = prettify( text, 20 );
+     function insertNote( noteObject ) {
+        const text = prettify( noteObject.text, 20 );
         const note = new SpriteText(text, 400, 'black');
         note.backgroundColor = 'white';
         note.padding = 10;
         note.borderRadius = 10;
-        note.position.set( position.x, position.y, position.z );
+        note.name = currentNotesList.indexOf(noteObject).toString();
+        note.position.set( noteObject.position[0], noteObject.position[1], noteObject.position[2] );
         note.material.depthTest = false;
         note.material.transparent = true;
         note.material.opacity = 0.5;
@@ -255,7 +290,7 @@ function init() {
      }
 
     //set the target either to given coordinates or to model center if they aren't presented
-    function setViewFromViewPoint(point) {
+    function setViewFromViewPoint( point ) {
         camera.position.set( point.position[0], point.position[1], point.position[2] );
         camera.quaternion.set( point.quaternion[0], point.quaternion[1], point.quaternion[2], point.quaternion[3] );
         const direction = new THREE.Vector3( 0, 0, -1 ).applyQuaternion( camera.quaternion ).normalize();
@@ -273,6 +308,11 @@ function init() {
             descriptionText.innerText = point.description;
             viewPointDescriptionToast.show();
         }
+        point.notes.forEach( (url) => {
+            apiService.getObject(url).then( (note) => {
+                insertNote( note );
+            } );
+        } );
         controls.update();
     }
 
@@ -314,23 +354,74 @@ function init() {
             }
         }
     }
-}
 
-//function to handle window resizing
-function onWindowResize() {
-    const main = document.getElementById('main');
-    renderer.setSize( main.clientWidth, main.clientHeight);
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    if (main.clientWidth < 600) {
-        gui.close();
+    function showGuideSphere() {
+        scene.add( guideSphere );
+        placeGuideSphereInTarget();
     }
-    render();
-}
 
-//main function here - render the scene
-function render() {
-    renderer.render(scene, camera);
+    function hideGuideSphere() {
+        scene.remove( guideSphere );
+        render();
+    }
+
+    function placeGuideSphereInTarget() {
+        const distance = camera.position.distanceTo( controls.target );
+        const newScale = distance / 100;
+        guideSphere.scale.x = newScale;
+        guideSphere.scale.y = newScale;
+        guideSphere.scale.z = newScale;
+
+        guideSphere.position.set(
+		    controls.target.x,
+            controls.target.y,
+            controls.target.z
+        )
+    }
+
+    //main function here - render the scene
+    function render() {
+        placeGuideSphereInTarget();
+        renderer.render(scene, camera);
+    }
+
+    //function to handle window resizing
+    function onWindowResize() {
+        const main = document.getElementById('main');
+        renderer.setSize( main.clientWidth, main.clientHeight);
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        if (main.clientWidth < 600) {
+            gui.close();
+        }
+        render();
+    }
+
+    function addNoteToModal( note ) {
+        let tag = document.createElement('a');
+        let closeBtn = document.createElement( 'button' );
+        tag.classList.add("btn");
+        tag.classList.add("btn-secondary");
+        tag.classList.add("m-1");
+        tag.setAttribute('key', currentNotesList.indexOf(note).toString());
+        closeBtn.classList.add("btn-close");
+        closeBtn.classList.add("ms-1");
+        closeBtn.addEventListener('click', onRemoveNoteClick);
+        let text = document.createTextNode( note.text );
+        tag.appendChild( text );
+        tag.appendChild( closeBtn );
+        notesInsideModal.appendChild( tag );
+    }
+
+    function onRemoveNoteClick(event) {
+        console.log(event);
+        let key = event.target.parentElement.getAttribute('key');
+        delete currentNotesList[key];
+        event.target.parentElement.remove();
+        scene.remove( scene.getObjectByName(key) );
+        render();
+    }
+
 }
 
 //the function saves a viewpoint by calling an API
@@ -375,7 +466,7 @@ function prettify (text, maxLength) {
         string.push( word );
     })
     stringsArray.push( string );
-    const joinedStringsArray = []
+    const joinedStringsArray = [];
     stringsArray.forEach(( string ) => {
         joinedStringsArray.push( string.join( space ) );
     })

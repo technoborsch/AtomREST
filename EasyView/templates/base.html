@@ -4,23 +4,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="NavisWEB application interface">
+    <meta name="description" content="EasyView application interface">
     <meta name="author" content="Nikita Nikiforov">
     <link rel="icon" href="{% static 'icons/globe.svg' %}" sizes="32x32" type="image/png">
     <link rel="icon" href="{% static 'icons/globe.svg' %}" sizes="16x16" type="image/png">
     <link rel="mask-icon" href="{% static 'icons/globe.svg' %}" color="#7952b3">
     <link rel="icon" href="{% static 'icons/globe.svg' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
-    <link type="text/css" rel="stylesheet" href="{% static 'NavisWEB/css/sidebar.css' %}">
+    <link type="text/css" rel="stylesheet" href="{% static 'EasyView/css/sidebar.css' %}">
     <!--Custom styles here-->
     {% block style %}
-    <link rel="stylesheet" type="text/css" href="{% static 'NavisWEB/css/index.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'EasyView/css/index.css' %}">
     {% endblock %}
     <script type="text/javascript" src="{% static 'jquery/jquery-3.6.js' %}"></script>
     <script src="{% static 'axios/axios.min.js' %}"></script>
 
     <!--Title block-->
-    <title>{% block title %}NavisWEB{% endblock %}</title>
+    <title>{% block title %}EasyView{% endblock %}</title>
 </head>
 
 <body>
@@ -33,7 +33,7 @@
     {% block script %}
     {% endblock %}
 
-    <script src="{% static 'NavisWEB/js/interface_service.js' %}"></script>
+    <script src="{% static 'EasyView/js/interface_service.js' %}"></script>
     <script type="text/javascript" src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
 
     <!--Model to show "about" information-->
@@ -46,7 +46,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
           </div>
           <div class="modal-body">
-            <p>Приложение NavisWEB было разработано по личной инициативе
+            <p>Приложение EasyView было разработано по личной инициативе
                 <a href="mailto:NSNikiforov@atomproekt.com"> одним сотрудником Атомпроекта</a>, которому очень
             надоело отсылать миллионы скриншотов, чтобы объяснить коллегам, что нужно поменять в модели.<br>
                 <br>

@@ -141,11 +141,6 @@ button.float-action-button {
     color: #FFF;
 }
 
-#note {
-    bottom: 8rem;
-    color: black;
-}
-
 button.float-action-button:hover {
     transform: scale(1.1);
     -ms-transform: scale(1.1);
@@ -161,6 +156,12 @@ button.float-action-button svg {
     position: absolute;
     background: #ffffff;
     z-index: 0;
+}
+
+@media screen and (max-width: 530px){
+    #viewpointsMenu {
+        padding-top: 93px;
+    }
 }
 
 .button-placer {

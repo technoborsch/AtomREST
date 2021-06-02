@@ -1,20 +1,22 @@
 from rest_framework import serializers
 
-from NavisWEB import models
+from EasyView import models
 
 
 class Model3DSerializer(serializers.HyperlinkedModelSerializer):
     """Serializer class for a building model"""
     class Meta:
         model = models.Model3D
-        fields = ['url', 'building', 'nwd', 'gltf', 'view_points', 'notes']
+        fields = ['url', 'building', 'nwd', 'gltf', 'view_points']
 
 
 class ViewPointSerializer(serializers.HyperlinkedModelSerializer):
     """Serializer for view points"""
     class Meta:
         model = models.ViewPoint
-        exclude = ['creation_time']
+        fields = ['url', 'viewer_url', 'position', 'quaternion', 'description', 'distance_to_target',
+                  'clip_constants', 'creation_time', 'model', 'notes']
+        read_only_fields = ['url', 'viewer_url', 'creation_time', 'notes']
 
     viewer_url = serializers.CharField(source='get_absolute_url', read_only=True)
 

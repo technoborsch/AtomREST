@@ -2,7 +2,7 @@
 /.idea/
 /AtomREST/settings.py
 /AtomproektBase/migrations/
-/NavisWEB/migrations/
+/EasyView/migrations/
 /.coverage
 /htmlcov/
 /database
