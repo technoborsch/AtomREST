@@ -2,6 +2,13 @@ const APIRootURL = "http://127.0.0.1:8000/v1";
 
 export default class APIService {
 
+    constructor(model, camera, controls, clipPlanes) {
+        this.model = model;
+        this.camera = camera;
+        this.controls = controls;
+        this.clipPlanes = clipPlanes;
+    }
+
     //returns a model by its primary key
     getModelByPK(pk) {
         const url = `${APIRootURL}/models/${pk}/`;
@@ -42,4 +49,23 @@ export default class APIService {
         return axios.post(url, note);
     }
 
+    //the function saves a viewpoint
+    async saveViewPoint(description) {
+        console.dir(this);
+        const distance = this.camera.position.distanceTo( this.controls.target );
+        const view_point = {
+            position: this.camera.position.toArray(),
+            quaternion: this.camera.quaternion.toArray(),
+            distance_to_target: distance,
+            clip_constants: [
+                this.clipPlanes[0].constant, - this.clipPlanes[1].constant,
+                this.clipPlanes[2].constant, - this.clipPlanes[3].constant,
+                this.clipPlanes[4].constant, - this.clipPlanes[5].constant
+            ],
+            model: this.model.url,
+            description: description,
+        }
+        console.dir(view_point);
+        return await this.addViewPoint(view_point);
+    }
 }

@@ -43,7 +43,9 @@ document.addEventListener("DOMContentLoaded",() => {
     let buttonEnabled = false;
     const noteTextInput = document.getElementById('noteTextInput');
     const saveNoteButton = document.getElementById('saveNote');
-    noteTextInput.addEventListener('input', handleSaveNoteButtonState);
+    if (noteTextInput) {
+        noteTextInput.addEventListener('input', handleSaveNoteButtonState);
+    }
 
     function handleSaveNoteButtonState() {
         if ((noteTextInput.value && !buttonEnabled) || (!noteTextInput.value && buttonEnabled)) {
@@ -55,7 +57,9 @@ document.addEventListener("DOMContentLoaded",() => {
     let viewpointsMenuOpen = false;
 
     const viewpointsMenuToggleButton = document.getElementById('viewpointsMenuToggleButton');
-    viewpointsMenuToggleButton.addEventListener('click', handleViewpointMenuToggle);
+    if (viewpointsMenuToggleButton) {
+        viewpointsMenuToggleButton.addEventListener('click', handleViewpointMenuToggle);
+    }
 
     function handleViewpointMenuToggle() {
         if (!viewpointsMenuOpen) {
