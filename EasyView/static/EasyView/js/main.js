@@ -1,5 +1,4 @@
 import * as THREE from '../../threejs/build/three.module.js';
-import {GUI} from '../../threejs/examples/jsm/libs/dat.gui.module.js';
 import {GLTFLoader} from '../../threejs/examples/jsm/loaders/GLTFLoader.js';
 import {KTX2Loader} from '../../threejs/examples/jsm/loaders/KTX2Loader.js';
 import {MeshoptDecoder} from '../../threejs/examples/jsm/libs/meshopt_decoder.module.js';
@@ -8,6 +7,7 @@ import {RoomEnvironment} from '../../threejs/examples/jsm/environments/RoomEnvir
 
 import APIService from "./APIService.js";
 import ViewpointManager from "./ViewPointsManager.js";
+import ControlPanel from "./ControlPanel.js";
 
 let camera, scene, renderer, controls, environment, pmremGenerator;
 
@@ -26,82 +26,6 @@ const clipPlanes = [];
 ].forEach( (array) => {
     clipPlanes.push( new THREE.Plane( new THREE.Vector3().fromArray( array ), 0 ) );
 } );
-
-//Control panel with sectioning, notes disabling button and so on
-GUI.TEXT_CLOSED = 'Закрыть панель управления';
-GUI.TEXT_OPEN = 'Открыть панель управления';
-
-class ControlPanel {
-    constructor() {
-        this.params = {
-            planeConstantX: 0,
-            planeConstantXNeg: 0,
-            planeConstantY: 0,
-            planeConstantYNeg: 0,
-            planeConstantZ: 0,
-            planeConstantZNeg: 0,
-            areNotesShowed: true,
-        };
-        this.gui = new GUI();
-    }
-
-    setControls( boundBox ) {
-        //Set all necessary controls off given bound box of a model
-
-        const clipping = this.gui.addFolder('Сечения');
-        [
-            ['planeConstantY', 'y', 2, 'Сверху'], ['planeConstantYNeg', 'y', 3, 'Снизу'],
-            ['planeConstantX', 'x', 0, 'Спереди'], ['planeConstantXNeg', 'x', 1, 'Сзади'],
-            ['planeConstantZ', 'z', 4, 'Слева'], ['planeConstantZNeg', 'z', 5, 'Справа'],
-
-        ].forEach( (case_) => {
-            clipping.add( this.params, case_[0], boundBox.min[case_[1]], boundBox.max[case_[1]] )
-                .step( 10 )
-                .name( case_[3] )
-                .onChange( (value) => {
-                    clipPlanes[case_[2]].constant = (-1) ** case_[2] * value;
-                    render();
-                } )
-        } );
-
-        //Option to hide/show notes
-		this.gui.add( this.params, 'areNotesShowed' )
-            .name( 'Заметки' )
-            .onChange( ( value ) => {
-                scene.traverse( (o) => {
-                    if (o.isSprite) {
-                        o.material.visible = value;
-                    }
-                } );
-                render();
-            });
-
-        //To make it appear opened
-        clipping.open();
-
-    }
-
-    setClipping( boundBox, clipPlanes, clipConstants ) {
-        //Manipulate with clipping planes here
-        let array = [boundBox.max.x, boundBox.min.x, boundBox.max.y, boundBox.min.y, boundBox.max.z, boundBox.min.z];
-        const paramsArray = [
-            'planeConstantX', 'planeConstantXNeg',
-            'planeConstantY', 'planeConstantYNeg',
-            'planeConstantZ', 'planeConstantZNeg'
-        ]
-        if (clipConstants) {
-            array = clipConstants;
-        }
-        for (let i = 0; i < array.length; i++) {
-            clipPlanes[i].constant = (-1)**i * array[i];
-            this.params[paramsArray[i]] = array[i];
-        }
-
-    }
-
-}
-
-const controlPanel = new ControlPanel();
 
 // get settings here from DOM which were set by django templates
 const settingsElement = document.getElementById('viewer_settings');
@@ -300,8 +224,10 @@ apiService.camera = camera;
 apiService.controls = controls;
 apiService.clipPlanes = clipPlanes;
 
+//Initialize control panel
+const controlPanel = new ControlPanel( clipPlanes, scene, render );
 
-//Initialise viewpoint manager here and bind it to the interface
+//Initialize viewpoint manager here and bind it to the interface
 const viewpointManager = new ViewpointManager(
     new bootstrap.Modal(document.getElementById('viewPointModal')),
     document.getElementById('cancelViewPoint'),

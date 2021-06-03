@@ -49,9 +49,8 @@ export default class APIService {
         return axios.post(url, note);
     }
 
-    //the function saves a viewpoint
+    //the function saves a viewpoint TODO shouldn't be here
     async saveViewPoint(description) {
-        console.dir(this);
         const distance = this.camera.position.distanceTo( this.controls.target );
         const view_point = {
             position: this.camera.position.toArray(),
@@ -65,7 +64,6 @@ export default class APIService {
             model: this.model.url,
             description: description,
         }
-        console.dir(view_point);
         return await this.addViewPoint(view_point);
     }
 }

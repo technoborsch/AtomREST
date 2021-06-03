@@ -1,5 +1,6 @@
 import * as THREE from "../../threejs/build/three.module.js";
 import SpriteText from "../../three-spritetext/src/index.js";
+import { prettify } from "./Utils.js";
 
 export default class ViewpointManager {
     //Describes an object that's responsible for all actions related to viewpoints
@@ -112,6 +113,7 @@ export default class ViewpointManager {
                 };
                 this.currentNotes.push( note );
                 this.insertNote( note );
+                this.isWaitingForNote = false;
                 this.addNoteToModal( note );
                 this.viewPointModal.show();
                 }
@@ -119,7 +121,7 @@ export default class ViewpointManager {
         }
 
     insertNote( noteObject ) {
-        const text = this.prettify( noteObject.text, 20 );
+        const text = prettify( noteObject.text, 20 );
         const note = new SpriteText(text, 400, 'black');
         note.backgroundColor = 'white';
         note.padding = 10;
@@ -130,7 +132,6 @@ export default class ViewpointManager {
         note.material.transparent = true;
         note.material.opacity = 0.5;
         this.scene.add( note );
-        this.isWaitingForNote = false;
         window.removeEventListener( 'click', this.getPositionToInsertNote.bind(this) );
         this.renderFunction();
     }
@@ -155,31 +156,6 @@ export default class ViewpointManager {
     showDescriptionToast( text ) {
         this.viewPointDescriptionToast.text.innerText = text;
         this.viewPointDescriptionToast.show();
-    }
-
-    prettify ( text, maxLength ) {
-        const space = ' ';
-        let wordsArray = text.split(space);
-        let stringsArray = [];
-        let string = [];
-        let lettersCounter = 0;
-
-        wordsArray.forEach(( word ) => {
-            lettersCounter += word.length;
-            if ( lettersCounter > maxLength ) {
-                stringsArray.push( string );
-                string = [];
-                lettersCounter = word.length;
-            }
-            string.push( word );
-        })
-        stringsArray.push( string );
-        const joinedStringsArray = [];
-        stringsArray.forEach(( string ) => {
-            joinedStringsArray.push( string.join( space ) );
-        })
-
-        return joinedStringsArray.join('\n');
     }
 
 }
