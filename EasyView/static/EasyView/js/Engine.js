@@ -16,7 +16,7 @@ const clipPlanes = [];
     [0, 0, -1], [0, 0, 1],
 
 ].forEach( (array) => {
-    this.clipPlanes.push( new THREE.Plane( new THREE.Vector3().fromArray( array ), 0 ) );
+    clipPlanes.push( new THREE.Plane( new THREE.Vector3().fromArray( array ), 0 ) );
 } );
 
 //Draw here a little sphere that will guide a viewer during manipulations
@@ -57,12 +57,7 @@ controls.panSpeed = 2;
 //Loading manager to define actions after model's load
 const loadingManager = new THREE.LoadingManager();
 
-//Loader and decompressor of GLTF/GLB models
-const ktx2Loader = new KTX2Loader().setTranscoderPath('../../threejs/examples/js/libs/basis').detectSupport(renderer);
 const loader = new GLTFLoader(loadingManager);
-loader.setKTX2Loader(ktx2Loader);
-loader.setMeshoptDecoder(MeshoptDecoder);
-
 
 export default class Engine {
     //A graphical engine that works on THREE.js library
@@ -72,6 +67,7 @@ export default class Engine {
         this.clipPlanes = clipPlanes;
         this.model = undefined;
         this.viewPoint = undefined;
+
         this.guideSphere = guideSphere;
         this.boundBox = new THREE.Box3();
         this.modelCenter = new THREE.Vector3();
@@ -88,62 +84,53 @@ export default class Engine {
         this.controls.addEventListener('end', this.hideGuideSphere.bind(this));
 
         this.loadingManager = loadingManager;
-        this.loadingManager.onLoad = this.onModelLoad;
         this.loader = loader;
 
         window.addEventListener('resize', this.onWindowResize.bind(this));
-
     }
 
-    onModelLoad() {
-        const loadingScreen = document.getElementById('loading-screen');
-        loadingScreen.classList.add('fade-out');
-        loadingScreen.addEventListener('transitionend', (event) => {event.target.remove();});
-        this.onWindowResize();
-    }
-
-    async loadModel( model ) {
+    loadModel( model ) {
+        // Loads given model object
+        const ktx2Loader = new KTX2Loader()
+            .setTranscoderPath('../../threejs/examples/js/libs/basis')
+            .detectSupport(this.renderer);
+        this.loader.setKTX2Loader(ktx2Loader);
+        this.loader.setMeshoptDecoder(MeshoptDecoder);
         this.loader.load( model.gltf, ( gltf ) => {
 
-        //traversing of scene - elements can be manipulated here on load
-        gltf.scene.traverse((o) => {
+        gltf.scene.traverse((o) => { // Walk through all elements of scene
             if (o.isMesh) {
-                o.material.side = THREE.DoubleSide;
-                o.material.clippingPlanes = clipPlanes;
+                o.material.side = THREE.DoubleSide; // Or it will look unnatural
+                o.material.clippingPlanes = this.clipPlanes; // Assign clip planes to each mesh material
             }
         });
 
-        //set bound box and model center here off the scene to use it later
+        // Set bound box and model center here off the scene to use it later
         this.boundBox.setFromObject(gltf.scene).getCenter(this.modelCenter);
-
-        this.scene.add(gltf.scene);
-
+        this.model = model;
+        this.scene.add( gltf.scene );
         },
 
-        //callback on loading process
+        // Callback on loading process
         (xhr) => { console.log((xhr.loaded / xhr.total * 100) + '% loaded'); },
-        // called when loading has errors
+        // Called when loading has errors
         (error) => { console.log('An error happened' + error); }
         );
     }
 
     setViewFromViewPoint( point ) {
+        // It sets view off given point object. Note that it doesn't set clipping, so clipping should be set separately
+        this.viewPoint = point;
         this.camera.position.set(point.position[0], point.position[1], point.position[2]);
         this.camera.quaternion.set(point.quaternion[0], point.quaternion[1], point.quaternion[2], point.quaternion[3]);
         const direction = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.quaternion).normalize();
         const target = new THREE.Vector3().copy(this.camera.position);
         let distance = point.distance_to_target;
         if (!distance) {
-            distance = 2000;
+            distance = 2000;  // Default distance to target. TODO move to constructor
         }
         target.add(direction.multiplyScalar(distance));
         this.controls.target.set(target.x, target.y, target.z);
-
-        //controlPanel.setClipping(boundBox, clipPlanes, point.clip_constants); TODO move to control panel
-
-        //if (point.description) {
-        //    viewpointManager.showDescriptionToast( point.description );
-        //}  TODO move to manager
 
         point.notes.forEach((note) => {
             this.insertNote(note);
@@ -152,6 +139,7 @@ export default class Engine {
     }
 
     setDefaultView() {
+        // It sets default view depending on loaded model
         this.controls.target.set(
             this.modelCenter.x,
             this.modelCenter.y,
@@ -163,42 +151,70 @@ export default class Engine {
             this.boundBox.min.z + 2 * (this.boundBox.max.z - this.boundBox.min.z),
         );
 
-        //controlPanel.setClipping(boundBox, clipPlanes); TODO Move to control panel
-
         this.controls.update();
     }
 
-    getFirstIntersectionPosition( x, y ) {
-        let intersected;
+    async getFirstIntersectionPosition( event ) {
+        // Async function that returns first intersection point, taking into consideration current clipping.
+        const clipPlanes = this.clipPlanes;
         const mouse = new THREE.Vector2();
 
-        mouse.x = x;
-        mouse.y = y;
+        mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+        mouse.y = - ( ( event.clientY - 36 ) / window.innerHeight ) * 2 + 1;
 
         this.raycaster.setFromCamera(mouse, this.camera);
         const intersects = this.raycaster.intersectObjects(this.scene.children, true);
         if (intersects.length) {
-            intersected = intersects[0]; // TODO add proper logic that takes sectioning into consideration
-            return intersected;
+            for ( let i = 0; i < intersects.length; i++ ) {
+                const point = intersects[i].point;
+                if (
+                    (clipPlanes[0].constant > point.x) && ( point.x > -clipPlanes[1].constant)
+                    && (clipPlanes[2].constant > point.y) && (point.y > -clipPlanes[3].constant)
+                    && (clipPlanes[4].constant > point.z) && (point.z > -clipPlanes[5].constant)
+                ) {
+                    return point //TODO should not react to sprites
+                }
+            }
         }
     }
 
-    insertNote( noteObject ) {
+    getCurrentViewPoint() {
+        //Returns a view point with empty description
+        const distance = this.camera.position.distanceTo( this.controls.target );
+        return {
+            position: this.camera.position.toArray(),
+            quaternion: this.camera.quaternion.toArray(),
+            distance_to_target: distance,
+            clip_constants: [
+                this.clipPlanes[0].constant, -this.clipPlanes[1].constant,
+                this.clipPlanes[2].constant, -this.clipPlanes[3].constant,
+                this.clipPlanes[4].constant, -this.clipPlanes[5].constant
+            ],
+            model: this.model.url,
+            description: null,
+        }
+    }
+
+    insertNote( noteObject, name ) {
+        // Creates and inserts a note to a model
         const text = prettify( noteObject.text, 20 );
         const note = new SpriteText(text, 400, 'black');
         note.backgroundColor = 'white';
         note.padding = 10;
         note.borderRadius = 10;
+        if (name) { // If a name wasn't passed, leave it empty.
+            note.name = name;
+        }
         note.position.set( noteObject.position[0], noteObject.position[1], noteObject.position[2] );
-        note.material.depthTest = false;
+        note.material.depthTest = false; // To be visible through walls
         note.material.transparent = true;
         note.material.opacity = 0.5;
         this.scene.add( note );
         this.render();
     }
 
-    //A method to handle window resizing
     onWindowResize() {
+        // A method to handle window resizing
         const main = document.getElementById('main');
         this.renderer.setSize(main.clientWidth, main.clientHeight);
         this.camera.aspect = window.innerWidth / window.innerHeight;
@@ -210,29 +226,30 @@ export default class Engine {
     }
 
     render() {
+        // A method called to render current scene to canvas
         this.placeGuideSphereInTarget();
-        renderer.render(scene, camera);
+        this.renderer.render( this.scene, this.camera );
     }
 
     showGuideSphere() {
+        // Show little guide sphere in controls target
         this.scene.add( this.guideSphere );
         this.placeGuideSphereInTarget();
     }
 
     hideGuideSphere() {
+        // Hide guide sphere
         this.scene.remove( this.guideSphere );
-        render();
+        this.render();
     }
 
     placeGuideSphereInTarget() {
-        const distance = this.camera.position.distanceTo( this.controls.target );
-        const newScale = distance / 100;
+        // This method should be called to place guide sphere in current controls target
+        const distance = this.camera.position.distanceTo(this.controls.target);
+        const newScale = distance / 100; // Scale of the sphere
         this.guideSphere.scale.x = newScale;
         this.guideSphere.scale.y = newScale;
         this.guideSphere.scale.z = newScale;
-
-        this.guideSphere.position.set( controls.target.x, controls.target.y, controls.target.z );
-
+        this.guideSphere.position.set(controls.target.x, controls.target.y, controls.target.z);
     }
-
 }

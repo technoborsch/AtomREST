@@ -1,15 +1,12 @@
-import * as THREE from "../../threejs/build/three.module.js";
-import SpriteText from "../../three-spritetext/src/index.js";
-import { prettify } from "./Utils.js";
-
 export default class ViewpointManager {
-    //Describes an object that's responsible for all actions related to viewpoints
+    // Describes an object that's responsible for all actions related to viewpoints
     constructor(
+        // TODO Huge constructor and so maybe it is easier to bind all interface elements here
         viewPointModal, viewPointModalCancelButton, viewPointModalSaveButton, viewPointModalOpenButton,
         viewPointModalDescriptionInput, viewPointModalNoteInsertionElement,
         noteModal, noteModalSaveButton, noteModalOpenButton, noteModalDescriptionInput,
         viewPointToast, viewPointDescriptionToast, viewPointToastDescriptionOutput,
-        apiService, scene, camera, raycaster, renderFunction
+        engine, controlPanel, apiService
         ) {
         this.viewPointModal = viewPointModal;
         this.viewPointModal.cancelButton = viewPointModalCancelButton;
@@ -28,15 +25,14 @@ export default class ViewpointManager {
         this.viewPointDescriptionToast.text = viewPointToastDescriptionOutput;
 
         this.apiService = apiService;
-        this.scene = scene;
-        this.camera = camera;
-        this.raycaster = raycaster;
-        this.renderFunction = renderFunction;
+        this.engine = engine;
+        this.controlPanel = controlPanel;
 
         this.currentNotes = [];
         this.removeNoteButtons = [];
         this.isWaitingForNote = false;
 
+        // Bind methods to clicks on different buttons. Don't forget to register a button here if you want it to work
         this.viewPointModal.openButton.addEventListener( 'click', this.onViewPointModalOpenButtonClick.bind(this) );
         this.viewPointModal.saveButton.addEventListener( 'click', this.onViewPointModalSaveButtonClick.bind(this) );
         this.viewPointModal.cancelButton.addEventListener( 'click', this.onViewPointModalCancelButtonClick.bind(this) );
@@ -44,18 +40,15 @@ export default class ViewpointManager {
         this.noteModal.saveButton.addEventListener( 'click', this.onNoteModalSaveButtonClick.bind(this) );
 
     }
-    that = this;
 
     onViewPointModalOpenButtonClick() {
-        //Show modal
-        console.dir(this);
+        // Simply show view point modal
         this.viewPointModal.show();
     }
 
     onViewPointModalSaveButtonClick() {
-        //Get all notes and values, save them
-        console.dir(this);
-        this.apiService.saveViewPoint(this.viewPointModal.descriptionInput.value)
+        // Gets all notes and values and saves them
+        this.saveViewPoint(this.viewPointModal.descriptionInput.value)
             .then((savedViewPoint) => {
                 this.currentNotes.forEach( (note) => {
                     note.view_point = savedViewPoint.url;
@@ -70,73 +63,71 @@ export default class ViewpointManager {
     }
 
     onViewPointModalCancelButtonClick() {
-        //On cancelling of viewpoint input
+        // On cancelling of viewpoint input
         this.removeNoteButtons.forEach( (button) => {
-            button.click();
+            button.click(); // Simply click on each to remove.
         } );
         this.currentNotes = [];
     }
 
     onViewPointModalRemoveNoteButton(event) {
+        // Removes this note from scene, modal and the list of current notes
         let key = event.target.parentElement.getAttribute('key');
+        this.engine.scene.remove( this.engine.scene.getObjectByName( key ) );
         delete this.currentNotes[key];
         event.target.parentElement.remove();
-        this.scene.remove( this.scene.getObjectByName(key) );
-        this.renderFunction();
+        this.engine.render();
     }
 
     onNoteModalOpenButtonClick() {
+        // So we want another modal to be shown, but also we should close a previous one
         this.noteModal.show();
         this.viewPointModal.hide();
     }
 
     onNoteModalSaveButtonClick() {
+        // Bind listener to a window and start to wait for a click
         setTimeout(() => {this.isWaitingForNote = true;}, 1);
         window.addEventListener( 'click', this.getPositionToInsertNote.bind(this) );
     }
 
-    getPositionToInsertNote( event ) {
-        if (this.isWaitingForNote) {
-            let intersected;
-            const mouse = new THREE.Vector2();
+    setViewPoint( viewPoint ) {
+        // Method that called to apply a viewpoint, it handles both view and clipping
+        if (viewPoint) {
+            this.engine.setViewFromViewPoint( viewPoint );
+            this.controlPanel.setClipping(viewPoint.clip_constants);
+            if (viewPoint.description) {
+                this.showDescriptionToast( viewPoint.description );
+            }
+        } else {
+            this.engine.setDefaultView();
+            this.controlPanel.setClipping();
+        }
+    }
 
-            mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-            mouse.y = - ( ( event.clientY - 36 ) / window.innerHeight ) * 2 + 1;
+    async getPositionToInsertNote( event ) {
+        // Actions when it waits for a click to insert a note there
+        if (this.isWaitingForNote) { // TODO may be redundant
 
-            this.raycaster.setFromCamera( mouse, this.camera );
-            const intersects = this.raycaster.intersectObjects(this.scene.children, true);
-            if (intersects.length) {
-                intersected = intersects[0]; //add proper logic that takes sectioning into consideration
+            const position = await this.engine.getFirstIntersectionPosition( event );
+            if (position) {
                 const note = {
                     text: this.noteModal.descriptionInput.value,
-                    position: intersected.point.toArray(),
+                    position: position.toArray(),
                 };
                 this.currentNotes.push( note );
-                this.insertNote( note );
+                const key = this.currentNotes.indexOf( note );
+                this.engine.insertNote( note, key.toString() );
                 this.isWaitingForNote = false;
                 this.addNoteToModal( note );
+                window.removeEventListener( 'click', this.getPositionToInsertNote.bind(this) );
                 this.viewPointModal.show();
-                }
             }
         }
-
-    insertNote( noteObject ) {
-        const text = prettify( noteObject.text, 20 );
-        const note = new SpriteText(text, 400, 'black');
-        note.backgroundColor = 'white';
-        note.padding = 10;
-        note.borderRadius = 10;
-        note.name = this.currentNotes.indexOf(noteObject).toString();
-        note.position.set( noteObject.position[0], noteObject.position[1], noteObject.position[2] );
-        note.material.depthTest = false;
-        note.material.transparent = true;
-        note.material.opacity = 0.5;
-        this.scene.add( note );
-        window.removeEventListener( 'click', this.getPositionToInsertNote.bind(this) );
-        this.renderFunction();
     }
 
     addNoteToModal( note ) {
+        // It creates and adds a label on modal with simple interface to manipulate it before saving
         let tag = document.createElement('a');
         let closeBtn = document.createElement( 'button' );
         tag.classList.add("btn");
@@ -146,7 +137,7 @@ export default class ViewpointManager {
         closeBtn.classList.add("btn-close");
         closeBtn.classList.add("ms-1");
         closeBtn.addEventListener('click', this.onViewPointModalRemoveNoteButton.bind(this) );
-        this.removeNoteButtons.push( closeBtn );
+        this.removeNoteButtons.push( closeBtn ); // save them to click on each if we want to clear all notes
         let text = document.createTextNode( note.text );
         tag.appendChild( text );
         tag.appendChild( closeBtn );
@@ -154,8 +145,15 @@ export default class ViewpointManager {
     }
 
     showDescriptionToast( text ) {
+        // Shows a toast with given text
         this.viewPointDescriptionToast.text.innerText = text;
         this.viewPointDescriptionToast.show();
     }
 
+    async saveViewPoint( description ) {
+        // It gets current view point, adds description and saves. Does not manage with notes
+        const viewPoint = this.engine.getCurrentViewPoint();
+        viewPoint.description = description;
+        return await this.apiService.addViewPoint(viewPoint);
+    }
 }
