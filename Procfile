@@ -1,1 +1,1 @@
-web: gunicorn AtomREST.wsgi --log-file -
+web: gunicorn AtomREST:application --log-file -

@@ -1,8 +1,5 @@
-from django import views
 from django.views.generic import TemplateView, DetailView
-from django.http import JsonResponse, HttpResponse, HttpRequest
 from rest_framework import viewsets
-from rest_framework import permissions
 
 from EasyView import serializers, models
 

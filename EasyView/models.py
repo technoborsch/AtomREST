@@ -2,7 +2,7 @@ from django.db import models
 from django.urls import reverse
 from django.contrib.postgres.fields import ArrayField
 
-from AtomREST.settings import CURRENT_HOST, CURRENT_PORT
+from AtomREST.settings import CURRENT_URL
 from AtomproektBase import models as base_models
 
 
@@ -54,10 +54,7 @@ class ViewPoint(models.Model):
         ordering = ['-creation_time']
 
     def get_absolute_url(self):
-        port = ''
-        if CURRENT_PORT:
-            port = ':' + str(CURRENT_PORT)
-        return CURRENT_HOST + port + reverse(
+        return CURRENT_URL + reverse(
             'view_point',
             kwargs={
                 'project': self.model.building.project.slug,
