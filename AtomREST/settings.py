@@ -29,17 +29,15 @@ DEBUG = bool(os.getenv('DEBUG', True))
 
 ALLOWED_HOSTS = ['*']
 
-CURRENT_HOST = 'http://127.0.0.1'
-CURRENT_PORT = 8000
-
 heroku_app_name = os.getenv('HEROKU_APP_NAME')
 if heroku_app_name:
     CURRENT_HOST = f'https://{heroku_app_name}.herokuapp.com'
     CURRENT_PORT = None
-
-CURRENT_URL = CURRENT_HOST
-if CURRENT_PORT:
-    CURRENT_URL = CURRENT_URL + ':' + str(CURRENT_PORT)
+    CURRENT_URL = CURRENT_HOST
+else:
+    CURRENT_HOST = 'http://127.0.0.1'
+    CURRENT_PORT = 8000
+    CURRENT_URL = CURRENT_HOST + ':' + str(CURRENT_PORT)
 
 CURRENT_API_URL = CURRENT_URL + '/v1'
 
