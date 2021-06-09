@@ -6,7 +6,11 @@ export default class APIService {
     // Returns a model by its primary key
     getModelByPK(pk) {
         const url = `${APIRootURL}/models/${pk}/`;
-        return axios.get(url).then(response => response.data);
+        return axios.get(url).then( (response) => {
+            const model = response.data;
+            this.getObject(model.building).then((result) => {model.building = result});
+            return model;
+        });
     }
 
     // Returns all viewpoints
@@ -44,6 +48,12 @@ export default class APIService {
     addViewPoint(viewPoint) {
         const url = `${APIRootURL}/view_points/`;
         return axios.post(url, viewPoint).then(result => result.data);
+    }
+
+    // Deletes a viewpoint by its pk
+    deleteViewPointByPK( pk ) {
+        const url = `${APIRootURL}/view_points/${pk}/`;
+        return axios.delete(url);
     }
 
     // Adds new note

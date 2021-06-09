@@ -13,10 +13,28 @@
 
     <!--Sidebar with notes-->
     <aside id="viewpointsMenu" class="sidebar">
-    <p class="text-muted m-2 ms-4">Точки&nbsp;обзора</p>
-    <ul class="">
-
-    </ul>
+    <div class="list-group">
+      <!--Expandable list of view point buttons-->
+      <button type="button" class="list-group-item list-group-item-action" data-bs-toggle="collapse" data-bs-target="#remarkButtons-collapse">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"></path></svg>
+        <span class="text-muted m-2 ms-4">Замечания</span>
+      </button>
+      <div class="collapse" id="remarkButtons-collapse">
+        <div id="remarkButtons" class="list-group">
+        <!--Insertion point for remark buttons-->
+        </div>
+      </div>
+      <!--Expandable list of view point buttons-->
+      <button type="button" class="list-group-item list-group-item-action" data-bs-toggle="collapse" data-bs-target="#pointButtons-collapse">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"></path></svg>
+        <span class="text-muted m-2 ms-4">Точки&nbsp;обзора</span>
+      </button>
+      <div class="collapse" id="pointButtons-collapse">
+        <div id="pointButtons" class="list-group">
+        <!--Insertion point for viewpoint buttons-->
+        </div>
+      </div>
+    </div>
     </aside>
 
     <!--Button to toggle sidebar with notes-->
@@ -59,11 +77,30 @@
         <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
       </div>
       <div class="toast-body">
-        <p id="descriptionText">Если вы видете это сообщение, то что-то пошло не так. Но ничего страшного!
-            Хорошего Вам дня</p>
+        <p id="descriptionText"></p>
       </div>
     </div>
     </div>
+
+    <!--Toast to show viewpoint deletion notification-->
+    <div class="toast-placer position-absolute bottom-0 start-50">
+    <div id="viewPointDeletionToast"
+         class="toast ms-2"
+         data-bs-delay="50000"
+         role="alert"
+         aria-live="assertive"
+         aria-atomic="true">
+      <div class="toast-header bg-danger">
+        <img src="{% static 'icons/trash.svg' %}" class="rounded me-2" alt="NoteIcon">
+        <strong class="me-auto">Удалено</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+      <div class="toast-body">
+        <p>Точка обзора была успешно удалена</p>
+      </div>
+    </div>
+    </div>
+
 
     <!--Modal to provide interface to viewpoint saving-->
     <div class="modal fade"

@@ -36,7 +36,9 @@ const viewpointManager = new ViewpointManager(
     document.getElementById('noteTextInput'),
     new bootstrap.Toast(document.getElementById('viewPointToast')),
     new bootstrap.Toast(document.getElementById('viewPointDescriptionToast')),
+    new bootstrap.Toast(document.getElementById('viewPointDeletionToast')),
     document.getElementById('descriptionText'),
+    document.getElementById( 'pointButtons' ),
     engine,
     controlPanel,
     apiService,
@@ -45,11 +47,15 @@ const viewpointManager = new ViewpointManager(
 main()
 
 function main() {
+    engine.model = model;
     engine.loadingManager.onLoad = () => {
         const loadingScreen = document.getElementById('loading-screen');
         loadingScreen.classList.add('fade-out');
         loadingScreen.addEventListener('transitionend', (event) => {event.target.remove();});
         viewpointManager.setViewPoint( initialViewPoint );
+        viewpointManager.getSavedViewpoints().then( () => {
+            viewpointManager.renderViewpointsList();
+        });
         engine.onWindowResize();
     };
     engine.loadModel( model );

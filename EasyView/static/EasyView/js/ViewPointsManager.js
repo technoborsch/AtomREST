@@ -5,7 +5,8 @@ export default class ViewpointManager {
         viewPointModal, viewPointModalCancelButton, viewPointModalSaveButton, viewPointModalOpenButton,
         viewPointModalDescriptionInput, viewPointModalNoteInsertionElement,
         noteModal, noteModalSaveButton, noteModalOpenButton, noteModalDescriptionInput,
-        viewPointToast, viewPointDescriptionToast, viewPointToastDescriptionOutput,
+        viewPointToast, viewPointDescriptionToast, viewPointDeletionToast, viewPointToastDescriptionOutput,
+        viewPointsButtonsInsertionElement,
         engine, controlPanel, apiService
         ) {
         this.viewPointModal = viewPointModal;
@@ -22,13 +23,16 @@ export default class ViewpointManager {
 
         this.viewPointToast = viewPointToast;
         this.viewPointDescriptionToast = viewPointDescriptionToast;
+        this.viewPointDeletionToast = viewPointDeletionToast;
         this.viewPointDescriptionToast.text = viewPointToastDescriptionOutput;
+        this.viewPointsButtonsInsertionElement = viewPointsButtonsInsertionElement;
 
         this.apiService = apiService;
         this.engine = engine;
         this.controlPanel = controlPanel;
 
         this.currentNotes = [];
+        this.viewPointsList = [];
         this.removeNoteButtons = [];
         this.isWaitingForNote = false;
 
@@ -50,11 +54,14 @@ export default class ViewpointManager {
         // Gets all notes and values and saves them
         this.saveViewPoint(this.viewPointModal.descriptionInput.value)
             .then((savedViewPoint) => {
+                this.viewPointsList.push(savedViewPoint);
+                this.renderViewpointsList( this.viewPointsList );
+                this.withPreparedLocalPointsList((list)=>{list.push(savedViewPoint.pk.toString())});
                 this.currentNotes.forEach( (note) => {
                     note.view_point = savedViewPoint.url;
                     this.apiService.addNote( note );
                 });
-                this.currentNotes = [];
+                this.clearNotes();
                 navigator.clipboard.writeText(savedViewPoint.viewer_url)
                     .then( () => {
                         this.viewPointToast.show();
@@ -79,6 +86,14 @@ export default class ViewpointManager {
         this.engine.render();
     }
 
+    clearNotes() {
+        for (let i = 0; i < this.currentNotes.length; i++) {
+            this.engine.scene.remove( this.engine.scene.getObjectByName( i.toString() ) );
+        }
+        this.currentNotes = [];
+        this.engine.render();
+    }
+
     onNoteModalOpenButtonClick() {
         // So we want another modal to be shown, but also we should close a previous one
         this.noteModal.show();
@@ -95,6 +110,7 @@ export default class ViewpointManager {
         // Method that called to apply a viewpoint, it handles both view and clipping
         if (viewPoint) {
             this.engine.setViewFromViewPoint( viewPoint );
+            this.currentNotes = viewPoint.notes;
             this.controlPanel.setClipping(viewPoint.clip_constants);
             if (viewPoint.description) {
                 this.showDescriptionToast( viewPoint.description );
@@ -103,6 +119,7 @@ export default class ViewpointManager {
             this.engine.setDefaultView();
             this.controlPanel.setClipping();
         }
+        this.engine.render();
     }
 
     async getPositionToInsertNote( event ) {
@@ -144,16 +161,113 @@ export default class ViewpointManager {
         this.viewPointModal.noteInsertionElement.appendChild( tag );
     }
 
+    insertViewPointButton( viewPoint ) {
+        let tag = document.createElement( 'a' );
+        let closeBtn = document.createElement( 'button' );
+        tag.classList.add( 'list-group-item' );
+        tag.classList.add( 'list-group-item-active' );
+        tag.setAttribute('key', viewPoint.pk);
+        closeBtn.classList.add("btn-close");
+        closeBtn.classList.add('btn-danger');
+        closeBtn.classList.add("float-end");
+        closeBtn.classList.add("me-1");
+        tag.addEventListener('click', this.onViewPointButtonClick.bind(this));
+        closeBtn.addEventListener('click', this.onDeleteViewPointButtonClick.bind(this));
+        let text = 'Точка обзора ' + viewPoint.pk;
+        if ( viewPoint.description ) {
+            text = viewPoint.description;
+        }
+        let textNode = document.createTextNode( text );
+        tag.appendChild( textNode );
+        tag.appendChild(closeBtn);
+        this.viewPointsButtonsInsertionElement.prepend( tag );
+    }
+
+    onViewPointButtonClick(event) {
+        this.clearNotes();
+        const key = event.target.getAttribute('key');
+        const viewPoint = this.viewPointsList.find( point => point.pk.toString() === key);
+        this.setViewPoint( viewPoint );
+    }
+
+    onDeleteViewPointButtonClick(event) {
+        const key = event.target.parentElement.getAttribute('key');
+        this.apiService.deleteViewPointByPK( key ).then( () => {
+            const viewPointToDelete = this.viewPointsList.find( point => point.pk.toString() === key);
+            const index = this.viewPointsList.indexOf(viewPointToDelete);
+            this.viewPointsList.splice(index, 1);
+            this.withPreparedLocalPointsList((list) => {
+                const i = list.indexOf(key);
+                list.splice(i, 1);
+            });
+            this.viewPointDeletionToast.show();
+            this.renderViewpointsList();
+        });
+    }
+
+    async getSavedViewpoints() {
+        // Loads all saved viewpoints and then returns an array of it
+        const pkList = this.getViewPointsKeysList();
+        const viewPointsList = [];
+        for (let i=0; i<pkList.length; i++) {
+            const pk = pkList[i];
+            const viewPoint = await this.apiService.getViewPointByPK( pk );
+            viewPointsList.push( viewPoint );
+        }
+        this.viewPointsList = viewPointsList;
+    }
+
+    withPreparedLocalPointsList( func ) {
+        //Works like a python decorator, extracts list of keys, executes given function on that and then saves back
+        let keyList = this.getViewPointsKeysList();
+        func( keyList );
+        this.saveViewPointsKeysList( keyList );
+    }
+
+    getViewPointsKeysList() {
+        //returns an array of pks of saved viewpoints for this model
+        let keyList =[];
+        const key = this.engine.model.building.slug;
+        let keyString = localStorage.getItem( key );
+        if ( keyString ) {
+            keyList = keyString.split( ',' );
+        }
+        return keyList;
+    }
+
+    saveViewPointsKeysList( list ) {
+        // Saves given array of pks to local storage for current model
+        const key = this.engine.model.building.slug;
+        const value = list.join( ',' );
+        localStorage.setItem( key, value );
+    }
+
     showDescriptionToast( text ) {
         // Shows a toast with given text
         this.viewPointDescriptionToast.text.innerText = text;
         this.viewPointDescriptionToast.show();
     }
 
+    renderViewpointsList() {
+        // Redraws all current viewpoint buttons
+        this.emptyRenderedButtons().then(() => {
+            this.viewPointsList.forEach( (viewPoint) => {
+                this.insertViewPointButton(viewPoint);
+            } );
+        });
+    }
+
+    async emptyRenderedButtons() {
+        // Clears current list of viewpoint buttons
+        while (this.viewPointsButtonsInsertionElement.firstChild) {
+            this.viewPointsButtonsInsertionElement.firstChild.remove();
+        }
+    }
+
     async saveViewPoint( description ) {
         // It gets current view point, adds description and saves. Does not manage with notes
         const viewPoint = this.engine.getCurrentViewPoint();
         viewPoint.description = description;
-        return await this.apiService.addViewPoint(viewPoint);
+        return await this.apiService.addViewPoint( viewPoint );
     }
 }

@@ -5,13 +5,12 @@ body {
 #main {
   transition: margin-left .5s;
   height: calc(100vh - 73px);
-  overflow: hidden;
 }
 
-.main-shifted {
-  margin-left: 270px;
+#rendererCanvas {
+    height: 100%;
+    width: 100%;
 }
-
 
 #loading-screen {
 	position: absolute;
@@ -199,4 +198,11 @@ button.float-action-button svg {
   -ms-transform: rotate(180deg);
   -webkit-transform: rotate(180deg);
   transform: rotate(180deg);
+}
+
+.index-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
 }

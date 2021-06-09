@@ -17,6 +17,7 @@ export default class ControlPanel {
         };
         this.gui = new GUI();
         this.engine = engine;
+        this.controlsWereSet = false;
         window.addEventListener('resize', this.handleResizing.bind(this));
         this.handleResizing();
     }
@@ -52,6 +53,9 @@ export default class ControlPanel {
             });
 
         clipping.open(); // To make it appear opened
+        if (!this.controlsWereSet) {
+            this.controlsWereSet = true;
+        }
 
     }
 
@@ -71,7 +75,10 @@ export default class ControlPanel {
             this.engine.clipPlanes[i].constant = (-1)**i * array[i];
             this.params[paramsArray[i]] = array[i];
         }
-        this.setControls();
+        if (!this.controlsWereSet) {
+            this.setControls();
+        }
+        this.gui.updateDisplay();
     }
 
     handleResizing() {

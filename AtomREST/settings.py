@@ -40,7 +40,6 @@ else:
     CURRENT_URL = CURRENT_HOST + ':' + str(CURRENT_PORT)
 
 CURRENT_API_URL = CURRENT_URL + '/v1'
-print(CURRENT_URL, CURRENT_API_URL)
 
 
 # Application definition

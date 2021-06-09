@@ -28,14 +28,12 @@ document.addEventListener("DOMContentLoaded",() => {
     /* Change classes to shifted position */
     function openNav() {
       document.getElementById("sidebarMenu").classList.add("sidebar-shifted");
-      document.getElementById("main").classList.add("main-shifted");
       document.getElementById("openbtn").classList.add("openbtn-pressed");
     }
 
     /* Change classes to default position */
     function closeNav() {
       document.getElementById("sidebarMenu").classList.remove("sidebar-shifted");
-      document.getElementById("main").classList.remove("main-shifted");
       document.getElementById("openbtn").classList.remove("openbtn-pressed");
     }
 

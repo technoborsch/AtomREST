@@ -29,8 +29,10 @@ const material = new THREE.MeshBasicMaterial({
 const guideSphere = new THREE.Mesh( geometry, material );
 
 //Set up a renderer here
-const renderer = new THREE.WebGLRenderer({antialias: true});
-renderer.setPixelRatio(window.devicePixelRatio);
+const renderer = new THREE.WebGLRenderer({
+    antialias: true,
+    powerPreference: 'high-performance',
+});
 renderer.outputEncoding = THREE.sRGBEncoding;
 renderer.localClippingEnabled = true;
 
@@ -91,6 +93,7 @@ export default class Engine {
 
     loadModel( model ) {
         // Loads given model object
+        this.model = model;
         const ktx2Loader = new KTX2Loader()
             .setTranscoderPath('../../threejs/examples/js/libs/basis')
             .detectSupport(this.renderer);
@@ -107,7 +110,6 @@ export default class Engine {
 
         // Set bound box and model center here off the scene to use it later
         this.boundBox.setFromObject(gltf.scene).getCenter(this.modelCenter);
-        this.model = model;
         this.scene.add( gltf.scene );
         },
 
@@ -132,9 +134,9 @@ export default class Engine {
         target.add(direction.multiplyScalar(distance));
         this.controls.target.set(target.x, target.y, target.z);
 
-        point.notes.forEach((note) => {
-            this.insertNote(note);
-        });
+        for (let i=0; i<point.notes.length; i++) {
+            this.insertNote(point.notes[i], i.toString())
+        }
         this.controls.update();
     }
 
@@ -216,12 +218,9 @@ export default class Engine {
     onWindowResize() {
         // A method to handle window resizing
         const main = document.getElementById('main');
-        this.renderer.setSize(main.clientWidth, main.clientHeight);
+        this.renderer.setSize( main.clientWidth, main.clientHeight );
         this.camera.aspect = window.innerWidth / window.innerHeight;
         this.camera.updateProjectionMatrix();
-        //if (main.clientWidth < 600) {
-        //    controlPanel.gui.close();
-        //}  TODO move to GUI
         this.render();
     }
 
