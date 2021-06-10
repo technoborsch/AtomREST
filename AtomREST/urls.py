@@ -17,6 +17,7 @@ router.register(r'systems', base_views.SystemViewSet)
 router.register(r'models', model_views.Model3DViewSet)
 router.register(r'view_points', model_views.ViewPointViewSet)
 router.register(r'notes', model_views.NotesViewSet)
+router.register(r'remarks', model_views.RemarksViewSet)
 
 urlpatterns = [
     path('', include('EasyView.urls')),

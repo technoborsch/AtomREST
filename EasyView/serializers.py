@@ -26,3 +26,12 @@ class NoteSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = models.Note
         exclude = ['creation_time']
+
+
+class RemarkSerializer(serializers.HyperlinkedModelSerializer):
+    """Serializer for remarks"""
+    class Meta:
+        model = models.Remark
+        fields = ['pk', 'url', 'view_point', 'description', 'speciality', 'reviewer', 'responsible_person',
+                  'comment', 'deadline', 'status', 'creation_time']
+        read_only_fields = ['pk', 'url', 'creation_time']

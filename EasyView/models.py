@@ -76,3 +76,31 @@ class Note(models.Model):
 
     class Meta:
         ordering = ['-creation_time']
+
+
+class Remark(models.Model):
+    """A class that represents a remark model"""
+    SPECIALITIES = [
+        ('Process', 'Технология'),
+        ('Electrical', 'Электрика'),
+        ('HVAC', 'Вентиляция'),
+    ]
+
+    STATUSES = [
+        ('Uncompleted', 'Не выполнено'),
+        ('Completed', 'Выполнено'),
+    ]
+
+    view_point = models.ForeignKey(ViewPoint, on_delete=models.CASCADE, related_name='remark')
+    description = models.TextField()
+    speciality = models.CharField(max_length=11, choices=SPECIALITIES)
+    reviewer = models.CharField(max_length=100)
+    responsible_person = models.CharField(max_length=100, blank=True, null=True)
+    comment = models.TextField(blank=True, null=True)
+    deadline = models.DateField()
+    status = models.CharField(max_length=11, blank=True, choices=STATUSES, default=STATUSES[0])
+
+    creation_time = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-creation_time']

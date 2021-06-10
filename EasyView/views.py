@@ -1,5 +1,7 @@
 from django.views.generic import TemplateView, DetailView
 from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+
 
 from EasyView import serializers, models
 
@@ -54,3 +56,10 @@ class NotesViewSet(viewsets.ModelViewSet):
     """View set for notes model"""
     queryset = models.Note.objects.all()
     serializer_class = serializers.NoteSerializer
+
+
+class RemarksViewSet(viewsets.ModelViewSet):
+    """View set for view points"""
+    queryset = models.Remark.objects.all()
+    serializer_class = serializers.RemarkSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
