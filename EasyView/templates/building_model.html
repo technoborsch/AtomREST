@@ -49,58 +49,51 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-camera" viewBox="0 0 16 16"><path d="M15 12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h1.172a3 3 0 0 0 2.12-.879l.83-.828A1 1 0 0 1 6.827 3h2.344a1 1 0 0 1 .707.293l.828.828A3 3 0 0 0 12.828 5H14a1 1 0 0 1 1 1v6zM2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4H2z"></path><path d="M8 11a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5zm0 1a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM3 6.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0z"></path></svg>
     </button>
 
-    <!--Toast to show notifications-->
-    <div class="toast-placer position-absolute bottom-0 start-50 translate-middle-x p-3">
-    <div id="viewPointToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-      <div class="toast-header bg-info">
-        <img src="{% static 'icons/camera.svg' %}" class="rounded me-2" alt="CameraImage">
-        <strong class="me-auto">Точка обзора сохранена</strong>
-        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-      </div>
-      <div class="toast-body">
-        Ссылка на точку обзора скопирована в буфер обмена
-      </div>
-    </div>
-    </div>
-
-    <!--Toast to show description of a viewpoint-->
-    <div class="toast-placer position-absolute bottom-0 start-0">
-    <div id="viewPointDescriptionToast"
-         class="toast ms-2"
-         data-bs-delay="50000"
-         role="alert"
-         aria-live="assertive"
-         aria-atomic="true">
-      <div class="toast-header bg-info">
-        <img src="{% static 'icons/card-text.svg' %}" class="rounded me-2" alt="NoteIcon">
-        <strong class="me-auto">Описание</strong>
-        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-      </div>
-      <div class="toast-body">
-        <p id="descriptionText"></p>
-      </div>
-    </div>
-    </div>
+    <!--Toasts wrapper-->
+    <div class="toast-placer toast-container position-absolute w-100 p-3 d-flex flex-column align-items-center bottom-0">
 
     <!--Toast to show viewpoint deletion notification-->
-    <div class="toast-placer position-absolute bottom-0 start-50">
-    <div id="viewPointDeletionToast"
-         class="toast ms-2"
-         data-bs-delay="50000"
-         role="alert"
-         aria-live="assertive"
-         aria-atomic="true">
+    <div id="viewPointDeletionToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
       <div class="toast-header bg-danger">
         <img src="{% static 'icons/trash.svg' %}" class="rounded me-2" alt="NoteIcon">
-        <strong class="me-auto">Удалено</strong>
+        <strong class="me-auto text-white">Удалено</strong>
         <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
       </div>
       <div class="toast-body">
         <p>Точка обзора была успешно удалена</p>
       </div>
     </div>
+
+    <!--Toast to show notifications-->
+    <div id="viewPointToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="toast-header bg-success">
+        <img src="{% static 'icons/camera.svg' %}" class="rounded me-2" alt="CameraImage">
+        <strong class="me-auto text-white">Точка обзора сохранена</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+      <div class="toast-body">
+        Ссылка на точку обзора скопирована в буфер обмена
+      </div>
     </div>
 
+    <!--Toast to show description of a viewpoint-->
+    <div id="viewPointDescriptionToast"
+         class="toast"
+         data-bs-delay="50000"
+         role="alert"
+         aria-live="assertive"
+         aria-atomic="true">
+      <div class="toast-header bg-info">
+        <img src="{% static 'icons/card-text.svg' %}" class="rounded me-2" alt="NoteIcon">
+        <strong class="me-auto text-white">Описание</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+      <div class="toast-body">
+        <p id="descriptionText"></p>
+      </div>
+    </div>
+
+    </div>
 
     <!--Modal to provide interface to viewpoint saving-->
     <div class="modal fade"
