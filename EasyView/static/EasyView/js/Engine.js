@@ -135,7 +135,7 @@ export default class Engine {
         this.controls.target.set(target.x, target.y, target.z);
 
         for (let i=0; i<point.notes.length; i++) {
-            this.insertNote(point.notes[i], i.toString())
+            this.insertNote(point.notes[i], this.viewPoint.pk + '_' + i.toString())
         }
         this.controls.update();
     }

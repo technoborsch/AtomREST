@@ -88,7 +88,9 @@ export default class ViewpointManager {
 
     clearNotes() {
         for (let i = 0; i < this.currentNotes.length; i++) {
-            this.engine.scene.remove( this.engine.scene.getObjectByName( i.toString() ) );
+            this.engine.scene.remove(
+                this.engine.scene.getObjectByName( this.engine.viewPoint.pk + '_' + i.toString() )
+            );
         }
         this.currentNotes = [];
         this.engine.render();
