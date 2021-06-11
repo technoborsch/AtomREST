@@ -38,6 +38,7 @@ const viewpointManager = new ViewpointManager(
     new bootstrap.Toast(document.getElementById('viewPointDescriptionToast')),
     new bootstrap.Toast(document.getElementById('viewPointDeletionToast')),
     document.getElementById('descriptionText'),
+    document.getElementById('viewPointsCollapseButton'),
     document.getElementById( 'pointButtons' ),
     engine,
     controlPanel,

@@ -2,7 +2,6 @@ from django.views.generic import TemplateView, DetailView
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
-
 from EasyView import serializers, models
 
 
@@ -23,6 +22,10 @@ class BuildingModelView(DetailView):
             building__project__slug=self.kwargs['project'],
             building__slug=self.kwargs['building'],
         )
+
+    def get_context(self, **kwargs):
+        context = super(BuildingModelView, self).get_context_data(**kwargs)
+        context['remarks'] = models.Remark.objects.filter(view_point__model=self.object)
 
 
 class ViewPointView(DetailView):

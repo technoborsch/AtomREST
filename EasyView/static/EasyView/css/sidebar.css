@@ -65,7 +65,7 @@ div.list-group {
   background-color: #525558;
 }
 
-a.list-group-item, button.list-group-item {
+a.list-group-item, button.list-group-item, #viewpointsMenu div a.btn {
   white-space: nowrap;
   overflow-x: hidden;
 }

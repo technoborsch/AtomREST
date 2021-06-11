@@ -6,34 +6,89 @@
          {% block viewpoint_data %}
          model_pk="{{ model.pk }}"
          {% endblock %}
-         api_url="{{ api_url }}"
-    >
+         api_url="{{ api_url }}">
     <script type="module" src="{% static 'EasyView/js/main.js' %}"></script>
     </div>
 
-    <!--Sidebar with notes-->
+    <!--Sidebar with notes and remarks-->
     <aside id="viewpointsMenu" class="sidebar">
     <div class="list-group">
-      <!--Expandable list of view point buttons-->
-      <button type="button" class="list-group-item list-group-item-action" data-bs-toggle="collapse" data-bs-target="#remarkButtons-collapse">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"></path></svg>
-        <span class="text-muted m-2 ms-4">Замечания</span>
+      <!--Expandable list of remark buttons-->
+      <button type="button" class="list-group-item list-group-item-action{% if not remarks %} disabled{% endif %}" data-bs-toggle="collapse" data-bs-target="#remarkButtons-collapse">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right me-2" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"></path></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-card-checklist text-black-50" viewBox="0 0 16 16"><path d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h13zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-13z"></path><path d="M7 5.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5zm-1.496-.854a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 1 1 .708-.708l.146.147 1.146-1.147a.5.5 0 0 1 .708 0zM7 9.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5zm-1.496-.854a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 0 1 .708-.708l.146.147 1.146-1.147a.5.5 0 0 1 .708 0z"></path></svg>
+        <span class="text-muted ms-1">Замечания</span>
       </button>
       <div class="collapse" id="remarkButtons-collapse">
         <div id="remarkButtons" class="list-group">
-        <!--Insertion point for remark buttons-->
+
+            <!--Process speciality-->
+            <button type="button" class="list-group-item list-group-item-action" data-bs-toggle="collapse" data-bs-target="#processRemarksList-collapse">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right ms-3" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"></path></svg>
+                <span class="text-muted m-2 ms-4">Технология</span>
+            </button>
+            <div id="processRemarksList-collapse" class="collapse">
+              <div id="processRemarksList" class="list-group">
+              {% for remark in remarks %}
+              {% if remark.speciality == 'Process' %}
+                <a class="list-group-item list-group-item-action" key="{{ view_point.pk }}">{{ view_point.remark.description }}</a>
+              {% endif %}
+              {% endfor %}
+              </div>
+            </div>
+
+            <!--Electrical speciality-->
+            <button type="button" class="list-group-item list-group-item-action" data-bs-toggle="collapse" data-bs-target="#electricalRemarksList-collapse">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right ms-3" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"></path></svg>
+                <span class="text-muted m-2 ms-4">Электрика</span>
+            </button>
+            <div id="electricalRemarksList-collapse" class="collapse">
+              <div id="electricalRemarksList" class="list-group">
+              {% for remark in remarks %}
+              {% if remark.speciality == 'Electrical' %}
+                <a class="list-group-item list-group-item-action" key="{{ view_point.pk }}">{{ view_point.remark.description }}</a>
+              {% endif %}
+              {% endfor %}
+              </div>
+            </div>
+
+            <!--HVAC speciality-->
+            <button type="button" class="list-group-item list-group-item-action" data-bs-toggle="collapse" data-bs-target="#HVACRemarksList-collapse">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right ms-3" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"></path></svg>
+                <span class="text-muted m-2 ms-4">Вентиляция</span>
+            </button>
+            <div id="HVACRemarksList-collapse" class="collapse">
+              <div id="HVACRemarksList" class="list-group">
+              {% for remark in remarks %}
+              {% if remark.speciality == 'HVAC' %}
+                <a class="list-group-item list-group-item-action" key="{{ view_point.pk }}">{{ view_point.remark.description }}</a>
+              {% endif %}
+              {% endfor %}
+              </div>
+            </div>
+
         </div>
       </div>
+
       <!--Expandable list of view point buttons-->
-      <button type="button" class="list-group-item list-group-item-action" data-bs-toggle="collapse" data-bs-target="#pointButtons-collapse">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"></path></svg>
-        <span class="text-muted m-2 ms-4">Точки&nbsp;обзора</span>
+      <button id="viewPointsCollapseButton" type="button" class="list-group-item list-group-item-action" data-bs-toggle="collapse" data-bs-target="#pointButtons-collapse">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right me-2" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"></path></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-camera2 text-black-50" viewBox="0 0 16 16"><path d="M5 8c0-1.657 2.343-3 4-3V4a4 4 0 0 0-4 4z"></path><path d="M12.318 3h2.015C15.253 3 16 3.746 16 4.667v6.666c0 .92-.746 1.667-1.667 1.667h-2.015A5.97 5.97 0 0 1 9 14a5.972 5.972 0 0 1-3.318-1H1.667C.747 13 0 12.254 0 11.333V4.667C0 3.747.746 3 1.667 3H2a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1h.682A5.97 5.97 0 0 1 9 2c1.227 0 2.367.368 3.318 1zM2 4.5a.5.5 0 1 0-1 0 .5.5 0 0 0 1 0zM14 8A5 5 0 1 0 4 8a5 5 0 0 0 10 0z"></path></svg>
+        <span class="text-muted ms-1">Точки&nbsp;обзора</span>
       </button>
       <div class="collapse" id="pointButtons-collapse">
         <div id="pointButtons" class="list-group">
         <!--Insertion point for viewpoint buttons-->
         </div>
       </div>
+    </div>
+    <div class="position-absolute bottom-0 w-100 p-3">
+      <a
+            class="btn btn-outline-primary w-100{% if not model.nwd %} disabled{% endif %}"
+            href="{% if model.nwd %}{{ model.nwd.url }}{% endif %}">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download d-inline-block me-2" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg>
+        Скачать&nbsp;модель&nbsp;.nwd
+      </a>
     </div>
     </aside>
 
@@ -53,7 +108,7 @@
     <div class="toast-placer toast-container position-absolute w-100 p-3 d-flex flex-column align-items-center bottom-0">
 
     <!--Toast to show viewpoint deletion notification-->
-    <div id="viewPointDeletionToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+    <div id="viewPointDeletionToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true">
       <div class="toast-header bg-danger">
         <img src="{% static 'icons/trash.svg' %}" class="rounded me-2" alt="NoteIcon">
         <strong class="me-auto text-white">Удалено</strong>
@@ -65,7 +120,7 @@
     </div>
 
     <!--Toast to show notifications-->
-    <div id="viewPointToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+    <div id="viewPointToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true">
       <div class="toast-header bg-success">
         <img src="{% static 'icons/camera.svg' %}" class="rounded me-2" alt="CameraImage">
         <strong class="me-auto text-white">Точка обзора сохранена</strong>
@@ -78,8 +133,8 @@
 
     <!--Toast to show description of a viewpoint-->
     <div id="viewPointDescriptionToast"
-         class="toast"
-         data-bs-delay="50000"
+         class="toast hide"
+         data-bs-delay="30000"
          role="alert"
          aria-live="assertive"
          aria-atomic="true">

@@ -6,7 +6,7 @@ export default class ViewpointManager {
         viewPointModalDescriptionInput, viewPointModalNoteInsertionElement,
         noteModal, noteModalSaveButton, noteModalOpenButton, noteModalDescriptionInput,
         viewPointToast, viewPointDescriptionToast, viewPointDeletionToast, viewPointToastDescriptionOutput,
-        viewPointsButtonsInsertionElement,
+        viewPointsCollapseButton, viewPointsButtonsInsertionElement,
         engine, controlPanel, apiService
         ) {
         this.viewPointModal = viewPointModal;
@@ -25,6 +25,7 @@ export default class ViewpointManager {
         this.viewPointDescriptionToast = viewPointDescriptionToast;
         this.viewPointDeletionToast = viewPointDeletionToast;
         this.viewPointDescriptionToast.text = viewPointToastDescriptionOutput;
+        this.viewPointsCollapseButton = viewPointsCollapseButton
         this.viewPointsButtonsInsertionElement = viewPointsButtonsInsertionElement;
 
         this.apiService = apiService;
@@ -183,16 +184,21 @@ export default class ViewpointManager {
         tag.appendChild( textNode );
         tag.appendChild(closeBtn);
         this.viewPointsButtonsInsertionElement.prepend( tag );
+        this.viewPointsCollapseButton.classList.remove('disabled');
     }
 
     onViewPointButtonClick(event) {
         this.clearNotes();
         const key = event.target.getAttribute('key');
         const viewPoint = this.viewPointsList.find( point => point.pk.toString() === key);
+        let title = this.engine.model.building.kks + '/ Точка обзора ' + viewPoint.pk;
+        history.replaceState(null, title, viewPoint.viewer_url);
+        document.title = title;
         this.setViewPoint( viewPoint );
     }
 
     onDeleteViewPointButtonClick(event) {
+        event.stopPropagation();
         const key = event.target.parentElement.getAttribute('key');
         this.apiService.deleteViewPointByPK( key ).then( () => {
             const viewPointToDelete = this.viewPointsList.find( point => point.pk.toString() === key);
@@ -217,6 +223,9 @@ export default class ViewpointManager {
             viewPointsList.push( viewPoint );
         }
         this.viewPointsList = viewPointsList;
+        if (this.viewPointsList.length === 0) {
+            this.viewPointsCollapseButton.classList.add('disabled');
+        }
     }
 
     withPreparedLocalPointsList( func ) {

@@ -3,8 +3,8 @@ document.addEventListener("DOMContentLoaded",() => {
 
     let sidebarOpen = false;
     const openBtn = document.getElementById('openbtn');
-    const sideBarCollapseButtons = document.querySelectorAll('#sidebarMenu button.list-group-item');
-    sideBarCollapseButtons.forEach(function (node) {
+    const sideBarCollapseButtons = document.querySelectorAll('div button.list-group-item');
+    sideBarCollapseButtons.forEach( (node) => {
             node.addEventListener("click", function () {
                     node.firstChild.nextSibling.classList.toggle('rotated');
                 }
