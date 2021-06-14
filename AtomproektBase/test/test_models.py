@@ -66,7 +66,7 @@ class SlugBaseTest(SetUp):
 
 
 class ProjectTest(SetUp):
-    """Tests for project model"""
+    """Tests for the project model"""
 
     def test_slug(self):
         """Checks if slug for model is correct"""

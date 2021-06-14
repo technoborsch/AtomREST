@@ -62,4 +62,22 @@ export default class APIService {
         return axios.post(url, note);
     }
 
+    // To viewpoints export
+    exportViewpointsByPKString( pk_string ) {
+        const url = `${APIRootURL}/view_points_export`;
+        return axios.get(url, {
+            params: {
+                viewpoints_pk_list: pk_string,
+            },
+            responseType: 'blob',
+        }).then((response) => {
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'export.xml'); //or any other extension
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        })
+    }
 }

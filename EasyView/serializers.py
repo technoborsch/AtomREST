@@ -14,8 +14,8 @@ class ViewPointSerializer(serializers.HyperlinkedModelSerializer):
     """Serializer for view points"""
     class Meta:
         model = models.ViewPoint
-        fields = ['pk', 'url', 'viewer_url', 'position', 'quaternion', 'description', 'distance_to_target',
-                  'clip_constants', 'creation_time', 'model', 'notes']
+        fields = ['pk', 'url', 'viewer_url', 'position', 'quaternion', 'nw_quaternion', 'description',
+                  'distance_to_target', 'clip_constants', 'creation_time', 'model', 'notes']
         read_only_fields = ['pk', 'url', 'viewer_url', 'creation_time', 'notes']
 
     viewer_url = serializers.CharField(source='get_absolute_url', read_only=True)

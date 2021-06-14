@@ -161,14 +161,10 @@ MEDIA_URL = '/storage/'
 # CORS settings (to allow work with frontend)
 CORS_ORIGIN_ALLOW_ALL = True
 
-# Expiration time for notes on a model
-NOTE_EXPIRY_DAYS = 7
-
 # If hosted on Heroku, it should use Dropbox cloud storage
-CLOUD_TOKEN = os.getenv('CLOUD_TOKEN')
-if CLOUD_TOKEN:
+DROPBOX_OAUTH2_TOKEN = os.getenv('CLOUD_TOKEN')
+if DROPBOX_OAUTH2_TOKEN:
     DEFAULT_FILE_STORAGE = 'storages.backends.dropbox.DropBoxStorage'
-    DROPBOX_OAUTH2_TOKEN = CLOUD_TOKEN
     DROPBOX_WRITE_MODE = 'overwrite'
 
 django_heroku.settings(locals())

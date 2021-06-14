@@ -6,7 +6,7 @@ export default class ViewpointManager {
         viewPointModalDescriptionInput, viewPointModalNoteInsertionElement,
         noteModal, noteModalSaveButton, noteModalOpenButton, noteModalDescriptionInput,
         viewPointToast, viewPointDescriptionToast, viewPointDeletionToast, viewPointToastDescriptionOutput,
-        viewPointsCollapseButton, viewPointsButtonsInsertionElement,
+        viewPointsCollapseButton, viewPointsButtonsInsertionElement, viewPointsExportButton,
         engine, controlPanel, apiService
         ) {
         this.viewPointModal = viewPointModal;
@@ -25,8 +25,10 @@ export default class ViewpointManager {
         this.viewPointDescriptionToast = viewPointDescriptionToast;
         this.viewPointDeletionToast = viewPointDeletionToast;
         this.viewPointDescriptionToast.text = viewPointToastDescriptionOutput;
-        this.viewPointsCollapseButton = viewPointsCollapseButton
+        this.viewPointsCollapseButton = viewPointsCollapseButton;
         this.viewPointsButtonsInsertionElement = viewPointsButtonsInsertionElement;
+
+        this.viewPointsExportButton = viewPointsExportButton;
 
         this.apiService = apiService;
         this.engine = engine;
@@ -43,6 +45,7 @@ export default class ViewpointManager {
         this.viewPointModal.cancelButton.addEventListener( 'click', this.onViewPointModalCancelButtonClick.bind(this) );
         this.noteModal.openButton.addEventListener( 'click', this.onNoteModalOpenButtonClick.bind(this) );
         this.noteModal.saveButton.addEventListener( 'click', this.onNoteModalSaveButtonClick.bind(this) );
+        this.viewPointsExportButton.addEventListener( 'click', this.onViewPointsExportButtonClick.bind(this) )
 
     }
 
@@ -107,6 +110,13 @@ export default class ViewpointManager {
         // Bind listener to a window and start to wait for a click
         setTimeout(() => {this.isWaitingForNote = true;}, 1);
         window.addEventListener( 'click', this.getPositionToInsertNote.bind(this) );
+    }
+
+    onViewPointsExportButtonClick() {
+        console.log('export clicked');
+        const key = this.engine.model.building.slug;
+        let keyString = localStorage.getItem( key );
+        this.apiService.exportViewpointsByPKString( keyString )
     }
 
     setViewPoint( viewPoint ) {

@@ -44,6 +44,7 @@ class ViewPoint(models.Model):
     description = models.TextField(blank=True, null=True)
     position = ArrayField(models.FloatField(), size=3)  # x, y, z
     quaternion = ArrayField(models.FloatField(), size=4)  # x, y, z, w
+    nw_quaternion = ArrayField(models.FloatField(), size=4)  # x, y, z, w, but for NW
     distance_to_target = models.FloatField(blank=True, null=True)
     clip_constants = ArrayField(  # x, x negative, y, y negative, z, z negative
         models.FloatField(), size=6, blank=True, null=True

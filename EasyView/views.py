@@ -1,8 +1,16 @@
+import tempfile
+
 from django.views.generic import TemplateView, DetailView
+from django.views import View
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpRequest, HttpResponse
+from django.core.files import File
+from django.utils.decorators import method_decorator
+
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
-from EasyView import serializers, models
+from EasyView import serializers, models, import_export
 
 
 class IndexTemplateView(TemplateView):
@@ -40,6 +48,23 @@ class ViewPointView(DetailView):
             model__building__project__slug=self.kwargs['project'],
             model__building__slug=self.kwargs['building'],
         )
+
+
+# Views for export/import of viewpoints
+@method_decorator(csrf_exempt, name='dispatch')
+class ExportViewPointsView(View):  # TODO add errors handling
+    """A view that processes incoming GET request and prepares an XML file with viewpoints to return"""
+    def get(self, request: HttpRequest):
+        viewpoints_pk_list = self.request.GET.get('viewpoints_pk_list', None).split(',')
+        if viewpoints_pk_list and viewpoints_pk_list != ['']:
+            xml = import_export.create_exported_viewpoints_xml(viewpoints_pk_list)
+            with tempfile.TemporaryFile() as tf:
+                xml.write(tf)
+                response = HttpResponse(File(tf), content_type='application/force-download')
+                response['Content-Disposition'] = 'attachment; filename=viewpoints_export.xml'
+                return response
+        else:
+            return HttpResponse(status=400)
 
 
 # REST API

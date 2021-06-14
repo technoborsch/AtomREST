@@ -123,7 +123,7 @@ export default class Engine {
     setViewFromViewPoint( point ) {
         // It sets view off given point object. Note that it doesn't set clipping, so clipping should be set separately
         this.viewPoint = point;
-        this.camera.position.set(point.position[0], point.position[1], point.position[2]);
+        this.camera.position.set(point.position[0], point.position[2], (-1 * point.position[1]) );
         this.camera.quaternion.set(point.quaternion[0], point.quaternion[1], point.quaternion[2], point.quaternion[3]);
         const direction = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.quaternion).normalize();
         const target = new THREE.Vector3().copy(this.camera.position);
@@ -181,11 +181,22 @@ export default class Engine {
     }
 
     getCurrentViewPoint() {
-        //Returns a view point with empty description
+        // Returns a view point with empty description
         const distance = this.camera.position.distanceTo( this.controls.target );
+        // All this block is just to convert to NW coordinate system
+        const eyes = new THREE.Vector3( this.camera.position.x, (-1 * this.camera.position.z), this.camera.position.y );
+        const newTarget = new THREE.Vector3(
+            this.controls.target.x,
+            (-1 * this.controls.target.z),
+            this.controls.target.y
+        );
+        const matrix = new THREE.Matrix4().lookAt( eyes, newTarget, new THREE.Vector3(0, 0, 1) );
+        const nw_quaternion = new THREE.Quaternion().setFromRotationMatrix( matrix );
+        const position = [ this.camera.position.x, (-1 * this.camera.position.z), this.camera.position.y ];
         return {
-            position: this.camera.position.toArray(),
+            position: position,
             quaternion: this.camera.quaternion.toArray(),
+            nw_quaternion: nw_quaternion.toArray().map(num => -1 * num),
             distance_to_target: distance,
             clip_constants: [
                 this.clipPlanes[0].constant, -this.clipPlanes[1].constant,
