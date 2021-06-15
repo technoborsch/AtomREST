@@ -6,9 +6,9 @@ import {OrbitControls} from '../../threejs/examples/jsm/controls/OrbitControls.j
 import {RoomEnvironment} from '../../threejs/examples/jsm/environments/RoomEnvironment.js';
 import SpriteText from "../../three-spritetext/src/index.js";
 
-import { prettify } from "./Utils.js";
+import {prettify} from "./Utils.js";
 
-//Create six clipping planes for each side of a model
+// Create six clipping planes for each side of a model
 const clipPlanes = [];
 [
     [-1, 0, 0], [1, 0, 0],
@@ -19,7 +19,7 @@ const clipPlanes = [];
     clipPlanes.push( new THREE.Plane( new THREE.Vector3().fromArray( array ), 0 ) );
 } );
 
-//Draw here a little sphere that will guide a viewer during manipulations
+// Draw here a little sphere that will guide a viewer during manipulations
 const geometry = new THREE.SphereGeometry(1);
 const material = new THREE.MeshBasicMaterial({
     color: 0xFF0000,
@@ -28,41 +28,46 @@ const material = new THREE.MeshBasicMaterial({
 });
 const guideSphere = new THREE.Mesh( geometry, material );
 
-//Set up a renderer here
+// Set up a renderer
 const renderer = new THREE.WebGLRenderer({
     antialias: true,
     powerPreference: 'high-performance',
+    logarithmicDepthBuffer: true,
 });
 renderer.outputEncoding = THREE.sRGBEncoding;
 renderer.localClippingEnabled = true;
 
-//Set up scene
+// Set up a scene
 const scene = new THREE.Scene();
 const environment = new RoomEnvironment();
 const pmremGenerator = new THREE.PMREMGenerator(renderer);
 scene.background = new THREE.Color(0xe8f9fc);
 scene.environment = pmremGenerator.fromScene(environment).texture;
 
-//Camera settings
-const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 200000);
+// Camera settings
+const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 200, 2000000);
 
-//Raycaster
+// Raycaster
 const raycaster = new THREE.Raycaster();
 
-//Controls settings
+// Controls settings
 const controls = new OrbitControls(camera, renderer.domElement);
-controls.minDistance = 1;
+controls.minDistance = 10;
 controls.maxDistance = 100000;
 controls.enablePan = true;
 controls.panSpeed = 2;
 
-//Loading manager to define actions after model's load
+// Loading manager to define actions after model's load
 const loadingManager = new THREE.LoadingManager();
 
 const loader = new GLTFLoader(loadingManager);
 
 export default class Engine {
-    //A graphical engine that works on THREE.js library
+    /**
+     * A graphical engine that works on THREE.js library
+     *
+     * @param {Element} rootElement Canvas of the engine will be appended as a child to this element
+     */
 
     constructor( rootElement ) {
         this.rootElement = rootElement;
@@ -103,8 +108,17 @@ export default class Engine {
 
         gltf.scene.traverse((o) => { // Walk through all elements of scene
             if (o.isMesh) {
-                o.material.side = THREE.DoubleSide; // Or it will look unnatural
-                o.material.clippingPlanes = this.clipPlanes; // Assign clip planes to each mesh material
+                if ( ( o.material.color.r >= 0.64 && o.material.color.r <= 0.65 )
+                    && ( o.material.color.g >= 0.819 && o.material.color.g <= 0.82 )
+                    && ( o.material.color.b >= 0.99 && o.material.color.b <= 1 )
+                ) {
+                    o.material.visible = false; // These are inner room spaces - hide them to avoid z-fighting
+                }
+                else {
+                    o.material.roughness = 0.75;
+                    o.material.side = THREE.DoubleSide; // Or it will look unnatural
+                    o.material.clippingPlanes = this.clipPlanes; // Assign clip planes to each mesh material
+                }
             }
         });
 
@@ -123,8 +137,10 @@ export default class Engine {
     setViewFromViewPoint( point ) {
         // It sets view off given point object. Note that it doesn't set clipping, so clipping should be set separately
         this.viewPoint = point;
+        console.dir(point);
         this.camera.position.set(point.position[0], point.position[2], (-1 * point.position[1]) );
-        this.camera.quaternion.set(point.quaternion[0], point.quaternion[1], point.quaternion[2], point.quaternion[3]);
+        const quaternion = this.convertFromNWQuaternionToLocal( new THREE.Quaternion().fromArray(point.quaternion) );
+        this.camera.quaternion.set( quaternion.x, quaternion.y, quaternion.z, quaternion.w );
         const direction = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.quaternion).normalize();
         const target = new THREE.Vector3().copy(this.camera.position);
         let distance = point.distance_to_target;
@@ -183,20 +199,11 @@ export default class Engine {
     getCurrentViewPoint() {
         // Returns a view point with empty description
         const distance = this.camera.position.distanceTo( this.controls.target );
-        // All this block is just to convert to NW coordinate system
-        const eyes = new THREE.Vector3( this.camera.position.x, (-1 * this.camera.position.z), this.camera.position.y );
-        const newTarget = new THREE.Vector3(
-            this.controls.target.x,
-            (-1 * this.controls.target.z),
-            this.controls.target.y
-        );
-        const matrix = new THREE.Matrix4().lookAt( eyes, newTarget, new THREE.Vector3(0, 0, 1) );
-        const nw_quaternion = new THREE.Quaternion().setFromRotationMatrix( matrix );
-        const position = [ this.camera.position.x, (-1 * this.camera.position.z), this.camera.position.y ];
+        const quaternion = this.getNWCameraQuaternion();
+        const position = [ this.camera.position.x, -this.camera.position.z, this.camera.position.y ];
         return {
             position: position,
-            quaternion: this.camera.quaternion.toArray(),
-            nw_quaternion: nw_quaternion.toArray().map(num => -1 * num),
+            quaternion: quaternion.toArray(),
             distance_to_target: distance,
             clip_constants: [
                 this.clipPlanes[0].constant, -this.clipPlanes[1].constant,
@@ -206,6 +213,44 @@ export default class Engine {
             model: this.model.url,
             description: null,
         }
+    }
+
+    /**
+     * Method used to calculate camera quaternion that fits in Navisworks coordinate system
+     *
+     * @returns { THREE.Quaternion } quaternion suitable for NW
+     */
+    getNWCameraQuaternion () {
+        const direction = new THREE.Vector3(0, 0, -1);
+        direction.applyQuaternion(this.camera.quaternion);
+        const newDirection = new THREE.Vector3( direction.x, - direction.z, direction.y );
+        const mx = new THREE.Matrix4().lookAt(
+            new THREE.Vector3(),
+            newDirection,
+            new THREE.Vector3(0, 0, 1),
+        );
+        return new THREE.Quaternion().setFromRotationMatrix(mx);
+    }
+
+    /**
+     * Method that used to convert given quaternion used in Navisworks to a quaternion that will suit here.
+     * Includes math and black magic.
+     *
+     * @param { THREE.Quaternion } nw_quaternion Quaternion used in Navisworks
+     * @return { THREE.Quaternion } Quaternion that is suitable here
+     */
+    convertFromNWQuaternionToLocal ( nw_quaternion ) {
+        const directionVector = new THREE.Vector3(0,0, -1);
+        directionVector.applyQuaternion(nw_quaternion);
+        const newDirectionVector = new THREE.Vector3(
+            directionVector.x, directionVector.z, - directionVector.y
+        );
+        const mx = new THREE.Matrix4().lookAt(
+            new THREE.Vector3(),
+            newDirectionVector,
+            new THREE.Vector3(0, 1, 0)
+        );
+        return new THREE.Quaternion().setFromRotationMatrix(mx);
     }
 
     insertNote( noteObject, name ) {

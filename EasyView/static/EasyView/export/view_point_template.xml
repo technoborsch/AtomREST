@@ -1,6 +1,6 @@
     <view name="" guid="">
-      <viewpoint tool="none" render="shaded" lighting="headlight" focal="55734.9836159781" linear="3532.2113813119" angular="0.7853981634">
-        <camera projection="persp" near="0" far="2000000" aspect="2.3312807882" height="0.7853980000">
+      <viewpoint tool="none" render="shaded" lighting="headlight" focal="55734.9836159781" linear="3532.2113813119" angular="0.7">
+        <camera projection="persp" near="0" far="2000000" aspect="2" height="0.70">
           <position>
             <pos3f x="" y="" z=""/>
           </position>

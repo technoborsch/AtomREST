@@ -4,7 +4,8 @@ import ControlPanel from "./ControlPanel.js";
 import Engine from "./Engine.js";
 
 // Wrapper to handle API calls
-const apiService = new APIService();
+const APIRootURL = document.getElementById('viewer_settings').getAttribute('api_url');
+const apiService = new APIService(APIRootURL);
 
 // Get settings here from DOM which were set by django templates
 const settingsElement = document.getElementById('viewer_settings');

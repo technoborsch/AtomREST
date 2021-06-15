@@ -1,11 +1,16 @@
-const APIRootURL = document.getElementById('viewer_settings').getAttribute('api_url');
-
 export default class APIService {
-    // A class for an object that handle all communications with API
+    /**
+     * A class for an object that handle all communications with API
+     *
+     * @param { String } APIRootURL Root URL of API it should operate with
+     */
+    constructor(APIRootURL) {
+        this.APIRootURL = APIRootURL;
+    }
 
     // Returns a model by its primary key
     getModelByPK(pk) {
-        const url = `${APIRootURL}/models/${pk}/`;
+        const url = `${this.APIRootURL}/models/${pk}/`;
         return axios.get(url).then( (response) => {
             const model = response.data;
             this.getObject(model.building).then((result) => {model.building = result});
@@ -15,13 +20,13 @@ export default class APIService {
 
     // Returns all viewpoints
     getViewPoints() {
-        const url = `${APIRootURL}/view_points/`;
+        const url = `${this.APIRootURL}/view_points/`;
         return axios.get(url).then(response => response.data);
     }
 
     // Rets a view point by its pk
     getViewPointByPK(pk) {
-        const url = `${APIRootURL}/view_points/${pk}/`;
+        const url = `${this.APIRootURL}/view_points/${pk}/`;
         return axios.get(url).then( (response) => {
             const viewPoint = response.data;
             // A viewpoint contains only URLs to notes, so load all those notes here
@@ -46,25 +51,25 @@ export default class APIService {
 
     // Adds new viewpoint
     addViewPoint(viewPoint) {
-        const url = `${APIRootURL}/view_points/`;
+        const url = `${this.APIRootURL}/view_points/`;
         return axios.post(url, viewPoint).then(result => result.data);
     }
 
     // Deletes a viewpoint by its pk
     deleteViewPointByPK( pk ) {
-        const url = `${APIRootURL}/view_points/${pk}/`;
+        const url = `${this.APIRootURL}/view_points/${pk}/`;
         return axios.delete(url);
     }
 
     // Adds new note
     addNote(note) {
-        const url =`${APIRootURL}/notes/`;
+        const url =`${this.APIRootURL}/notes/`;
         return axios.post(url, note);
     }
 
     // To viewpoints export
     exportViewpointsByPKString( pk_string ) {
-        const url = `${APIRootURL}/view_points_export`;
+        const url = `${this.APIRootURL}/view_points_export`;
         return axios.get(url, {
             params: {
                 viewpoints_pk_list: pk_string,
@@ -74,7 +79,7 @@ export default class APIService {
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', 'export.xml'); //or any other extension
+            link.setAttribute('download', 'export.xml');
             document.body.appendChild(link);
             link.click();
             link.remove();

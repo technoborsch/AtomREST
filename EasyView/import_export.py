@@ -1,6 +1,7 @@
 import os
 import uuid
 import xml.etree.ElementTree as ET
+from xml.etree.ElementTree import Element
 
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -8,7 +9,15 @@ from AtomREST.settings import BASE_DIR
 from EasyView.models import ViewPoint
 
 
-def create_exported_viewpoints_xml(pk_list: list):
+def create_exported_viewpoints_xml(pk_list: list) -> ET:
+    """
+    Function that makes XML files with view points, which can be used in Autodesk Navisworks.
+
+    :param pk_list: list that contents primary keys of saved view points that should be exported.
+    Keys can be str or int.
+
+    :return:
+    """
     path_to_template = os.path.join(BASE_DIR, 'EasyView', 'static', 'EasyView', 'export', 'general_template.xml')
     general_template = ET.parse(path_to_template)
     exchange = general_template.getroot()
@@ -23,8 +32,13 @@ def create_exported_viewpoints_xml(pk_list: list):
     return general_template
 
 
-def export_viewpoint_to_nw(view_point: ViewPoint):
-    """Represents current view point as a NavisWorks view point XML structure"""
+def export_viewpoint_to_nw(view_point: ViewPoint) -> Element:
+    """
+    Represents current view point as a NavisWorks view point XML structure
+
+    :param view_point: ViewPoint instance that should be represented in XML
+    :return: XML Element instance with inserted view point
+    """
 
     path_to_viewpoint_template = os.path.join(
         BASE_DIR, 'EasyView', 'static', 'EasyView', 'export', 'view_point_template.xml')
@@ -38,7 +52,7 @@ def export_viewpoint_to_nw(view_point: ViewPoint):
         ('name', view_point.description)
     )
     pos3f_attributes = tuple(zip(('x', 'y', 'z',), map(lambda x: str(x), view_point.position)))
-    quaternion_attributes = tuple(zip(('a', 'b', 'c', 'd'), map(lambda x: str(x), view_point.nw_quaternion)))
+    quaternion_attributes = tuple(zip(('a', 'b', 'c', 'd'), map(lambda x: str(x), view_point.quaternion)))
 
     element_attribute_pairs = (
         (view, view_attributes),
