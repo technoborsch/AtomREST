@@ -11,9 +11,9 @@ import {prettify} from "./Utils.js";
 // Create six clipping planes for each side of a model
 const clipPlanes = [];
 [
-    [-1, 0, 0], [1, 0, 0],
     [0, -1, 0], [0, 1, 0],
     [0, 0, -1], [0, 0, 1],
+    [-1, 0, 0], [1, 0, 0],
 
 ].forEach( (array) => {
     clipPlanes.push( new THREE.Plane( new THREE.Vector3().fromArray( array ), 0 ) );
@@ -137,7 +137,6 @@ export default class Engine {
     setViewFromViewPoint( point ) {
         // It sets view off given point object. Note that it doesn't set clipping, so clipping should be set separately
         this.viewPoint = point;
-        console.dir(point);
         this.camera.position.set(point.position[0], point.position[2], (-1 * point.position[1]) );
         const quaternion = this.convertFromNWQuaternionToLocal( new THREE.Quaternion().fromArray(point.quaternion) );
         this.camera.quaternion.set( quaternion.x, quaternion.y, quaternion.z, quaternion.w );
@@ -186,9 +185,9 @@ export default class Engine {
             for ( let i = 0; i < intersects.length; i++ ) {
                 const point = intersects[i].point;
                 if (
-                    (clipPlanes[0].constant > point.x) && ( point.x > -clipPlanes[1].constant)
-                    && (clipPlanes[2].constant > point.y) && (point.y > -clipPlanes[3].constant)
-                    && (clipPlanes[4].constant > point.z) && (point.z > -clipPlanes[5].constant)
+                    (clipPlanes[4].constant > point.x) && ( point.x > -clipPlanes[5].constant)
+                    && (clipPlanes[0].constant > point.y) && (point.y > -clipPlanes[1].constant)
+                    && (clipPlanes[2].constant > point.z) && (point.z > -clipPlanes[3].constant)
                 ) {
                     return point //TODO should not react to sprites
                 }
@@ -205,10 +204,18 @@ export default class Engine {
             position: position,
             quaternion: quaternion.toArray(),
             distance_to_target: distance,
-            clip_constants: [
-                this.clipPlanes[0].constant, -this.clipPlanes[1].constant,
-                this.clipPlanes[2].constant, -this.clipPlanes[3].constant,
-                this.clipPlanes[4].constant, -this.clipPlanes[5].constant
+            clip_constants_status: [        // In this order to synchronise with Navisworks
+                this.clipPlanes[0].constant !== this.boundBox.max.y,
+                -this.clipPlanes[1].constant !== this.boundBox.min.y,
+                this.clipPlanes[2].constant !== this.boundBox.max.z,
+                -this.clipPlanes[3].constant !== this.boundBox.min.z,
+                -this.clipPlanes[4].constant !== this.boundBox.min.x,
+                this.clipPlanes[5].constant !== this.boundBox.max.x,
+            ],
+            clip_constants: [               // In this order to synchronise with Navisworks
+                -this.clipPlanes[0].constant, -this.clipPlanes[1].constant,
+                -this.clipPlanes[2].constant, -this.clipPlanes[3].constant,
+                -this.clipPlanes[5].constant, -this.clipPlanes[4].constant,
             ],
             model: this.model.url,
             description: null,

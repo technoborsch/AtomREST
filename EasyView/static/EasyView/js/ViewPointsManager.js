@@ -113,7 +113,6 @@ export default class ViewpointManager {
     }
 
     onViewPointsExportButtonClick() {
-        console.log('export clicked');
         const key = this.engine.model.building.slug;
         let keyString = localStorage.getItem( key );
         this.apiService.exportViewpointsByPKString( keyString )

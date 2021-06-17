@@ -1,5 +1,5 @@
     <view name="" guid="">
-      <viewpoint tool="none" render="shaded" lighting="headlight" focal="55734.9836159781" linear="3532.2113813119" angular="0.7">
+      <viewpoint tool="autocam_pan" render="shaded" lighting="headlight" focal="55734.9836159781" linear="3532.2113813119" angular="0.7">
         <camera projection="persp" near="0" far="2000000" aspect="2" height="0.70">
           <position>
             <pos3f x="" y="" z=""/>
@@ -26,13 +26,13 @@
         </range>
         <clipplanes>
           <clipplane state="default" distance="0.0000000000" alignment="top">
-            <plane distance="-3723.9421404024">
+            <plane distance="0.0000000000">
               <vec3f x="-0.0000000000" y="-0.0000000000" z="-1.0000000000"/>
             </plane>
           </clipplane>
           <clipplane state="default" distance="0.0000000000" alignment="bottom">
             <plane distance="0.0000000000">
-              <vec3f x="0.0000000000" y="1.0000000000" z="0.0000000000"/>
+              <vec3f x="0.0000000000" y="0.0000000000" z="1.0000000000"/>
             </plane>
           </clipplane>
           <clipplane state="default" distance="0.0000000000" alignment="front">
@@ -42,17 +42,17 @@
           </clipplane>
           <clipplane state="default" distance="0.0000000000" alignment="back">
             <plane distance="0.0000000000">
-              <vec3f x="0.0000000000" y="1.0000000000" z="0.0000000000"/>
+              <vec3f x="0.0000000000" y="-1.0000000000" z="0.0000000000"/>
             </plane>
           </clipplane>
           <clipplane state="default" distance="0.0000000000" alignment="left">
             <plane distance="0.0000000000">
-              <vec3f x="0.0000000000" y="1.0000000000" z="0.0000000000"/>
+              <vec3f x="1.0000000000" y="0.0000000000" z="0.0000000000"/>
             </plane>
           </clipplane>
           <clipplane state="default" distance="0.0000000000" alignment="right">
             <plane distance="0.0000000000">
-              <vec3f x="0.0000000000" y="1.0000000000" z="0.0000000000"/>
+              <vec3f x="-1.0000000000" y="0.0000000000" z="0.0000000000"/>
             </plane>
           </clipplane>
         </clipplanes>

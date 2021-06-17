@@ -45,6 +45,7 @@ class ViewPoint(models.Model):
     position = ArrayField(models.FloatField(), size=3)  # x, y, z
     quaternion = ArrayField(models.FloatField(), size=4)  # x, y, z, w
     distance_to_target = models.FloatField(blank=True, null=True)
+    clip_constants_status = ArrayField(models.BooleanField(), size=6, blank=True, default=[False] * 6)
     clip_constants = ArrayField(  # x, x negative, y, y negative, z, z negative TODO synchronise with NW clip constants
         models.FloatField(), size=6, blank=True, null=True
     )

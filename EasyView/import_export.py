@@ -44,6 +44,7 @@ def export_viewpoint_to_nw(view_point: ViewPoint) -> Element:
         BASE_DIR, 'EasyView', 'static', 'EasyView', 'export', 'view_point_template.xml')
     viewpoint_template = ET.parse(path_to_viewpoint_template)
     view = viewpoint_template.getroot()
+    # View point - position and rotation
     pos3f = view[0][0][0][0]
     quaternion = view[0][0][1][0]
 
@@ -53,6 +54,24 @@ def export_viewpoint_to_nw(view_point: ViewPoint) -> Element:
     )
     pos3f_attributes = tuple(zip(('x', 'y', 'z',), map(lambda x: str(x), view_point.position)))
     quaternion_attributes = tuple(zip(('a', 'b', 'c', 'd'), map(lambda x: str(x), view_point.quaternion)))
+
+    # Clipping planes
+    clip_plane_set = view[1]
+    clip_planes = clip_plane_set[1]
+
+    clipped = False
+    clip_counter = 0
+    for i, status in enumerate(view_point.clip_constants_status):
+        if status:
+            if not clipped:
+                clipped = True
+            clip_counter += 1
+            clip_planes[i].set('state', 'enabled')
+            clip_planes[i][0].set('distance', f'{view_point.clip_constants[i]:.10f}')
+
+    if clipped:
+        clip_plane_set.set('enabled', '1')
+        clip_plane_set.set('current', str(clip_counter - 1))
 
     element_attribute_pairs = (
         (view, view_attributes),
