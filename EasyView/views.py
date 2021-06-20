@@ -1,9 +1,9 @@
-import tempfile
+from tempfile import TemporaryFile
 
 from django.views.generic import TemplateView, DetailView
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.core.files import File
 from django.utils.decorators import method_decorator
 
@@ -58,11 +58,27 @@ class ExportViewPointsView(View):  # TODO add errors handling
         viewpoints_pk_list = self.request.GET.get('viewpoints_pk_list', None).split(',')
         if viewpoints_pk_list and viewpoints_pk_list != ['']:
             xml = import_export.create_exported_viewpoints_xml(viewpoints_pk_list)
-            with tempfile.TemporaryFile() as tf:
+            with TemporaryFile() as tf:
                 xml.write(tf)
                 response = HttpResponse(File(tf), content_type='application/force-download')
                 response['Content-Disposition'] = 'attachment; filename=viewpoints_export.xml'
                 return response
+        else:
+            return HttpResponse(status=400)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ImportViewPointsView(View):  # TODO add errors handling
+    """
+    A view that processes incoming file and tries to save viewpoints off it, then returns JSON with a list
+    of saved viewpoints' pks.
+    """
+    def post(self, request: HttpRequest):
+        file = self.request.FILES['file']  # TODO try-except
+        model_pk = self.request.POST['model']
+        if file:
+            pks_list = import_export.import_navisworks_viewpoints(file, model_pk)  # TODO try-except
+            return JsonResponse({'list': pks_list})
         else:
             return HttpResponse(status=400)
 

@@ -42,6 +42,7 @@ const viewpointManager = new ViewpointManager(
     document.getElementById('viewPointsCollapseButton'),
     document.getElementById( 'pointButtons' ),
     document.getElementById('viewPointsExportButton'),
+    document.getElementById('viewPointsImportButton'),
     engine,
     controlPanel,
     apiService,

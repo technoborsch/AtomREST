@@ -6,7 +6,7 @@ export default class ViewpointManager {
         viewPointModalDescriptionInput, viewPointModalNoteInsertionElement,
         noteModal, noteModalSaveButton, noteModalOpenButton, noteModalDescriptionInput,
         viewPointToast, viewPointDescriptionToast, viewPointDeletionToast, viewPointToastDescriptionOutput,
-        viewPointsCollapseButton, viewPointsButtonsInsertionElement, viewPointsExportButton,
+        viewPointsCollapseButton, viewPointsButtonsInsertionElement, viewPointsExportButton, viewPointsImportButton,
         engine, controlPanel, apiService
         ) {
         this.viewPointModal = viewPointModal;
@@ -29,6 +29,7 @@ export default class ViewpointManager {
         this.viewPointsButtonsInsertionElement = viewPointsButtonsInsertionElement;
 
         this.viewPointsExportButton = viewPointsExportButton;
+        this.viewPointsImportButton = viewPointsImportButton;
 
         this.apiService = apiService;
         this.engine = engine;
@@ -45,7 +46,8 @@ export default class ViewpointManager {
         this.viewPointModal.cancelButton.addEventListener( 'click', this.onViewPointModalCancelButtonClick.bind(this) );
         this.noteModal.openButton.addEventListener( 'click', this.onNoteModalOpenButtonClick.bind(this) );
         this.noteModal.saveButton.addEventListener( 'click', this.onNoteModalSaveButtonClick.bind(this) );
-        this.viewPointsExportButton.addEventListener( 'click', this.onViewPointsExportButtonClick.bind(this) )
+        this.viewPointsExportButton.addEventListener( 'click', this.onViewPointsExportButtonClick.bind(this) );
+        this.viewPointsImportButton.addEventListener( 'click', this.onViewPointsImportButtonClick.bind(this) );
 
     }
 
@@ -118,12 +120,32 @@ export default class ViewpointManager {
         this.apiService.exportViewpointsByPKString( keyString )
     }
 
+    onViewPointsImportButtonClick() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.click();
+
+        input.onchange = event => {
+            const file = event.target.files[0];
+            this.apiService.importViewPoints( file, this.engine.model.pk ).then( response => {
+                const pk_list = response.list
+                this.withPreparedLocalPointsList( async list => {
+                    await list.push(pk_list);
+                    this.getSavedViewpoints().then( () => {
+                        this.renderViewpointsList();
+                    } );
+                } );
+            } );
+            input.remove();
+        }
+    }
+
     setViewPoint( viewPoint ) {
         // Method that called to apply a viewpoint, it handles both view and clipping
         if (viewPoint) {
             this.engine.setViewFromViewPoint( viewPoint );
             this.currentNotes = viewPoint.notes;
-            this.controlPanel.setClipping(viewPoint.clip_constants);
+            this.controlPanel.setClipping( viewPoint );
             if (viewPoint.description) {
                 this.showDescriptionToast( viewPoint.description );
             }

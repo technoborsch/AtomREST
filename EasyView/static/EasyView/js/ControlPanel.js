@@ -60,7 +60,7 @@ export default class ControlPanel {
 
     }
 
-    setClipping( clipConstants ) { //TODO move to engine
+    setClipping( viewPoint ) { //TODO move to engine
         // Manipulate with clipping planes here. Should be called after each changing of a viewpoint
         const boundBox = this.engine.boundBox;
         let array = [boundBox.max.y, -boundBox.min.y, boundBox.max.z, -boundBox.min.z, boundBox.max.x, -boundBox.min.x];
@@ -69,12 +69,19 @@ export default class ControlPanel {
             'planeConstantZ', 'planeConstantZNeg',
             'planeConstantX', 'planeConstantXNeg',
         ]
-        if (clipConstants) {
-            array = clipConstants.map( num => -num );
-            let a = -clipConstants[5];
-            let b = -clipConstants[4];
-            array[4] = a;
-            array[5] = b; // Has to do this swap for some reason
+        if ( viewPoint ) {
+            const clipConstants = viewPoint.clip_constants
+            const clipStatuses = viewPoint.clip_constants_status
+            const prepared_array = clipConstants.map( num => -num );
+            let a = prepared_array[5];
+            let b = prepared_array[4];
+            prepared_array[4] = a;
+            prepared_array[5] = b; // Has to do this swap for some reason
+            for (let i=0; i<array.length; i++) {
+                if (clipStatuses[i]) {
+                    array[i] = prepared_array[i]
+                }
+            }
         }
         for (let i = 0; i < array.length; i++) {
             this.engine.clipPlanes[i].constant = array[i];

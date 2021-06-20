@@ -75,7 +75,7 @@ export default class APIService {
                 viewpoints_pk_list: pk_string,
             },
             responseType: 'blob',
-        }).then((response) => {
+        }).then((response) => {  //TODO move out of here
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;
@@ -84,5 +84,18 @@ export default class APIService {
             link.click();
             link.remove();
         })
+    }
+
+    // For viewpoints importing
+    importViewPoints( file, model_pk ) {
+        const formData = new FormData();
+        formData.append('model', model_pk);
+        formData.append('file', file);
+        const url = `${this.APIRootURL}/view_points_import`;
+        return axios.post(url, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        }).then( response => response.data );
     }
 }

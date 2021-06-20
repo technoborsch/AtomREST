@@ -1,12 +1,14 @@
 import os
 import uuid
+from tempfile import TemporaryFile
 import xml.etree.ElementTree as ET
 from xml.etree.ElementTree import Element
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.files.uploadedfile import InMemoryUploadedFile
 
 from AtomREST.settings import BASE_DIR
-from EasyView.models import ViewPoint
+from EasyView.models import ViewPoint, Model3D
 
 
 def create_exported_viewpoints_xml(pk_list: list) -> ET:
@@ -16,7 +18,7 @@ def create_exported_viewpoints_xml(pk_list: list) -> ET:
     :param pk_list: list that contents primary keys of saved view points that should be exported.
     Keys can be str or int.
 
-    :return:
+    :return: Element Tree with inserted view points
     """
     path_to_template = os.path.join(BASE_DIR, 'EasyView', 'static', 'EasyView', 'export', 'general_template.xml')
     general_template = ET.parse(path_to_template)
@@ -83,3 +85,56 @@ def export_viewpoint_to_nw(view_point: ViewPoint) -> Element:
             element.set(attribute, value)
 
     return view
+
+
+def import_navisworks_viewpoints(xml_file: InMemoryUploadedFile, model_pk: int) -> list:
+    """
+    The function parses an opened temporary file with Navisworks view points and tries to save them.
+    :param xml_file: an XML file with viewpoints, opened to read.
+    :param model_pk: PK of a model the viewpoints should be saved to.
+    :return: list of successfully saved viewpoints' PKs.
+    """
+    viewpoints_pks_list = []
+    with xml_file.open('r') as xml:  # ValueError
+        viewpoints_tree = ET.parse(xml)  # ParseError
+        view_points = viewpoints_tree.getroot()[0]  # IndexError
+        for view_point in view_points:
+            viewpoint_object = import_viewpoint(view_point)  # can throw a lot of things
+            viewpoint_object.model = Model3D.objects.get(pk=model_pk)
+            viewpoint_object.save()
+            viewpoints_pks_list.append(viewpoint_object.pk)
+    return viewpoints_pks_list
+
+
+def import_viewpoint(view_point: Element) -> ViewPoint:
+    """
+    The function tries to parse single view point off given element
+    :param view_point: XML element with information about a viewpoint
+    :return: viewpoint object
+    """
+    description = view_point.get('name')
+    position = [float(view_point[0][0][0][0].get(key)) for key in ['x', 'y', 'z']]  # IndexError, ValueError
+    quaternion = [float(view_point[0][0][1][0].get(key)) for key in ['a', 'b', 'c', 'd']]  # IndexError, ValueError
+    clip_constants_status = [False] * 6
+    clip_constants = [0.0] * 6
+    has_clipping = False
+    clip_planes = view_point[1][1]  # IndexError
+    if len(clip_planes) != 6:
+        raise ValueError('Неверное число секущих плоскостей в файле')
+    for i, clip_plane in enumerate(clip_planes):
+        plane_state = clip_plane.get('state') == 'enabled'
+        if plane_state:
+            if not has_clipping:
+                has_clipping = True
+            clip_constants_status[i] = plane_state
+            clip_constants[i] = float(clip_plane[0].get('distance'))  # ValueError
+    if not has_clipping:
+        clip_constants_status, clip_constants = None, None
+    viewpoint_object = ViewPoint(
+        description=description,
+        position=position,
+        quaternion=quaternion,
+        clip_constants_status=clip_constants_status,
+        clip_constants=clip_constants,
+    )
+    return viewpoint_object

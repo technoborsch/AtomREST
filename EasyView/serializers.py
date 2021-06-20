@@ -7,7 +7,8 @@ class Model3DSerializer(serializers.HyperlinkedModelSerializer):
     """Serializer class for a building model"""
     class Meta:
         model = models.Model3D
-        fields = ['url', 'building', 'nwd', 'gltf', 'view_points']
+        fields = ['url', 'pk', 'building', 'nwd', 'gltf', 'view_points']
+        read_only_fields = ['pk', 'url']
 
 
 class ViewPointSerializer(serializers.HyperlinkedModelSerializer):
