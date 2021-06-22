@@ -96,7 +96,8 @@
 
       </div>
     </div>
-    <div class="position-absolute bottom-0 w-100 p-3">
+
+    <div class="position-relative bottom-0 w-100 p-3">
       <a
             class="btn btn-outline-primary w-100{% if not model.nwd %} disabled{% endif %}"
             href="{% if model.nwd %}{{ model.nwd.url }}{% endif %}">
@@ -104,6 +105,7 @@
         Скачать&nbsp;модель&nbsp;.nwd
       </a>
     </div>
+
     </aside>
 
     <!--Button to toggle sidebar with notes-->

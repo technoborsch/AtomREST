@@ -62,11 +62,14 @@ const loadingManager = new THREE.LoadingManager();
 
 const loader = new GLTFLoader(loadingManager);
 
+/**
+ * A graphical engine that works on THREE.js library.
+ */
 export default class Engine {
     /**
-     * A graphical engine that works on THREE.js library
-     *
-     * @param {Element} rootElement Canvas of the engine will be appended as a child to this element
+     * @param {Element} rootElement Canvas of the engine will be appended as a child to this element.
+     * @property { Model } model Current loaded model.
+     * @property { ViewPoint } viewPoint Current view point.
      */
 
     constructor( rootElement ) {
@@ -96,8 +99,12 @@ export default class Engine {
         window.addEventListener('resize', this.onWindowResize.bind(this));
     }
 
+    /**
+     * Method that loads given Model object into current scene.
+     *
+     * @param { Model } model Model that should be loaded.
+     */
     loadModel( model ) {
-        // Loads given model object
         this.model = model;
         const ktx2Loader = new KTX2Loader()
             .setTranscoderPath('../../threejs/examples/js/libs/basis')
@@ -112,30 +119,34 @@ export default class Engine {
                     && ( o.material.color.g >= 0.819 && o.material.color.g <= 0.82 )
                     && ( o.material.color.b >= 0.99 && o.material.color.b <= 1 )
                 ) {
-                    o.material.visible = false; // These are inner room spaces - hide them to avoid z-fighting
+                    o.material.visible = false; // These are inner room spaces - hide them to avoid z-fighting.
                 }
                 else {
                     o.material.roughness = 0.75;
-                    o.material.side = THREE.DoubleSide; // Or it will look unnatural
-                    o.material.clippingPlanes = this.clipPlanes; // Assign clip planes to each mesh material
+                    o.material.side = THREE.DoubleSide; // Or it will look unnatural.
+                    o.material.clippingPlanes = this.clipPlanes; // Assign current clip planes to each mesh material.
                 }
             }
         });
 
-        // Set bound box and model center here off the scene to use it later
+        // Set bound box and model center here off the scene to use it later.
         this.boundBox.setFromObject(gltf.scene).getCenter(this.modelCenter);
         this.scene.add( gltf.scene );
         },
 
-        // Callback on loading process
+        // Callback on loading process.
         (xhr) => { console.log((xhr.loaded / xhr.total * 100) + '% loaded'); },
-        // Called when loading has errors
+        // Called when loading has errors.
         (error) => { console.log('An error happened' + error); }
         );
     }
 
+    /**
+     * Method that sets current view to a given view point - position, rotation. TODO should also set clipping.
+     *
+     * @param { ViewPoint } point Viewpoint that should be set.
+     */
     setViewFromViewPoint( point ) {
-        // It sets view off given point object. Note that it doesn't set clipping, so clipping should be set separately
         this.viewPoint = point;
         this.camera.position.set(point.position[0], point.position[2], (-1 * point.position[1]) );
         const quaternion = this.convertFromNWQuaternionToLocal( new THREE.Quaternion().fromArray(point.quaternion) );
@@ -144,17 +155,23 @@ export default class Engine {
         const target = new THREE.Vector3().copy(this.camera.position);
         let distance = point.distance_to_target;
         if (!distance) {
-            distance = 2000;  // Default distance to target. TODO move to constructor
+            distance = 2000;  // Default distance to target. TODO move to constructor?
         }
         target.add(direction.multiplyScalar(distance));
         this.controls.target.set(target.x, target.y, target.z);
 
-        for (let i=0; i<point.notes.length; i++) {
-            this.insertNote(point.notes[i], this.viewPoint.pk + '_' + i.toString())
+        for (let i=0; i < point.notes.length; i++) {
+            if (point.notes[i]) {
+                this.insertNote(point.notes[i], this.viewPoint.pk + '_' + i.toString());
+            }
         }
         this.controls.update();
     }
 
+    /**
+     * Method used to set default view of a model. By default, it sets view with position on a diagonal vector
+     * multiplied by 2, looks on a model center.
+     */
     setDefaultView() {
         // It sets default view depending on loaded model
         this.controls.target.set(
@@ -171,8 +188,15 @@ export default class Engine {
         this.controls.update();
     }
 
+    /**
+     * Method used to catch intersection position via ray casting. It catches click of a user and returns first
+     * intersection, taking into consideration current clipping.
+     *
+     * @param { Object } event Generated click event.
+     * @return {Promise<THREE.Vector3>} Promise that is fulfilled with position of first intersection as THREE.Vector3
+     * if it gets intersection. May take several clicks.
+     */
     async getFirstIntersectionPosition( event ) {
-        // Async function that returns first intersection point, taking into consideration current clipping.
         const clipPlanes = this.clipPlanes;
         const mouse = new THREE.Vector2();
 
@@ -195,8 +219,12 @@ export default class Engine {
         }
     }
 
+    /**
+     * Method used to return current view point. Note that it has empty description.
+     *
+     * @return { ViewPoint } Current view point.
+     */
     getCurrentViewPoint() {
-        // Returns a view point with empty description
         const distance = this.camera.position.distanceTo( this.controls.target );
         const quaternion = this.getNWCameraQuaternion();
         const position = [ this.camera.position.x, -this.camera.position.z, this.camera.position.y ];
@@ -219,13 +247,18 @@ export default class Engine {
             ],
             model: this.model.url,
             description: null,
+            pk: undefined,
+            url: undefined,
+            viewer_url: undefined,
+            creation_time: undefined,
+            notes: undefined,
         }
     }
 
     /**
-     * Method used to calculate camera quaternion that fits in Navisworks coordinate system
+     * Method used to calculate camera quaternion that fits in Navisworks coordinate system.
      *
-     * @returns { THREE.Quaternion } quaternion suitable for NW
+     * @returns { THREE.Quaternion } quaternion suitable for NW.
      */
     getNWCameraQuaternion () {
         const direction = new THREE.Vector3(0, 0, -1);
@@ -240,7 +273,7 @@ export default class Engine {
     }
 
     /**
-     * Method that used to convert given quaternion used in Navisworks to a quaternion that will suit here.
+     * Method that used to convert given quaternion used in Navisworks to a quaternion that will fit here.
      * Includes math and black magic.
      *
      * @param { THREE.Quaternion } nw_quaternion Quaternion used in Navisworks
@@ -260,14 +293,19 @@ export default class Engine {
         return new THREE.Quaternion().setFromRotationMatrix(mx);
     }
 
+    /**
+     * Inserts note object to current scene. It is a sprite with given text.
+     *
+     * @param { Note } noteObject Note that should be inserted.
+     * @param { String } name Name of the note inside a scene. Should be unique.
+     */
     insertNote( noteObject, name ) {
-        // Creates and inserts a note to a model
         const text = prettify( noteObject.text, 20 );
         const note = new SpriteText(text, 400, 'black');
         note.backgroundColor = 'white';
         note.padding = 10;
         note.borderRadius = 10;
-        if (name) { // If a name wasn't passed, leave it empty.
+        if (name) { // If a name wasn't passed, leave it empty. TODO Name must be always passed.
             note.name = name;
         }
         note.position.set( noteObject.position[0], noteObject.position[1], noteObject.position[2] );
@@ -278,8 +316,20 @@ export default class Engine {
         this.render();
     }
 
+    /**
+     * Method used to remove a note from the scene by its name.
+     *
+     * @param { String } noteName Name of note that should be deleted.
+     */
+    removeNote( noteName ) {
+        const note = this.scene.getObjectByName( noteName );
+        this.scene.remove( note );
+    }
+
+    /**
+     * Standard method for Three.js which handles window resizing.
+     */
     onWindowResize() {
-        // A method to handle window resizing
         const main = document.getElementById('main');
         this.renderer.setSize( main.clientWidth, main.clientHeight );
         this.camera.aspect = window.innerWidth / window.innerHeight;
@@ -287,26 +337,35 @@ export default class Engine {
         this.render();
     }
 
+    /**
+     * Standard method for Three.js which is called each time when a model should be rendered.
+     */
     render() {
-        // A method called to render current scene to canvas
         this.placeGuideSphereInTarget();
         this.renderer.render( this.scene, this.camera );
     }
 
+    //TODO Those methods should be encapsulated in a GuideSphere class.
+    /**
+     * Method used to show little guide sphere in a current target of controls.
+     */
     showGuideSphere() {
-        // Show little guide sphere in controls target
         this.scene.add( this.guideSphere );
         this.placeGuideSphereInTarget();
     }
 
+    /**
+     * Hides guide sphere
+     */
     hideGuideSphere() {
-        // Hide guide sphere
         this.scene.remove( this.guideSphere );
         this.render();
     }
 
+    /**
+     * Method that places guide sphere in current target. Should be called each time when target moves.
+     */
     placeGuideSphereInTarget() {
-        // This method should be called to place guide sphere in current controls target
         const distance = this.camera.position.distanceTo(this.controls.target);
         const newScale = distance / 100; // Scale of the sphere
         this.guideSphere.scale.x = newScale;

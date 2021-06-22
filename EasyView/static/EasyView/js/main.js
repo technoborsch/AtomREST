@@ -2,6 +2,7 @@ import APIService from "./APIService.js";
 import ViewpointManager from "./ViewPointsManager.js";
 import ControlPanel from "./ControlPanel.js";
 import Engine from "./Engine.js";
+import AppInterface from "./Interface.js";
 
 // Wrapper to handle API calls
 const APIRootURL = document.getElementById('viewer_settings').getAttribute('api_url');
@@ -23,33 +24,17 @@ const engine = new Engine( settingsElement );
 // Initialize a control panel
 const controlPanel = new ControlPanel( engine );
 
+// Initialize interface
+const interface_ = new AppInterface();
+
 // Initialize viewpoint manager here and bind it to interface, engine and API
-const viewpointManager = new ViewpointManager(
-    new bootstrap.Modal(document.getElementById('viewPointModal')),
-    document.getElementById('cancelViewPoint'),
-    document.getElementById('saveViewPoint'),
-    document.getElementById('camera'),
-    document.getElementById('descriptionInput'),
-    document.getElementById( 'notesInsideModal' ),
-    new bootstrap.Modal(document.getElementById('noteModal')),
-    document.getElementById('saveNote'),
-    document.getElementById('note'),
-    document.getElementById('noteTextInput'),
-    new bootstrap.Toast(document.getElementById('viewPointToast')),
-    new bootstrap.Toast(document.getElementById('viewPointDescriptionToast')),
-    new bootstrap.Toast(document.getElementById('viewPointDeletionToast')),
-    document.getElementById('descriptionText'),
-    document.getElementById('viewPointsCollapseButton'),
-    document.getElementById( 'pointButtons' ),
-    document.getElementById('viewPointsExportButton'),
-    document.getElementById('viewPointsImportButton'),
-    engine,
-    controlPanel,
-    apiService,
-);
+const viewpointManager = new ViewpointManager( interface_, engine, controlPanel, apiService );
 
 main()
 
+/**
+ * Main logic on load. Everything starts here.
+ */
 function main() {
     engine.model = model;
     engine.loadingManager.onLoad = () => {

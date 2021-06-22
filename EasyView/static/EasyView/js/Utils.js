@@ -1,9 +1,9 @@
 /**
  * Function that adds spacing to a given string, so that in each line there is no more symbols than maxLength.
  *
- * @param {string} text Text that should be prettified
- * @param {number} maxLength Maximum number of symbols in each line
- * @return {string} String with inserted spacings
+ * @param { String } text Text that should be prettified
+ * @param { Number } maxLength Maximum number of symbols in each line
+ * @return { String } String with inserted spacings
  */
 export function prettify ( text, maxLength ) {
         const space = ' ';
@@ -33,9 +33,9 @@ export function prettify ( text, maxLength ) {
 /**
  * Function that truncates a string to a given number of signs and adds '...' at the end of it.
  *
- * @param {string} text Text that should be truncated
- * @param {number} length Maximum length of string
- * @return {string} truncated string
+ * @param { String } text Text that should be truncated
+ * @param { Number } length Maximum length of string
+ * @return { String } truncated string
  */
 export function truncate(text, length) {
     if (text.length - 3 <= length) {
