@@ -1,27 +1,28 @@
+import APIService from "./APIService.js";
+import AppInterface from "./Interface.js";
+import Engine from "./Engine.js";
+
 /**
  * An object that describes all logic and reactions related to user actions.
  * It connects API, interface and engine together.
  */
 export default class ViewpointManager {
     /**
-     * @param { AppInterface } interface_ Current interface of the app.
-     * @param { Engine } engine Graphical engine used in the app.
-     * @param { ControlPanel } controlPanel Control panel of the engine. TODO Move to somewhere.
-     * @param { APIService } apiService Object that communicates with the API.
+     * @property { AppInterface } interface_ Current interface of the app.
+     * @property { Engine } engine Graphical engine used in the app.
+     * @property { APIService } apiService Object that communicates with the API.
      * @property { Note[] } currentNotes Current set of notes.
-     * @property { Element[] } currentNote
      */
-    constructor(
-        interface_, engine, controlPanel, apiService
-        ) {
-        this.interface = interface_;
-        this.apiService = apiService;
-        this.engine = engine;
-        this.controlPanel = controlPanel;
+    constructor() {
+        this.interface = new AppInterface();
+        this.apiService = new APIService( this.interface.settingsElement.getAttribute('api_url') );
+        this.engine = new Engine( this.interface.settingsElement );
 
         this.currentNotes = [];
         this.viewPointsList = [];
         this.isWaitingForNote = false;
+
+        this.storage = new LocalStorageManager(this);
 
         // Bind methods to clicks on different buttons. Don't forget to register a button here if you want it to work.
         this.interface.viewPointModal.saveButton.addEventListener( 'click', this.onViewPointSaveClick.bind(this) );
@@ -35,6 +36,31 @@ export default class ViewpointManager {
     }
 
     /**
+     * The vital function that launches the app. Loads everything that is needed from the API and starts an engine.
+     *
+     * @return {Promise<void>} Promise fulfilled on successful app load but probably you don't want to care about it.
+     */
+    async launch() {
+        const settings = this.interface.settingsElement;
+        const model = await this.apiService.getModelByPK(settings.getAttribute('model_pk'));
+        const initialViewPointPK = settings.getAttribute('view_point_pk');
+        let initialViewPoint;
+        if (initialViewPointPK) {
+            initialViewPoint = await this.apiService.getViewPointByPK(initialViewPointPK);
+        }
+        this.engine.model = model;
+        this.engine.loadingManager.onLoad = () => {
+                this.interface.removeLoadingScreen();
+                this.setViewPoint( initialViewPoint );
+                this.getSavedViewpoints().then( () => {
+                    this.renderViewpointsList();
+                });
+                this.engine.onWindowResize();
+            };
+        this.engine.loadModel();
+    }
+
+    /**
      * Method that handles click on 'Save view point' button. It gets current view point from the engine,
      * adds typed description, saves it in database, then saves all current notes to saved view point,
      * then adds this viewpoint to current view points and then renders them in the side menu.
@@ -42,19 +68,18 @@ export default class ViewpointManager {
     onViewPointSaveClick() {
         this.saveViewPoint(this.interface.viewPointModal.descriptionInput.value)
             .then( (savedViewPoint) => {
-                this.renderViewpointsList();
-                this.withPreparedLocalPointsList( /**String[]*/ list =>{list.push(savedViewPoint.pk.toString())});
+                this.storage.addViewPoint( savedViewPoint );
                 const notesToSave = this.currentNotes.slice(
                     this.engine.viewPoint ? this.engine.viewPoint.notes.length : 0
                 );
                 savedViewPoint.notes = notesToSave;
-                console.dir(notesToSave);
                 this.viewPointsList.push( savedViewPoint );
                 notesToSave.forEach( async ( /**Note*/ note) => {
                     note.view_point = savedViewPoint.url;
                     await this.apiService.addNote( note );
                 });
                 this.clearNotes();
+                this.renderViewpointsList();
                 this.interface.viewPointModal.descriptionInput.value = '';
                 navigator.clipboard.writeText(savedViewPoint.viewer_url)
                     .then( () => {
@@ -70,9 +95,7 @@ export default class ViewpointManager {
      * @return {Promise<void>} Fulfilled when an XML file with view points has been received from backend.
      */
     async onViewPointsExportClick() {
-        const key = this.engine.model.building.slug;
-        let keyString = localStorage.getItem( key );
-        await this.apiService.exportViewpointsByPKString( keyString );
+        await this.apiService.exportViewpointsByPKString( this.storage.getString() );
     }
 
     /**
@@ -87,7 +110,7 @@ export default class ViewpointManager {
             const file = event.target.files[0];
             this.apiService.importViewPoints( file, this.engine.model.pk ).then( response => {
                 const pk_list = response.list
-                this.withPreparedLocalPointsList( async list => {
+                this.storage.bringList( async list => {
                     await list.push(pk_list);
                     this.getSavedViewpoints().then( () => {
                         this.renderViewpointsList();
@@ -101,20 +124,17 @@ export default class ViewpointManager {
     /**
      * Method called to apply a view point. If a view point wasn't passed, it sets default view.
      *
-     * @param { ViewPoint } viewPoint View point that should be applied.
+     * @param { ViewPoint } [viewPoint] View point that should be applied. Optional.
      */
     setViewPoint( viewPoint ) {
-        // Method that called to apply a viewpoint, it handles both view and clipping
         if (viewPoint) {
             this.engine.setViewFromViewPoint( viewPoint );
             this.currentNotes = [...viewPoint.notes];
-            this.controlPanel.setClipping( viewPoint );
             if (viewPoint.description) {
                 this.interface.showDescriptionToast( viewPoint.description );
             }
         } else {
             this.engine.setDefaultView();
-            this.controlPanel.setClipping();
         }
         this.engine.render();
     }
@@ -140,18 +160,20 @@ export default class ViewpointManager {
     }
 
     /**
-     * Clears all notes in scene and in interface
+     * Clears all notes in scene and in interface.
      */
     clearNotes() {
-        this.currentNotes.forEach( /**Note*/ note => {
-            this.removeNote( note );
-        } )
+        if (this.currentNotes.length > 0) {
+            this.currentNotes.forEach( /**Note*/ note => {
+                this.removeNote( note );
+            } );
+        }
         this.currentNotes = [];
         this.engine.render();
     }
 
     /**
-     * Start to listen for a second click to pick a position of note insertion.
+     * Starts to listen for a second click to pick a position of note insertion.
      */
     onNoteSaveClick() {
         setTimeout(() => { this.isWaitingForNote = true; }, 1);
@@ -248,21 +270,29 @@ export default class ViewpointManager {
 
     /**
      * Describes actions on click on view point deletion button.
+     * We have to delete it from current view points, from local storage, then we rerender viewpoint buttons.
+     * Note that we should not delete it actually in database.
      *
      * @param { Object } event Click event object.
      */
     onDeleteViewPointClick(event) {
-        event.stopPropagation();
+        event.stopPropagation();  //Because it will cause click event on the hosting view point button otherwise
         const key = event.target.parentElement.getAttribute('key');
-        const viewPointToDelete = this.viewPointsList.find( point => point.pk.toString() === key);
+        const viewPointToDelete = this.viewPointsList.find(point => point.pk.toString() === key);
         const index = this.viewPointsList.indexOf(viewPointToDelete);
         this.viewPointsList.splice(index, 1);
-        this.withPreparedLocalPointsList((list) => {
-            const i = list.indexOf(key);
-            list.splice(i, 1);
-        });
+        this.storage.removeViewPoint(viewPointToDelete);
         this.interface.viewPointDeletionToast.show();
         this.renderViewpointsList();
+        // This block replaces current browser URL if it points on deleted view point
+        const currentUrlArray = window.location.href.split('/');
+        if (currentUrlArray[currentUrlArray.length - 1] === viewPointToDelete.pk.toString()) {
+            currentUrlArray.pop();
+            const newURL = currentUrlArray.join('/');
+            const title = this.engine.model.building.kks.toString();
+            history.replaceState( null, title, newURL );
+            document.title = title;
+        }
     }
 
     /**
@@ -274,7 +304,17 @@ export default class ViewpointManager {
             this.viewPointsList,
             this.onViewPointClick.bind(this),
             this.onDeleteViewPointClick.bind(this),
-        )
+        );
+        if (this.viewPointsList.length === 0) {
+            this.interface.insertNoViewPointsSign();  // Return to initial state when it doesn't have any buttons
+            if (!this.interface.isExportDisabled) {   // Disable export button if it wasn't
+                this.interface.toggleExportButton();
+            }
+        } else {
+            if (this.interface.isExportDisabled) {    // Enable export button if it is disabled
+                this.interface.toggleExportButton();
+            }
+        }
     }
 
     /**
@@ -283,21 +323,18 @@ export default class ViewpointManager {
      * @return {Promise<void>} Fulfilled when all view points were fetched.
      */
     async getSavedViewpoints() {
-        const pkList = this.getViewPointsKeysList();
+        const pkList = this.storage.getList();
         const viewPointsList = [];
-        for (let i=0; i<pkList.length; i++) {
+        for (let i = 0; i < pkList.length; i++) {
             const pk = pkList[i];
             const viewPoint = await this.apiService.getViewPointByPK( pk );
             viewPointsList.push( viewPoint );
         }
         this.viewPointsList = viewPointsList;
-        if (this.viewPointsList.length === 0) {
-            this.interface.viewPointsCollapseButton.classList.add('disabled');
-        }
     }
 
     /**
-     * Method used to save current view point with given description. Does not manage with notes FIXME BTW why doesn't
+     * Method used to save current view point with given description. Does not manage with notes.
      *
      * @param { String } description Description of a view point.
      * @return {Promise<ViewPoint>} Promise that is fulfilled by the saved view point.
@@ -307,31 +344,85 @@ export default class ViewpointManager {
         viewPoint.description = description;
         return await this.apiService.addViewPoint( viewPoint );
     }
+}
 
-    //TODO Three methods that should be encapsulated into 'StorageManager' class.
-    withPreparedLocalPointsList( func ) {
-        //Works like a python decorator, extracts list of keys, executes given function on that and then saves back
-        let keyList = this.getViewPointsKeysList();
-        func( keyList );
-        this.saveViewPointsKeysList( keyList );
+/**
+ * Manages local storage. Saves current saved viewpoints, allows interface to easily add and remove
+ * values stored there.
+ */
+class LocalStorageManager {
+    /**
+     * @param { ViewpointManager } pointManager
+     */
+    constructor( pointManager ) {
+        this.pointManager = pointManager;
     }
 
-    getViewPointsKeysList() {
-        //returns an array of pks of saved viewpoints for this model
+    /**
+     * Saves given view point to local storage.
+     *
+     * @param { ViewPoint } viewPoint View point that should be saved.
+     */
+    addViewPoint( viewPoint ) {
+        this.bringList( list => {
+            list.push( viewPoint.pk );
+        } );
+    }
+
+    /**
+     * Removes saved view point. If it wasn't there, fails silently.
+     *
+     * @param { ViewPoint } viewPoint View point that should be removed.
+     */
+    removeViewPoint( viewPoint ) {
+        this.bringList( list => {
+            list.splice( list.indexOf( viewPoint.pk.toString() ), 1 );
+        } );
+    }
+
+    /**
+     * Works like a Python decorator, extracts list of keys, executes given function on that and then saves back.
+     *
+     * @param { function } func Function that should be executed on pks list.
+     */
+    bringList( func ) {
+        let keyList = this.getList();
+        func( keyList );
+        this.saveList( keyList );
+    }
+
+    /**
+     * Allows to get an array of pks of saved viewpoints for current model
+     *
+     * @return { String[] } An array with pks of saved view points as strings.
+     */
+    getList() {
         let keyList =[];
-        const key = this.engine.model.building.slug;
-        let keyString = localStorage.getItem( key );
+        let keyString = this.getString();
         if ( keyString ) {
             keyList = keyString.split( ',' );
         }
         return keyList;
     }
 
-    saveViewPointsKeysList( list ) {
-        // Saves given array of pks to local storage for current model
-        const key = this.engine.model.building.slug;
+    /**
+     * Saves given array of pks to local storage for current model.
+     *
+     * @param { String[] } list List of view points' primary keys that should be saved.
+     */
+    saveList( list ) {
+        const key = this.pointManager.engine.model.building.slug;
         const value = list.join( ',' );
         localStorage.setItem( key, value );
     }
 
+    /**
+     * Brings raw key string.
+     *
+     * @return { String } String with comma-separated numbers of current saved view points.
+     */
+    getString() {
+        const key = this.pointManager.engine.model.building.slug;
+        return localStorage.getItem( key );
+    }
 }

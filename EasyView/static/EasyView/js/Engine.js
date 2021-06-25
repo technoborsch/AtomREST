@@ -6,6 +6,7 @@ import {OrbitControls} from '../../threejs/examples/jsm/controls/OrbitControls.j
 import {RoomEnvironment} from '../../threejs/examples/jsm/environments/RoomEnvironment.js';
 import SpriteText from "../../three-spritetext/src/index.js";
 
+import ControlPanel from "./ControlPanel.js";
 import {prettify} from "./Utils.js";
 
 // Create six clipping planes for each side of a model
@@ -18,15 +19,6 @@ const clipPlanes = [];
 ].forEach( (array) => {
     clipPlanes.push( new THREE.Plane( new THREE.Vector3().fromArray( array ), 0 ) );
 } );
-
-// Draw here a little sphere that will guide a viewer during manipulations
-const geometry = new THREE.SphereGeometry(1);
-const material = new THREE.MeshBasicMaterial({
-    color: 0xFF0000,
-    transparent: true,
-    opacity: 0.5,
-});
-const guideSphere = new THREE.Mesh( geometry, material );
 
 // Set up a renderer
 const renderer = new THREE.WebGLRenderer({
@@ -45,7 +37,7 @@ scene.background = new THREE.Color(0xe8f9fc);
 scene.environment = pmremGenerator.fromScene(environment).texture;
 
 // Camera settings
-const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 200, 2000000);
+const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 200, 2000000);
 
 // Raycaster
 const raycaster = new THREE.Raycaster();
@@ -68,50 +60,54 @@ const loader = new GLTFLoader(loadingManager);
 export default class Engine {
     /**
      * @param {Element} rootElement Canvas of the engine will be appended as a child to this element.
+     * @param { Number } defaultFOV Default camera FOV.
+     * @param { Number } initialDistance Distance from upper bound box corner, proportional to main bound box diagonal
+     * length, at which camera will appear by default.
      * @property { Model } model Current loaded model.
      * @property { ViewPoint } viewPoint Current view point.
      */
 
-    constructor( rootElement ) {
+    constructor( rootElement, defaultFOV = 70, initialDistance = 0.2 ) {
         this.rootElement = rootElement;
         this.clipPlanes = clipPlanes;
         this.model = undefined;
         this.viewPoint = undefined;
 
-        this.guideSphere = guideSphere;
         this.boundBox = new THREE.Box3();
         this.modelCenter = new THREE.Vector3();
 
         this.renderer = renderer;
         this.rootElement.appendChild( this.renderer.domElement );
         this.camera = camera;
+        this.defaultFOV = defaultFOV;
+        this.initialDistance = initialDistance;
         this.scene = scene;
         this.raycaster = raycaster;
 
         this.controls = controls;
         this.controls.addEventListener('change', this.render.bind(this));
-        this.controls.addEventListener('start', this.showGuideSphere.bind(this));
-        this.controls.addEventListener('end', this.hideGuideSphere.bind(this));
 
         this.loadingManager = loadingManager;
         this.loader = loader;
+
+        this.controlPanel = new ControlPanel(this);
+
+        this.guideSphere = new GuideSphere(this);
 
         window.addEventListener('resize', this.onWindowResize.bind(this));
     }
 
     /**
-     * Method that loads given Model object into current scene.
+     * Method that loads current model into current scene.
      *
-     * @param { Model } model Model that should be loaded.
      */
-    loadModel( model ) {
-        this.model = model;
+    loadModel() {
         const ktx2Loader = new KTX2Loader()
             .setTranscoderPath('../../threejs/examples/js/libs/basis')
             .detectSupport(this.renderer);
         this.loader.setKTX2Loader(ktx2Loader);
         this.loader.setMeshoptDecoder(MeshoptDecoder);
-        this.loader.load( model.gltf, ( gltf ) => {
+        this.loader.load( this.model.gltf, ( gltf ) => {
 
         gltf.scene.traverse((o) => { // Walk through all elements of scene
             if (o.isMesh) {
@@ -142,11 +138,12 @@ export default class Engine {
     }
 
     /**
-     * Method that sets current view to a given view point - position, rotation. TODO should also set clipping.
+     * Method that sets current view to a given view point - position, rotation. Note that it doesn't set clipping.
      *
      * @param { ViewPoint } point Viewpoint that should be set.
      */
     setViewFromViewPoint( point ) {
+        this.controlPanel.setClipping( point );
         this.viewPoint = point;
         this.camera.position.set(point.position[0], point.position[2], (-1 * point.position[1]) );
         const quaternion = this.convertFromNWQuaternionToLocal( new THREE.Quaternion().fromArray(point.quaternion) );
@@ -155,7 +152,7 @@ export default class Engine {
         const target = new THREE.Vector3().copy(this.camera.position);
         let distance = point.distance_to_target;
         if (!distance) {
-            distance = 2000;  // Default distance to target. TODO move to constructor?
+            distance = 2000;  // Default distance to target.
         }
         target.add(direction.multiplyScalar(distance));
         this.controls.target.set(target.x, target.y, target.z);
@@ -170,21 +167,25 @@ export default class Engine {
 
     /**
      * Method used to set default view of a model. By default, it sets view with position on a diagonal vector
-     * multiplied by 2, looks on a model center.
+     * multiplied by (1 + initialDistance), looks on a model center.
      */
     setDefaultView() {
         // It sets default view depending on loaded model
+        this.controlPanel.setClipping();
         this.controls.target.set(
             this.modelCenter.x,
             this.modelCenter.y,
             this.modelCenter.z,
         );
+        const multiplier = 1 + this.initialDistance;
         this.camera.position.set(
-            this.boundBox.min.x + 2 * (this.boundBox.max.x - this.boundBox.min.x),
-            this.boundBox.min.y + 2 * (this.boundBox.max.y - this.boundBox.min.y),
-            this.boundBox.min.z + 2 * (this.boundBox.max.z - this.boundBox.min.z),
+            this.boundBox.min.x + multiplier * (this.boundBox.max.x - this.boundBox.min.x),
+            this.boundBox.min.y + multiplier * (this.boundBox.max.y - this.boundBox.min.y),
+            this.boundBox.min.z + multiplier * (this.boundBox.max.z - this.boundBox.min.z),
         );
-
+        this.setFOV(this.defaultFOV);
+        this.controlPanel.gui.__folders['Камера'].__controllers[0].updateDisplay();
+        console.dir(this.controlPanel.gui);
         this.controls.update();
     }
 
@@ -224,7 +225,7 @@ export default class Engine {
      *
      * @return { ViewPoint } Current view point.
      */
-    getCurrentViewPoint() {
+    getCurrentViewPoint() {  //TODO Should save FOV
         const distance = this.camera.position.distanceTo( this.controls.target );
         const quaternion = this.getNWCameraQuaternion();
         const position = [ this.camera.position.x, -this.camera.position.z, this.camera.position.y ];
@@ -305,9 +306,7 @@ export default class Engine {
         note.backgroundColor = 'white';
         note.padding = 10;
         note.borderRadius = 10;
-        if (name) { // If a name wasn't passed, leave it empty. TODO Name must be always passed.
-            note.name = name;
-        }
+        note.name = name;
         note.position.set( noteObject.position[0], noteObject.position[1], noteObject.position[2] );
         note.material.depthTest = false; // To be visible through walls
         note.material.transparent = true;
@@ -327,6 +326,17 @@ export default class Engine {
     }
 
     /**
+     * Method that changes current field of view of the camera.
+     *
+     * @param { Number } fov Field of view that should be set
+     */
+    setFOV (fov) {
+        this.camera.fov = fov;
+        this.camera.updateProjectionMatrix();
+        this.render();
+    }
+
+    /**
      * Standard method for Three.js which handles window resizing.
      */
     onWindowResize() {
@@ -341,36 +351,61 @@ export default class Engine {
      * Standard method for Three.js which is called each time when a model should be rendered.
      */
     render() {
-        this.placeGuideSphereInTarget();
+        this.guideSphere.place();
         this.renderer.render( this.scene, this.camera );
     }
+}
 
-    //TODO Those methods should be encapsulated in a GuideSphere class.
+/**
+ * Guide sphere that is always in current target of engine controls to help understand where is the target now.
+ */
+class GuideSphere {
     /**
-     * Method used to show little guide sphere in a current target of controls.
+     * @param { Engine } engine An engine this guide sphere should work  with.
+     * @param { Number } color HEX-color of the sphere. Default is red.
+     * @param { Number } scale Scale of sphere. Scale of sphere, multiplied by distance to it. Default is 0.01.
      */
-    showGuideSphere() {
-        this.scene.add( this.guideSphere );
-        this.placeGuideSphereInTarget();
+    constructor( engine, color = 0xFF0000, scale= 0.01 ) {
+        const geometry = new THREE.SphereGeometry(1);
+        const material = new THREE.MeshBasicMaterial({
+            color: color,
+            transparent: true,
+            opacity: 0.5,
+        });
+
+        this.engine = engine;
+        this.sphere = new THREE.Mesh( geometry, material );
+        this.scale = scale;
+
+        this.engine.controls.addEventListener('start', this.show.bind(this));
+        this.engine.controls.addEventListener('end', this.hide.bind(this));
     }
 
     /**
-     * Hides guide sphere
+     * Method used to show little guide sphere in a current controls target.
      */
-    hideGuideSphere() {
-        this.scene.remove( this.guideSphere );
-        this.render();
+    show() {
+        this.engine.scene.add( this.sphere );
+        this.place();
     }
 
     /**
-     * Method that places guide sphere in current target. Should be called each time when target moves.
+     * Hides guide sphere.
      */
-    placeGuideSphereInTarget() {
-        const distance = this.camera.position.distanceTo(this.controls.target);
-        const newScale = distance / 100; // Scale of the sphere
-        this.guideSphere.scale.x = newScale;
-        this.guideSphere.scale.y = newScale;
-        this.guideSphere.scale.z = newScale;
-        this.guideSphere.position.set(controls.target.x, controls.target.y, controls.target.z);
+    hide() {
+        this.engine.scene.remove( this.sphere );
+        this.engine.render();
+    }
+
+    /**
+     * Method that scales guide sphere and places it in current target. Should be called each time when target moves.
+     */
+    place() {
+        const distance = this.engine.camera.position.distanceTo(this.engine.controls.target);
+        const newScale = distance * this.scale;
+        this.sphere.scale.x = newScale;
+        this.sphere.scale.y = newScale;
+        this.sphere.scale.z = newScale;
+        this.sphere.position.set(controls.target.x, controls.target.y, controls.target.z);
     }
 }

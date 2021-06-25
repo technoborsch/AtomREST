@@ -83,7 +83,6 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'AtomproektBase.context.projects_context',
-                'EasyView.context.api_context',
             ],
         },
     },

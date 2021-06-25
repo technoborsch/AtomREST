@@ -1,4 +1,5 @@
 from tempfile import TemporaryFile
+import random
 
 from django.views.generic import TemplateView, DetailView
 from django.views import View
@@ -10,7 +11,8 @@ from django.utils.decorators import method_decorator
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
-from EasyView import serializers, models, import_export
+from AtomREST.settings import CURRENT_API_URL
+from EasyView import serializers, models, import_export, content
 
 
 class IndexTemplateView(TemplateView):
@@ -31,23 +33,28 @@ class BuildingModelView(DetailView):
             building__slug=self.kwargs['building'],
         )
 
-    def get_context(self, **kwargs):
+    def get_context_data(self, **kwargs):
         context = super(BuildingModelView, self).get_context_data(**kwargs)
-        context['remarks'] = models.Remark.objects.filter(view_point__model=self.object)
+        context['api_url'] = CURRENT_API_URL
+        context['no_remarks_tips'] = []
+        for speciality in models.Remark.SPECIALITIES:
+            context[f'{speciality[0]}_remarks'] = models.Remark.objects.filter(
+                view_point__model=self.object,
+                speciality=speciality[0],
+            )
+            context['no_remarks_tips'].append(random.choice(content.NO_REMARKS_TIPS))
+        return context
 
 
-class ViewPointView(DetailView):
+class ViewPointView(BuildingModelView):
     """A view to show a viewpoint in a model"""
 
-    model = models.ViewPoint
     template_name = 'view_point.html'
-    context_object_name = 'view_point'
 
-    def get_queryset(self):
-        return models.ViewPoint.objects.filter(
-            model__building__project__slug=self.kwargs['project'],
-            model__building__slug=self.kwargs['building'],
-        )
+    def get_context_data(self, **kwargs):
+        context = super(ViewPointView, self).get_context_data(**kwargs)
+        context['view_point'] = models.ViewPoint.objects.get(pk=self.kwargs['pk'])
+        return context
 
 
 # Views for export/import of viewpoints

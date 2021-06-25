@@ -38,8 +38,11 @@ export function prettify ( text, maxLength ) {
  * @return { String } truncated string
  */
 export function truncate(text, length) {
-    if (text.length - 3 <= length) {
-        throw 'Length of given text should be more than given length'
+    if (length <= 3) {
+        throw 'ValueError: too small length value';
     }
-    return text.slice(0, length - 3) + '...'
+    if (text.length >= length) {
+        return text.slice(0, length - 3) + '...';
+    }
+    return text;
 }

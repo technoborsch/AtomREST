@@ -1,51 +1,19 @@
-import APIService from "./APIService.js";
 import ViewpointManager from "./ViewPointsManager.js";
-import ControlPanel from "./ControlPanel.js";
-import Engine from "./Engine.js";
-import AppInterface from "./Interface.js";
-
-// Wrapper to handle API calls
-const APIRootURL = document.getElementById('viewer_settings').getAttribute('api_url');
-const apiService = new APIService(APIRootURL);
-
-// Get settings here from DOM which were set by django templates
-const settingsElement = document.getElementById('viewer_settings');
-
-const model = await apiService.getModelByPK(settingsElement.getAttribute('model_pk'));
-const initialViewPointPK = settingsElement.getAttribute('view_point_pk');
-let initialViewPoint;
-if (initialViewPointPK) {
-    initialViewPoint = await apiService.getViewPointByPK(initialViewPointPK);
-}
-
-// Initialize an engine
-const engine = new Engine( settingsElement );
-
-// Initialize a control panel
-const controlPanel = new ControlPanel( engine );
-
-// Initialize interface
-const interface_ = new AppInterface();
-
-// Initialize viewpoint manager here and bind it to interface, engine and API
-const viewpointManager = new ViewpointManager( interface_, engine, controlPanel, apiService );
-
-main()
 
 /**
- * Main logic on load. Everything starts here.
+ * To understand how it works, it should be said that in the structure of loaded HTML there is an element
+ * with ID 'settingsElement', that contains settings for this app.
+ *
+ * First of all, it contains 'api_url' with current root URL of REST API.
+ * Then, there is an attribute 'model_pk' with primary key of the model that should be loaded.
+ * And it also can contain 'view_point_pk' attribute with primary key of the view point that should be loaded, but it
+ * is optional.
+ *
+ * These attributes are set by Django templates and so they are always there.
  */
-function main() {
-    engine.model = model;
-    engine.loadingManager.onLoad = () => {
-        const loadingScreen = document.getElementById('loading-screen');
-        loadingScreen.classList.add('fade-out');
-        loadingScreen.addEventListener('transitionend', (event) => {event.target.remove();});
-        viewpointManager.setViewPoint( initialViewPoint );
-        viewpointManager.getSavedViewpoints().then( () => {
-            viewpointManager.renderViewpointsList();
-        });
-        engine.onWindowResize();
-    };
-    engine.loadModel( model );
-}
+
+// Initialize an app here,
+const app = new ViewpointManager();
+
+// then launch.
+await app.launch();

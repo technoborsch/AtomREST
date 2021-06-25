@@ -3,8 +3,8 @@
 {% block title %}{{ model.building.kks }}{% endblock %}
 {% block content %}
     <div id="viewer_settings"
-         {% block viewpoint_data %}
          model_pk="{{ model.pk }}"
+         {% block viewpoint_data %}
          {% endblock %}
          api_url="{{ api_url }}">
     <script type="module" src="{% static 'EasyView/js/main.js' %}"></script>
@@ -14,7 +14,7 @@
     <aside id="viewpointsMenu" class="sidebar">
     <div class="list-group">
       <!--Expandable list of remark buttons-->
-      <button type="button" class="list-group-item list-group-item-action{% if not remarks %} disabled{% endif %}" data-bs-toggle="collapse" data-bs-target="#remarkButtons-collapse">
+      <button type="button" class="list-group-item list-group-item-action" data-bs-toggle="collapse" data-bs-target="#remarkButtons-collapse">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right me-2" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"></path></svg>
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-card-checklist text-black-50" viewBox="0 0 16 16"><path d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h13zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-13z"></path><path d="M7 5.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5zm-1.496-.854a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 1 1 .708-.708l.146.147 1.146-1.147a.5.5 0 0 1 .708 0zM7 9.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5zm-1.496-.854a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 0 1 .708-.708l.146.147 1.146-1.147a.5.5 0 0 1 .708 0z"></path></svg>
         <span class="text-muted ms-1">Замечания</span>
@@ -29,11 +29,17 @@
             </button>
             <div id="processRemarksList-collapse" class="collapse">
               <div id="processRemarksList" class="list-group">
-              {% for remark in remarks %}
-              {% if remark.speciality == 'Process' %}
-                <a class="list-group-item list-group-item-action" key="{{ view_point.pk }}">{{ view_point.remark.description }}</a>
+              {% if Process_remarks %}
+                {% for remark in Process_remarks %}
+                  <a class="list-group-item list-group-item-action" key="{{ remark.view_point.pk }}">{{ remark.description }}</a>
+                {% endfor %}
+              {% else %}
+                <div class="text-center p-2">
+                  <p class="text-muted" data-bs-toggle="tooltip" title="{{ no_remarks_tips.0 }}">
+                      По технологии замечаний нет
+                  </p>
+                </div>
               {% endif %}
-              {% endfor %}
               </div>
             </div>
 
@@ -44,11 +50,17 @@
             </button>
             <div id="electricalRemarksList-collapse" class="collapse">
               <div id="electricalRemarksList" class="list-group">
-              {% for remark in remarks %}
-              {% if remark.speciality == 'Electrical' %}
-                <a class="list-group-item list-group-item-action" key="{{ view_point.pk }}">{{ view_point.remark.description }}</a>
+              {% if Electrical_remarks %}
+                {% for remark in Electrical_remarks %}
+                  <a class="list-group-item list-group-item-action" key="{{ remark.view_point.pk }}">{{ remark.description }}</a>
+                {% endfor %}
+              {% else %}
+                <div class="text-center p-2">
+                  <p class="text-muted" data-bs-toggle="tooltip" title="{{ no_remarks_tips.1 }}">
+                      По электрике замечаний нет
+                  </p>
+                </div>
               {% endif %}
-              {% endfor %}
               </div>
             </div>
 
@@ -59,11 +71,17 @@
             </button>
             <div id="HVACRemarksList-collapse" class="collapse">
               <div id="HVACRemarksList" class="list-group">
-              {% for remark in remarks %}
-              {% if remark.speciality == 'HVAC' %}
-                <a class="list-group-item list-group-item-action" key="{{ view_point.pk }}">{{ view_point.remark.description }}</a>
+              {% if HVAC_remarks %}
+                {% for remark in HVAC_remarks %}
+                  <a class="list-group-item list-group-item-action" key="{{ remark.view_point.pk }}">{{ remark.description }}</a>
+                {% endfor %}
+              {% else %}
+                <div class="text-center p-2">
+                  <p class="text-muted" data-bs-toggle="tooltip" title="{{ no_remarks_tips.2 }}">
+                      По вентиляции замечаний нет
+                  </p>
+                </div>
               {% endif %}
-              {% endfor %}
               </div>
             </div>
 
@@ -82,7 +100,7 @@
         </div>
 
         <div class="p-3">
-          <a id="viewPointsExportButton" class="btn btn-outline-success w-100 mb-1">
+          <a id="viewPointsExportButton" class="btn btn-outline-success w-100 mb-1 disabled">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-arrow-up d-inline-block me-2" viewBox="0 0 16 16"><path d="M8.5 11.5a.5.5 0 0 1-1 0V7.707L6.354 8.854a.5.5 0 1 1-.708-.708l2-2a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 7.707V11.5z"></path><path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z"></path></svg>
             Экспорт&nbsp;в&nbsp;NW
           </a>
@@ -108,10 +126,10 @@
 
     </aside>
 
-    <!--Button to toggle sidebar with notes-->
+    <!--Button to toggle sidebar with notes, view points, remarks and so on-->
     <div id="btnPlacer" class="button-placer">
     <button id="viewpointsMenuToggleButton">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right rotateOnHalf" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"></path></svg>
+      <span class="text-muted text-rotated">Меню</span>
     </button>
     </div>
 
@@ -237,5 +255,7 @@
     <section id="loading-screen">
 	<div id="loader"></div>
     </section>
+
+    <link rel="stylesheet" type="text/css" href="{% static 'EasyView/css/dat.gui.css' %}">
 
 {% endblock %}

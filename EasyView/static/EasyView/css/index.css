@@ -111,12 +111,6 @@ body {
     }
 }
 
-body div.dg.ac {
-    position: absolute;
-    top: 73px;
-    right: 0;
-}
-
 button.float-action-button {
     position: absolute;
     display: flex;
@@ -182,22 +176,15 @@ button.float-action-button svg {
     border-radius: 0 10px 10px 0;
     border: none;
     padding: 0 3px;
-    width: 1.5rem;
-    height: 3rem;
+    width: 1.6rem;
+    height: 5rem;
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-#viewpointsMenuToggleButton .rotateOnHalf {
-  -webkit-transition: transform 0.35s ease;
-  transition: transform 0.35s ease;
-}
-
-#viewpointsMenuToggleButton .rotateOnHalf.rotated {
-  -ms-transform: rotate(180deg);
-  -webkit-transform: rotate(180deg);
-  transform: rotate(180deg);
+#viewpointsMenuToggleButton:hover {
+    background: #ccc;
 }
 
 .index-container {
@@ -205,4 +192,13 @@ button.float-action-button svg {
     justify-content: center;
     align-items: center;
     height: 100vh;
+}
+
+.text-rotated {
+    transform: rotate(90deg);
+}
+
+/* Bootstrap toast bugfix */
+.toast {
+    border: none;
 }
