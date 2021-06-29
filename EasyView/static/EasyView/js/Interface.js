@@ -6,6 +6,7 @@ import { truncate } from "./Utils.js";
 export default class AppInterface {
     /**
      * Constructor of an interface, all elements inside DOM that user can interact with should be bound here.
+     * @property { Element } highlightedViewpointButton Currently highlighted viewpoint button.
      */
     constructor() {
 
@@ -48,7 +49,7 @@ export default class AppInterface {
 
         this.settingsElement = document.getElementById('viewer_settings');
 
-        this.removeNoteButtons = [];
+        this.highlightedViewpointButton = undefined;
         this.isExportDisabled = true;
         this.isSidebarOpen = false;
         this.isViewpointsMenuOpen = false;
@@ -144,7 +145,7 @@ export default class AppInterface {
         tag.closeBtn = document.createElement( 'button' );
         ['list-group-item', 'list-group-item-active'].forEach( className => tag.classList.add(className) );
         tag.setAttribute('key', viewPoint.pk);
-        ['btn-close', 'btn-danger', 'float-end', 'me-1'].forEach( className => tag.closeBtn.classList.add(className) );
+        ['btn-close', 'float-end', 'me-1'].forEach( className => tag.closeBtn.classList.add(className) );
         let text = 'Точка обзора ' + viewPoint.pk;
         if ( viewPoint.description ) { text = truncate(viewPoint.description, 22); }
         const textNode = document.createTextNode( text );
@@ -192,6 +193,44 @@ export default class AppInterface {
     toggleExportButton() {
         this.viewPointsExportButton.classList.toggle('disabled');
         this.isExportDisabled = !this.isExportDisabled;
+    }
+
+    /**
+     * Applies ripple effect to a given element to highlight it.
+     * @param { Element } el Element that the ripple effect should be applied for.
+     */
+    applyRipple ( el ) {
+        const ripple = document.createElement( 'span' );
+        ripple.classList.add( 'ripple' );
+        el.appendChild( ripple );
+        setTimeout( () => {
+            ripple.remove();
+        }, 3000 );
+    }
+
+    /**
+     * Handles visual effects on viewpoint saving.
+     */
+    applyViewPointSavingEffects() {
+        if (!this.isViewpointsMenuOpen) {
+            this.applyRipple( this.viewPointsMenuButton );
+        }
+        const areViewPointsCollapsed = this.viewPointsCollapseButton.getAttribute('aria-expanded') === 'true';
+        if (!areViewPointsCollapsed) {
+            this.viewPointsCollapseButton.click();
+        }
+    }
+
+    /**
+     * Highlights given viewpoint button, only one button can be highlighted at a time.
+     * @param { Element } button A button that should be highlighted.
+     */
+    highlightViewPointButton( button ) {
+        if (this.highlightedViewpointButton) {
+            this.highlightedViewpointButton.classList.remove( 'bg-primary' );
+        }
+        this.highlightedViewpointButton = button;
+        button.classList.add('bg-primary');
     }
 
     /**

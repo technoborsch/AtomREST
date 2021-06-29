@@ -1,6 +1,6 @@
 body div.dg.ac {
     position: absolute;
-    top: 73px;
+    top: 72px;
     right: -10px;
 }
 
@@ -36,6 +36,7 @@ body div.dg.ac {
 
 .dg li.title {
     background: #e8e8e8 url(data:image/gif;base64,R01GOD1hBQAFAJEAAP////Pz8////////yH5BAEAAAIALAAAAAAFAAUAAAII1I+hKgFxoCgAOw==) 6px 10px no-repeat;
+    border-left: 1px solid #0d6efd;
 }
 
 .dg .cr.function:hover,.dg .cr.boolean:hover {
@@ -63,9 +64,19 @@ body div.dg.ac {
     background: #eee;
 }
 
-.close-button.close-bottom {
+.dg .main .close-button.close-bottom {
+    background: white;
+    color: #0d6efd;
+    border: 1px solid #0d6efd;
     border-bottom-left-radius: 10px;
     border-bottom-right-radius: 10px;
 }
+.dg .main .close-button.close-bottom:hover {
+    background: #0d6efd;
+    color: white;
+}
 
-
+.dg.main.a > ul {
+    border-right: 1px solid #0d6efd;
+;
+}

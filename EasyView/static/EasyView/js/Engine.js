@@ -9,51 +9,6 @@ import SpriteText from "../../three-spritetext/src/index.js";
 import ControlPanel from "./ControlPanel.js";
 import {prettify} from "./Utils.js";
 
-// Create six clipping planes for each side of a model
-const clipPlanes = [];
-[
-    [0, -1, 0], [0, 1, 0],
-    [0, 0, -1], [0, 0, 1],
-    [-1, 0, 0], [1, 0, 0],
-
-].forEach( (array) => {
-    clipPlanes.push( new THREE.Plane( new THREE.Vector3().fromArray( array ), 0 ) );
-} );
-
-// Set up a renderer
-const renderer = new THREE.WebGLRenderer({
-    antialias: true,
-    powerPreference: 'high-performance',
-    logarithmicDepthBuffer: true,
-});
-renderer.outputEncoding = THREE.sRGBEncoding;
-renderer.localClippingEnabled = true;
-
-// Set up a scene
-const scene = new THREE.Scene();
-const environment = new RoomEnvironment();
-const pmremGenerator = new THREE.PMREMGenerator(renderer);
-scene.background = new THREE.Color(0xe8f9fc);
-scene.environment = pmremGenerator.fromScene(environment).texture;
-
-// Camera settings
-const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 200, 2000000);
-
-// Raycaster
-const raycaster = new THREE.Raycaster();
-
-// Controls settings
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.minDistance = 10;
-controls.maxDistance = 100000;
-controls.enablePan = true;
-controls.panSpeed = 2;
-
-// Loading manager to define actions after model's load
-const loadingManager = new THREE.LoadingManager();
-
-const loader = new GLTFLoader(loadingManager);
-
 /**
  * A graphical engine that works on THREE.js library.
  */
@@ -66,29 +21,68 @@ export default class Engine {
      * @property { Model } model Current loaded model.
      * @property { ViewPoint } viewPoint Current view point.
      */
+    constructor( rootElement, defaultFOV = 60, initialDistance = 0.2 ) {
 
-    constructor( rootElement, defaultFOV = 70, initialDistance = 0.2 ) {
+        // Create six clipping planes for each side of a model
+        this.clipPlanes = [];
+        [
+            [0, -1, 0], [0, 1, 0],
+            [0, 0, -1], [0, 0, 1],
+            [-1, 0, 0], [1, 0, 0],
+
+        ].forEach( (array) => {
+            this.clipPlanes.push( new THREE.Plane( new THREE.Vector3().fromArray( array ), 0 ) );
+        } );
+
+        // Set up a renderer
+        this.renderer = new THREE.WebGLRenderer({
+            antialias: true,
+            powerPreference: 'high-performance',
+            logarithmicDepthBuffer: true,
+        });
+        this.renderer.outputEncoding = THREE.sRGBEncoding;
+        this.renderer.localClippingEnabled = true;
+
+        // Set up a scene
+        this.scene = new THREE.Scene();
+        const environment = new RoomEnvironment();
+        const pmremGenerator = new THREE.PMREMGenerator(renderer);
+        this.scene.background = new THREE.Color(0xe8f9fc);
+        this.scene.environment = pmremGenerator.fromScene(environment).texture;
+
+        // Camera settings
+        this.camera = new THREE.PerspectiveCamera(
+            defaultFOV,
+            window.innerWidth / window.innerHeight,
+            200,
+            2000000);
+
+        // Raycaster
+        this.raycaster = new THREE.Raycaster();
+
+        // Controls settings
+        this.controls = new OrbitControls(camera, renderer.domElement);
+        this.controls.minDistance = 10;
+        this.controls.maxDistance = 100000;
+        this.controls.enablePan = true;
+        this.controls.panSpeed = 2;
+
+        // Loading manager to define actions after model's load
+        this.loadingManager = new THREE.LoadingManager();
+        this.loader = new GLTFLoader(this.loadingManager);
+
         this.rootElement = rootElement;
-        this.clipPlanes = clipPlanes;
         this.model = undefined;
         this.viewPoint = undefined;
 
         this.boundBox = new THREE.Box3();
         this.modelCenter = new THREE.Vector3();
 
-        this.renderer = renderer;
         this.rootElement.appendChild( this.renderer.domElement );
-        this.camera = camera;
         this.defaultFOV = defaultFOV;
         this.initialDistance = initialDistance;
-        this.scene = scene;
-        this.raycaster = raycaster;
 
-        this.controls = controls;
         this.controls.addEventListener('change', this.render.bind(this));
-
-        this.loadingManager = loadingManager;
-        this.loader = loader;
 
         this.controlPanel = new ControlPanel(this);
 
@@ -184,8 +178,7 @@ export default class Engine {
             this.boundBox.min.z + multiplier * (this.boundBox.max.z - this.boundBox.min.z),
         );
         this.setFOV(this.defaultFOV);
-        this.controlPanel.gui.__folders['Камера'].__controllers[0].updateDisplay();
-        console.dir(this.controlPanel.gui);
+        this.controlPanel.gui.updateDisplay();
         this.controls.update();
     }
 

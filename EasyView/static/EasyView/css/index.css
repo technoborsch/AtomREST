@@ -172,7 +172,7 @@ button.float-action-button svg {
 }
 
 #viewpointsMenuToggleButton {
-    background: #e0e0e0;
+    background: #0d6efd;
     border-radius: 0 10px 10px 0;
     border: none;
     padding: 0 3px;
@@ -183,8 +183,17 @@ button.float-action-button svg {
     align-items: center;
 }
 
+#viewpointsMenuToggleButton span {
+    color: white;
+}
+
 #viewpointsMenuToggleButton:hover {
-    background: #ccc;
+    background: white;
+    border: 1px #0d6efd solid;
+}
+
+#viewpointsMenuToggleButton:hover span {
+    color: #0d6efd;
 }
 
 .index-container {
@@ -194,6 +203,16 @@ button.float-action-button svg {
     height: 100vh;
 }
 
+#viewpointsMenu > .list-group > button {
+    background: #eaeaea;
+    color: #555;
+}
+
+#viewpointsMenu div.list-group div.list-group > button.list-group-item {
+    background: #f7f7f7;
+    color: #555;
+}
+
 .text-rotated {
     transform: rotate(90deg);
 }
@@ -201,4 +220,34 @@ button.float-action-button svg {
 /* Bootstrap toast bugfix */
 .toast {
     border: none;
+}
+
+span.ripple {
+    position: absolute;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.3);
+    width: 100px;
+    height: 100px;
+
+    animation: ripple 1s;
+    opacity: 0;
+}
+
+@keyframes ripple {
+    from {
+        opacity: 1;
+        transform: scale(0);
+    }
+    to {
+        opacity: 0;
+        transform: scale(2);
+    }
+}
+
+a.list-group-item > button.btn-close:hover {
+    background-color: red;
+}
+
+#pointButtons a.list-group-item.bg-primary {
+    color: white;
 }

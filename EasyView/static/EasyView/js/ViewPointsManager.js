@@ -50,10 +50,10 @@ export default class ViewpointManager {
         }
         this.engine.model = model;
         this.engine.loadingManager.onLoad = () => {
-                this.interface.removeLoadingScreen();
-                this.setViewPoint( initialViewPoint );
-                this.getSavedViewpoints().then( () => {
-                    this.renderViewpointsList();
+                this.getSavedViewpoints().then( async () => {
+                    await this.renderViewpointsList();
+                    this.setViewPoint( initialViewPoint );
+                    this.interface.removeLoadingScreen();
                 });
                 this.engine.onWindowResize();
             };
@@ -67,19 +67,21 @@ export default class ViewpointManager {
      */
     onViewPointSaveClick() {
         this.saveViewPoint(this.interface.viewPointModal.descriptionInput.value)
-            .then( (savedViewPoint) => {
+            .then( async (savedViewPoint) => {
                 this.storage.addViewPoint( savedViewPoint );
                 const notesToSave = this.currentNotes.slice(
                     this.engine.viewPoint ? this.engine.viewPoint.notes.length : 0
                 );
                 savedViewPoint.notes = notesToSave;
                 this.viewPointsList.push( savedViewPoint );
-                notesToSave.forEach( async ( /**Note*/ note) => {
+                for (const note of notesToSave) {
                     note.view_point = savedViewPoint.url;
                     await this.apiService.addNote( note );
-                });
+                }
                 this.clearNotes();
-                this.renderViewpointsList();
+                await this.renderViewpointsList();
+                this.setViewPoint( savedViewPoint, false );
+                this.interface.applyViewPointSavingEffects();
                 this.interface.viewPointModal.descriptionInput.value = '';
                 navigator.clipboard.writeText(savedViewPoint.viewer_url)
                     .then( () => {
@@ -125,14 +127,31 @@ export default class ViewpointManager {
      * Method called to apply a view point. If a view point wasn't passed, it sets default view.
      *
      * @param { ViewPoint } [viewPoint] View point that should be applied. Optional.
+     * @param { Boolean } [showToast] Defines if it has to show description toast. Optional, default is true.
      */
-    setViewPoint( viewPoint ) {
+    setViewPoint( viewPoint, showToast = true ) {
         if (viewPoint) {
             this.engine.setViewFromViewPoint( viewPoint );
             this.currentNotes = [...viewPoint.notes];
+            let description = `Точка обзора ${viewPoint.pk}`;
             if (viewPoint.description) {
-                this.interface.showDescriptionToast( viewPoint.description );
+                description = viewPoint.description;
             }
+            if (showToast) {
+                this.interface.showDescriptionToast( description );
+            }
+            const button = document.querySelectorAll(`[key="${viewPoint.pk.toString()}"]`);
+            if ( button.length === 1 ) {
+                this.interface.highlightViewPointButton( button[0] );
+            }
+
+            let title = this.engine.model.building.kks + '/ Точка обзора ' + viewPoint.pk;
+            if ( viewPoint.description ) {
+                title = viewPoint.description;
+            }
+            history.replaceState(null, title, viewPoint.viewer_url);
+            document.title = title;
+
         } else {
             this.engine.setDefaultView();
         }
@@ -258,12 +277,6 @@ export default class ViewpointManager {
     onViewPointClick(event) {
         const key = event.target.getAttribute('key');
         const viewPoint = this.viewPointsList.find( /**ViewPoint*/ point => point.pk.toString() === key);
-        let title = this.engine.model.building.kks + '/ Точка обзора ' + viewPoint.pk;
-        if ( viewPoint.description ) {
-            title = viewPoint.description;
-        }
-        history.replaceState(null, title, viewPoint.viewer_url);
-        document.title = title;
         this.clearNotes();
         this.setViewPoint( viewPoint );
     }
@@ -283,7 +296,8 @@ export default class ViewpointManager {
         this.viewPointsList.splice(index, 1);
         this.storage.removeViewPoint(viewPointToDelete);
         this.interface.viewPointDeletionToast.show();
-        this.renderViewpointsList();
+        event.target.parentElement.remove();
+        this.checkIfViewPointsAreEmpty();
         // This block replaces current browser URL if it points on deleted view point
         const currentUrlArray = window.location.href.split('/');
         if (currentUrlArray[currentUrlArray.length - 1] === viewPointToDelete.pk.toString()) {
@@ -305,6 +319,13 @@ export default class ViewpointManager {
             this.onViewPointClick.bind(this),
             this.onDeleteViewPointClick.bind(this),
         );
+        this.checkIfViewPointsAreEmpty();
+    }
+
+    /**
+     * Method that checks if the list of view points is empty, and makes interface changes if necessary.
+     */
+    checkIfViewPointsAreEmpty() {
         if (this.viewPointsList.length === 0) {
             this.interface.insertNoViewPointsSign();  // Return to initial state when it doesn't have any buttons
             if (!this.interface.isExportDisabled) {   // Disable export button if it wasn't

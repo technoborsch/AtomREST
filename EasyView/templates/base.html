@@ -30,7 +30,8 @@
     {% endblock %}
 
     <!--Custom scripts here-->
-    {% block script %}
+    {% block scripts %}
+    <script src="{% static 'EasyView/js/IndexInterface.js' %}"></script>
     {% endblock %}
 
     <!--Modal to show "about" information-->
@@ -43,8 +44,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
           </div>
           <div class="modal-body">
-            <p>Приложение EasyView было разработано по личной инициативе
-                <a href="mailto:NSNikiforov@atomproekt.com?subject=Приложение EasyView"> сотрудником</a> Атомпроекта,
+            <p>Приложение EasyView было разработано по личной инициативе сотрудником Атомпроекта,
                 которому очень надоело отсылать миллионы скриншотов, чтобы объяснить коллегам, что нужно поменять в
                 модели.
                 <br>
