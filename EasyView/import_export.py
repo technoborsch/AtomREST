@@ -1,7 +1,7 @@
 import os
 import uuid
-from tempfile import TemporaryFile
-import xml.etree.ElementTree as ET
+import math
+import xml.etree.ElementTree as ET  # FIXME replace with defusedXML
 from xml.etree.ElementTree import Element
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -46,10 +46,14 @@ def export_viewpoint_to_nw(view_point: ViewPoint) -> Element:
         BASE_DIR, 'EasyView', 'static', 'EasyView', 'export', 'view_point_template.xml')
     viewpoint_template = ET.parse(path_to_viewpoint_template)
     view = viewpoint_template.getroot()
-    # View point - position and rotation
-    pos3f = view[0][0][0][0]
-    quaternion = view[0][0][1][0]
+    # View point - fov, position and rotation
+    camera = view[0][0]
+    pos3f = camera[0][0]
+    quaternion = camera[1][0]
 
+    camera_attributes = (
+        ('height', math.radians(view_point.fov)),
+    )
     view_attributes = (
         ('guid', str(uuid.uuid4())),
         ('name', view_point.description)
@@ -76,6 +80,7 @@ def export_viewpoint_to_nw(view_point: ViewPoint) -> Element:
         clip_plane_set.set('current', str(clip_counter - 1))
 
     element_attribute_pairs = (
+        (camera, camera_attributes),
         (view, view_attributes),
         (pos3f, pos3f_attributes),
         (quaternion, quaternion_attributes),
@@ -89,7 +94,7 @@ def export_viewpoint_to_nw(view_point: ViewPoint) -> Element:
 
 def import_navisworks_viewpoints(xml_file: InMemoryUploadedFile, model_pk: int) -> list:
     """
-    The function parses an opened temporary file with Navisworks view points and tries to save them.
+    The function parses an uploaded file with Navisworks view points and tries to save them.
     :param xml_file: an XML file with viewpoints, opened to read.
     :param model_pk: PK of a model the viewpoints should be saved to.
     :return: list of successfully saved viewpoints' PKs.
@@ -115,6 +120,7 @@ def import_viewpoint(view_point: Element) -> ViewPoint:
     description = view_point.get('name')
     position = [float(view_point[0][0][0][0].get(key)) for key in ['x', 'y', 'z']]  # IndexError, ValueError
     quaternion = [float(view_point[0][0][1][0].get(key)) for key in ['a', 'b', 'c', 'd']]  # IndexError, ValueError
+    fov = math.degrees(view_point[0][0].get('height'))  # IndexError, ValueError
     clip_constants_status = [False] * 6
     clip_constants = [0.0] * 6
     has_clipping = False
@@ -134,6 +140,7 @@ def import_viewpoint(view_point: Element) -> ViewPoint:
         description=description,
         position=position,
         quaternion=quaternion,
+        fov=fov,
         clip_constants_status=clip_constants_status,
         clip_constants=clip_constants,
     )
