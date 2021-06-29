@@ -1,5 +1,6 @@
 from django.db import models
 from django.urls import reverse
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.postgres.fields import ArrayField
 
 from AtomREST.settings import CURRENT_URL
@@ -44,9 +45,14 @@ class ViewPoint(models.Model):
     description = models.TextField(blank=True, null=True)
     position = ArrayField(models.FloatField(), size=3)  # x, y, z
     quaternion = ArrayField(models.FloatField(), size=4)  # x, y, z, w
+    fov = models.FloatField(
+        validators=[MinValueValidator(0.1), MaxValueValidator(180)],
+        default=60.0,
+        blank=True
+    )  # FOV angle
     distance_to_target = models.FloatField(blank=True, null=True)
     clip_constants_status = ArrayField(models.BooleanField(), size=6, blank=True, default=[False] * 6)
-    clip_constants = ArrayField(  # x, x negative, y, y negative, z, z negative TODO synchronise with NW clip constants
+    clip_constants = ArrayField(  # x, x negative, y, y negative, z, z negative
         models.FloatField(), size=6, blank=True, null=True
     )
     creation_time = models.DateTimeField(auto_now_add=True)

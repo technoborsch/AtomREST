@@ -36,8 +36,8 @@ export default class ControlPanel {
     setControls() {
         // Folder with camera controls
         const camera = this.gui.addFolder('Камера');
-        camera.add(this.params, 'cameraFOV', 30, 110)
-            .step( 1 )
+        camera.add(this.params, 'cameraFOV', 0.1, 180)
+            .step( 0.1 )
             .name( 'Поле зрения' ).onChange( (value) => {
                 this.engine.setFOV( value );
         } );

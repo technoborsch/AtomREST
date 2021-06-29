@@ -46,7 +46,7 @@ export default class Engine {
         // Set up a scene
         this.scene = new THREE.Scene();
         const environment = new RoomEnvironment();
-        const pmremGenerator = new THREE.PMREMGenerator(renderer);
+        const pmremGenerator = new THREE.PMREMGenerator(this.renderer);
         this.scene.background = new THREE.Color(0xe8f9fc);
         this.scene.environment = pmremGenerator.fromScene(environment).texture;
 
@@ -61,7 +61,7 @@ export default class Engine {
         this.raycaster = new THREE.Raycaster();
 
         // Controls settings
-        this.controls = new OrbitControls(camera, renderer.domElement);
+        this.controls = new OrbitControls(this.camera, this.renderer.domElement);
         this.controls.minDistance = 10;
         this.controls.maxDistance = 100000;
         this.controls.enablePan = true;
@@ -156,6 +156,7 @@ export default class Engine {
                 this.insertNote(point.notes[i], this.viewPoint.pk + '_' + i.toString());
             }
         }
+        this.setFOV( point.fov );
         this.controls.update();
     }
 
@@ -178,7 +179,6 @@ export default class Engine {
             this.boundBox.min.z + multiplier * (this.boundBox.max.z - this.boundBox.min.z),
         );
         this.setFOV(this.defaultFOV);
-        this.controlPanel.gui.updateDisplay();
         this.controls.update();
     }
 
@@ -203,11 +203,12 @@ export default class Engine {
             for ( let i = 0; i < intersects.length; i++ ) {
                 const point = intersects[i].point;
                 if (
+                    intersects[i].object.isMesh &&
                     (clipPlanes[4].constant > point.x) && ( point.x > -clipPlanes[5].constant)
                     && (clipPlanes[0].constant > point.y) && (point.y > -clipPlanes[1].constant)
                     && (clipPlanes[2].constant > point.z) && (point.z > -clipPlanes[3].constant)
                 ) {
-                    return point //TODO should not react to sprites
+                    return point;
                 }
             }
         }
@@ -218,13 +219,14 @@ export default class Engine {
      *
      * @return { ViewPoint } Current view point.
      */
-    getCurrentViewPoint() {  //TODO Should save FOV
+    getCurrentViewPoint() {
         const distance = this.camera.position.distanceTo( this.controls.target );
         const quaternion = this.getNWCameraQuaternion();
         const position = [ this.camera.position.x, -this.camera.position.z, this.camera.position.y ];
         return {
             position: position,
             quaternion: quaternion.toArray(),
+            fov: this.camera.fov,
             distance_to_target: distance,
             clip_constants_status: [        // In this order to synchronise with Navisworks
                 this.clipPlanes[0].constant !== this.boundBox.max.y,
@@ -321,10 +323,14 @@ export default class Engine {
     /**
      * Method that changes current field of view of the camera.
      *
-     * @param { Number } fov Field of view that should be set
+     * @param { Number } fov Field of view that should be set.
      */
     setFOV (fov) {
+        if (fov > 180) { fov = 180; } // little validators for incoming fov values
+        if (fov < 0.1) { fov = 0.1; }
         this.camera.fov = fov;
+        this.controlPanel.params.cameraFOV = fov;
+        this.controlPanel.gui.updateDisplay();
         this.camera.updateProjectionMatrix();
         this.render();
     }
@@ -399,6 +405,10 @@ class GuideSphere {
         this.sphere.scale.x = newScale;
         this.sphere.scale.y = newScale;
         this.sphere.scale.z = newScale;
-        this.sphere.position.set(controls.target.x, controls.target.y, controls.target.z);
+        this.sphere.position.set(
+            this.engine.controls.target.x,
+            this.engine.controls.target.y,
+            this.engine.controls.target.z
+        );
     }
 }

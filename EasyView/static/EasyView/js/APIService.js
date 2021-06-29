@@ -36,6 +36,7 @@
  * @property { Number[] } quaternion Rotation quaternion that represents rotation of view direction of this view
  * point in NavisWorks coordinate system in format [a, b, c, d]. Note that it is different from quaternions used in
  * Three.js.
+ * @property { Number } fov Field of view in angles, from 0.1 to 180.
  * @property { String } description A name of view point, but it serves more as a description of in since it is the
  * only way to describe it in NavisWorks.
  * @property { Number|Object } distance_to_target Distance to controls target. In simple words, it is a point that the
