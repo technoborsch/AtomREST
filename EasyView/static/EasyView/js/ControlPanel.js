@@ -22,6 +22,7 @@ export default class ControlPanel {
             planeConstantX: 0,
             cameraFOV: this.engine.defaultFOV,
             areNotesShowed: true,
+            resetFOV: this.engine.setFOV.bind(this.engine),
             resetView: this.resetView.bind(this),
             resetClipping: this.setClipping.bind(this),
         };
@@ -40,9 +41,10 @@ export default class ControlPanel {
             .step( 0.1 )
             .name( 'Поле зрения' ).onChange( (value) => {
                 this.engine.setFOV( value );
+                this.engine.render();
         } );
 
-        camera.add(this.params, 'resetView').name('Сбросить вид');
+        camera.add(this.params, 'resetFOV').name('Сбросить');
 
         // Folder with clipping controls
         const clipping = this.gui.addFolder('Сечения');
@@ -74,6 +76,7 @@ export default class ControlPanel {
                 } );
                 this.engine.render();
             });
+		this.gui.add(this.params, 'resetView').name('Сбросить вид');
 
         clipping.open(); // To make it appear opened
 

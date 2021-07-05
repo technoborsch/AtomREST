@@ -156,7 +156,7 @@ export default class Engine {
                 this.insertNote(point.notes[i], this.viewPoint.pk + '_' + i.toString());
             }
         }
-        this.setFOV( point.fov );
+        this.setFOV( point.fov ); // Render triggers here
         this.controls.update();
     }
 
@@ -178,7 +178,7 @@ export default class Engine {
             this.boundBox.min.y + multiplier * (this.boundBox.max.y - this.boundBox.min.y),
             this.boundBox.min.z + multiplier * (this.boundBox.max.z - this.boundBox.min.z),
         );
-        this.setFOV(this.defaultFOV);
+        this.setFOV(); // Render triggers here
         this.controls.update();
     }
 
@@ -297,17 +297,18 @@ export default class Engine {
      */
     insertNote( noteObject, name ) {
         const text = prettify( noteObject.text, 20 );
-        const note = new SpriteText(text, 400, 'black');
+        const note = new SpriteText(text, 200, 'black');
         note.backgroundColor = 'white';
-        note.padding = 10;
-        note.borderRadius = 10;
+        note.padding = 3;
+        note.borderWidth = 0.5;
+        note.borderRadius = 6;
+        note.borderColor = 'blue';
         note.name = name;
         note.position.set( noteObject.position[0], noteObject.position[1], noteObject.position[2] );
         note.material.depthTest = false; // To be visible through walls
         note.material.transparent = true;
         note.material.opacity = 0.5;
         this.scene.add( note );
-        this.render();
     }
 
     /**
@@ -323,11 +324,12 @@ export default class Engine {
     /**
      * Method that changes current field of view of the camera.
      *
-     * @param { Number } fov Field of view that should be set.
+     * @param { Number } [fov] Field of view that should be set. Sets default FOV if it wasn't passed.
      */
     setFOV (fov) {
-        if (fov > 180) { fov = 180; } // little validators for incoming fov values
-        if (fov < 0.1) { fov = 0.1; }
+        if (!fov) {
+            fov = this.defaultFOV;
+        }
         this.camera.fov = fov;
         this.controlPanel.params.cameraFOV = fov;
         this.controlPanel.gui.updateDisplay();

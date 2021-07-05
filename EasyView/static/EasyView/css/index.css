@@ -19,7 +19,7 @@ body {
 	left: 0;
 	width: 100%;
 	height: 100%;
-	background-color: #000000;
+	background-color: #000;
 	opacity: 1;
  	transition: 1s opacity;
 }
@@ -129,9 +129,13 @@ button.float-action-button {
     z-index: 1;
 }
 
-#camera {
+#camera, #exitButton {
     bottom: 2rem;
     color: #FFF;
+}
+
+#exitButton {
+    right: 7rem;
 }
 
 button.float-action-button:hover {
@@ -145,9 +149,14 @@ button.float-action-button svg {
     height: 2rem;
 }
 
+#exitButton svg {
+    position: relative;
+    right: 0.25rem;
+}
+
 #viewpointsMenu {
     position: absolute;
-    background: #ffffff;
+    background: #fff;
     z-index: 0;
 }
 

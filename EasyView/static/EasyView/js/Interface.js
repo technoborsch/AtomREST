@@ -40,6 +40,7 @@ export default class AppInterface {
         this.viewPointsImportButton = document.getElementById('viewPointsImportButton');
 
         this.openBtn = document.getElementById('openbtn');
+        this.exitButton = document.getElementById('exitButton');
         this.sidebarMenu = document.getElementById("sidebarMenu");
         this.viewPointsMenu = document.getElementById('viewpointsMenu');
         this.viewPointsMenuButton = document.getElementById('viewpointsMenuToggleButton');
@@ -54,6 +55,7 @@ export default class AppInterface {
         this.isSidebarOpen = false;
         this.isViewpointsMenuOpen = false;
         this.isSaveNoteButtonEnabled = false;
+        this.isExitButtonVisible = false;
 
         //Methods that react on user actions and not depend on some external logic
         this.viewPointModal.openButton.addEventListener( 'click', this.onViewPointOpenClick.bind(this) );
@@ -226,11 +228,19 @@ export default class AppInterface {
      * @param { Element } button A button that should be highlighted.
      */
     highlightViewPointButton( button ) {
+        this.removeHighlightingFromButton();
+        this.highlightedViewpointButton = button;
+        button.classList.add('bg-primary');
+    }
+
+    /**
+     * Removes highlighting from currently highlighted button.
+     */
+    removeHighlightingFromButton() {
         if (this.highlightedViewpointButton) {
             this.highlightedViewpointButton.classList.remove( 'bg-primary' );
         }
-        this.highlightedViewpointButton = button;
-        button.classList.add('bg-primary');
+        this.highlightedViewpointButton = undefined;
     }
 
     /**
@@ -241,6 +251,26 @@ export default class AppInterface {
         this.loadingScreen.addEventListener('transitionend', (event) => {
             event.target.remove();
         });
+    }
+
+    /**
+     * Shows 'Exit view point' button, if it is hidden.
+     */
+    showExitButton() {
+        if (!this.isExitButtonVisible) {
+            this.exitButton.classList.toggle('invisible');
+            this.isExitButtonVisible = !this.isExitButtonVisible;
+        }
+    }
+
+    /**
+     * Hides 'Exit view point' button, if it is shown.
+     */
+    hideExitButton() {
+        if (this.isExitButtonVisible) {
+            this.exitButton.classList.toggle('invisible');
+            this.isExitButtonVisible = !this.isExitButtonVisible;
+        }
     }
 
     // Passive methods
