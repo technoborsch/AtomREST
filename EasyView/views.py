@@ -114,3 +114,9 @@ class RemarksViewSet(viewsets.ModelViewSet):
     queryset = models.Remark.objects.all()
     serializer_class = serializers.RemarkSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+
+
+# Error handlers TODO Remove in production
+class Error404(TemplateView):
+    """Show 404 error template"""
+    template_name = '404.html'

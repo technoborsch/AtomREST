@@ -79,7 +79,7 @@ export default class AppInterface {
         this.openBtn.addEventListener( 'click', this.handleSidebarToggling.bind(this) );
 
         //Passive things that work just after page load
-        [this.initTooltips.bind(this), this.initCollapseButtons.bind(this)].forEach( handler => {
+        [AppInterface.initTooltips, AppInterface.initCollapseButtons].forEach( handler => {
             document.addEventListener("DOMContentLoaded", handler);
         } );
     }
@@ -325,7 +325,7 @@ export default class AppInterface {
     /**
      * Initializes all bootstrap tooltips.
      */
-    initTooltips() {
+    static initTooltips() {
         let tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
         tooltipTriggerList.map( (triggerEl) => {
             new bootstrap.Tooltip(triggerEl);
@@ -335,7 +335,7 @@ export default class AppInterface {
     /**
      * Seeks and adds event listeners to buttons that trigger collapse. Responsible for 90deg-rotating of them.
      */
-    initCollapseButtons() {
+    static initCollapseButtons() {
         const sideBarCollapseButtons = document.querySelectorAll('div button.list-group-item');
         sideBarCollapseButtons.forEach( (node) => {
                 node.addEventListener("click", () => {

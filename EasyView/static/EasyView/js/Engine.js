@@ -257,7 +257,7 @@ export default class Engine {
             viewer_url: undefined,
             creation_time: undefined,
             notes: undefined,
-            remark: undefined,
+            remark: null,
         }
     }
 
