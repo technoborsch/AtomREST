@@ -215,7 +215,7 @@ export default class AppInterface {
         toast.responsible.innerHTML = remark.responsible_person;
         toast.dateCreated.innerHTML = new Date( remark.creation_time ).toLocaleString();
         toast.dateTo.innerHTML = new Date( remark.deadline ).toLocaleDateString();
-        toast.show(); //TODO complete.
+        toast.show();
     }
 
     /**

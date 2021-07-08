@@ -93,16 +93,12 @@ export default class ViewpointManager {
         this.saveViewPoint(this.interface.viewPointModal.descriptionInput.value)
             .then( async (savedViewPoint) => {
                 this.storage.addViewPoint( savedViewPoint.pk );
-                const notesToSave = this.currentNotes.slice(
-                    this.engine.viewPoint ? this.engine.viewPoint.notes.length : 0
-                );
-                savedViewPoint.notes = notesToSave;
+                savedViewPoint.notes = [...this.currentNotes];
                 this.viewPointsList.push( savedViewPoint );
-                for (const note of notesToSave) {
+                for (const note of savedViewPoint.notes) {
                     note.view_point = savedViewPoint.url;
                     await this.apiService.addNote( note );
                 }
-                this.clearNotes();
                 await this.renderViewpointsList();
                 this.setViewPoint( savedViewPoint, false, false );
                 this.interface.viewPointModal.descriptionInput.value = '';
@@ -237,7 +233,7 @@ export default class ViewpointManager {
      */
     onNoteSaveClick() { //FIXME doesn't work on mobile phones
         setTimeout(() => { this.isWaitingForNote = true; }, 1);
-        this.interface.settingsElement.addEventListener( 'click', this.getPositionToInsertNote.bind(this) );
+        document.addEventListener( 'click', this.getPositionToInsertNote.bind(this) );
     }
 
     /**
@@ -260,7 +256,7 @@ export default class ViewpointManager {
                 this.insertNote( note );
 
                 this.isWaitingForNote = false;
-                this.interface.settingsElement.removeEventListener( 'click', this.getPositionToInsertNote );
+                document.removeEventListener( 'click', this.getPositionToInsertNote );
                 this.interface.noteModal.descriptionInput.value = '';
                 this.interface.viewPointModal.show();
             }
@@ -336,11 +332,12 @@ export default class ViewpointManager {
      * Method that handles clicking on any remark button. Loads remark and then sets it.
      * @param { Object } event Click event object.
      */
-    onRemarkClick( event ) {
+    async onRemarkClick( event ) {
+        await this.onViewPointExit();
         const key = event.target.getAttribute('key');
         this.apiService.getViewPointByPK( key ).then( fetchedViewPoint => {
             this.apiService.getObject( fetchedViewPoint.remark ).then( remark => {
-                fetchedViewPoint.remark = remark;  //FIXME bug: notes render twice, previous ones stay forever.
+                fetchedViewPoint.remark = remark;
                 this.setViewPoint( fetchedViewPoint );  //FIXME bug: notes not always have loaded when it sets.
             } );
         } );
