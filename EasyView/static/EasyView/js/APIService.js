@@ -48,6 +48,7 @@
  * @property { String } creation_time A date string of the view point creation time.
  * @property { String } model API URL of a model that this view point belongs to.
  * @property { Note[] } notes An array with notes that attached to this view point.
+ * @property { String } remark API URL of an attached remark.
  */
 
 /**
@@ -59,6 +60,24 @@
  * @property { Number[] } position Position of a note in Three.js coordinate system. Format: [x, y, z].
  * @property { String } view_point API URL of a view point the note is attached to.
  */
+
+/**
+ * A type that describes a remark object that is used by the API.
+ *
+ * @typedef { Object } Remark Remark to a view point.
+ * @property { Number } pk Primary key of a remark.
+ * @property { String } url API URL of the remark.
+ * @property { String } view_point API URL if a view point that this remark is attached to.
+ * @property { String } description Text of this remark.
+ * @property { String } speciality A speciality that this remark was made to.
+ * @property { String } reviewer A person that made this remark.
+ * @property { String } responsible_person A person that is responsible for this remark.
+ * @property { String } creation_time Date of creation.
+ * @property { String } deadline Deadline of the remark.
+ * @property { String } status Status of the remark.
+ * @property { String } comment A comment to the remark.
+ */
+
 
 /**
  * A class for an object that handles all communications with API.
@@ -92,18 +111,19 @@ export default class APIService {
      * @param { String } pk Primary key of a view point that should be fetched.
      * @return { Promise<ViewPoint> } Promise that fulfills with a ViewPoint object.
      */
-    getViewPointByPK(pk) {
+    async getViewPointByPK(pk) {
         const url = `${this.APIRootURL}/view_points/${pk}/`;
-        return axios.get(url).then( (response) => {
-            const viewPoint = response.data;
+        let viewPoint;
+        await axios.get(url).then( (response) => {
+            viewPoint = response.data;
             // A viewpoint contains only URLs to notes, so load all those notes here
             const notes = [];
             viewPoint.notes.forEach( ( noteUrl ) => {
                 this.getObject(noteUrl).then(result => notes.push(result));
             } );
             viewPoint.notes = notes;
-            return viewPoint;
         });
+        return viewPoint;
     }
 
     /**

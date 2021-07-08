@@ -62,10 +62,11 @@ export default class Engine {
 
         // Controls settings
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-        this.controls.minDistance = 10;
+        this.controls.minDistance = 100;
         this.controls.maxDistance = 100000;
-        this.controls.enablePan = true;
+        this.controls.zoomSpeed = 1.2;
         this.controls.panSpeed = 2;
+        this.controls.keyPanSpeed = 150;
 
         // Loading manager to define actions after model's load
         this.loadingManager = new THREE.LoadingManager();
@@ -83,6 +84,7 @@ export default class Engine {
         this.initialDistance = initialDistance;
 
         this.controls.addEventListener('change', this.render.bind(this));
+        this.controls.listenToKeyEvents( window );
 
         this.controlPanel = new ControlPanel(this);
 
@@ -150,14 +152,21 @@ export default class Engine {
         }
         target.add(direction.multiplyScalar(distance));
         this.controls.target.set(target.x, target.y, target.z);
+        this.renderNotes( point );
+        this.setFOV( point.fov ); // Render's being triggered here
+        this.controls.update();
+    }
 
+    /**
+     * Method used to insert all notes of a view point
+     * @param { ViewPoint } point View point which notes should be rendered.
+     */
+    renderNotes( point ) {
         for (let i=0; i < point.notes.length; i++) {
             if (point.notes[i]) {
                 this.insertNote(point.notes[i], this.viewPoint.pk + '_' + i.toString());
             }
         }
-        this.setFOV( point.fov ); // Render triggers here
-        this.controls.update();
     }
 
     /**
@@ -178,7 +187,7 @@ export default class Engine {
             this.boundBox.min.y + multiplier * (this.boundBox.max.y - this.boundBox.min.y),
             this.boundBox.min.z + multiplier * (this.boundBox.max.z - this.boundBox.min.z),
         );
-        this.setFOV(); // Render triggers here
+        this.setFOV(); // Render' being triggered here
         this.controls.update();
     }
 
@@ -248,6 +257,7 @@ export default class Engine {
             viewer_url: undefined,
             creation_time: undefined,
             notes: undefined,
+            remark: undefined,
         }
     }
 

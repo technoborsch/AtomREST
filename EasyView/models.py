@@ -98,7 +98,7 @@ class Remark(models.Model):
         ('Completed', 'Выполнено'),
     ]
 
-    view_point = models.ForeignKey(ViewPoint, on_delete=models.CASCADE, related_name='remark')
+    view_point = models.OneToOneField(ViewPoint, on_delete=models.CASCADE, related_name='remark')
     description = models.TextField()
     speciality = models.CharField(max_length=11, choices=SPECIALITIES)
     reviewer = models.CharField(max_length=100)

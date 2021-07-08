@@ -21,10 +21,12 @@ export default class ViewpointManager {
         this.currentNotes = [];
         this.viewPointsList = [];
         this.isWaitingForNote = false;
+        this.remarkButtons = this.interface.viewPointsMenu.querySelectorAll('.remark');
 
         this.storage = new LocalStorageManager(this);
 
         // Bind methods to clicks on different buttons. Don't forget to register a button here if you want it to work.
+        this.interface.viewPointModal.openButton.addEventListener( 'click', this.onViewPointOpenClick.bind(this) );
         this.interface.viewPointModal.saveButton.addEventListener( 'click', this.onViewPointSaveClick.bind(this) );
         this.interface.viewPointModal.cancelButton.addEventListener(
             'click',this.onViewPointCancelClick.bind(this)
@@ -33,12 +35,17 @@ export default class ViewpointManager {
         this.interface.viewPointsExportButton.addEventListener( 'click', this.onViewPointsExportClick.bind(this) );
         this.interface.viewPointsImportButton.addEventListener( 'click', this.onViewPointsImportClick.bind(this) );
         this.interface.exitButton.addEventListener( 'click', this.onViewPointExit.bind(this) );
+        this.interface.remarkToast.sendButton.addEventListener('click', this.onSendResponseClick.bind(this));
+        this.remarkButtons.forEach( button => {
+            button.addEventListener('click', this.onRemarkClick.bind(this));
+        } );
 
     }
 
     /**
      * The vital function that launches the app. Loads everything that is needed from the API and starts an engine.
      *
+     * @property { ViewPoint } initialViewPoint Initial view point.
      * @return {Promise<void>} Promise fulfilled on successful app load but probably you don't want to care about it.
      */
     async launch() {
@@ -48,18 +55,33 @@ export default class ViewpointManager {
         let initialViewPoint;
         if (initialViewPointPK) {
             initialViewPoint = await this.apiService.getViewPointByPK(initialViewPointPK);
+            if (initialViewPoint.remark) {
+                initialViewPoint.remark = await this.apiService.getObject( initialViewPoint.remark );
+            }
         }
         this.engine.model = model;
         this.engine.loadingManager.onLoad = () => {
+            if (initialViewPoint && !initialViewPoint.remark) { //Ignore remarks and don't save them locally.
                 this.storage.addViewPoint( initialViewPointPK );
-                this.getSavedViewpoints().then( async () => {
-                    await this.renderViewpointsList();
-                    this.setViewPoint( initialViewPoint );
-                    this.interface.removeLoadingScreen();
-                });
-                this.engine.onWindowResize();
-            };
+            }
+            this.getSavedViewpoints().then( async () => {
+                await this.renderViewpointsList();
+                this.setViewPoint( initialViewPoint );
+                this.interface.removeLoadingScreen();
+            });
+            this.engine.onWindowResize();
+        };
         this.engine.loadModel();
+    }
+    /**
+     * Method to describe actions on click on camera button.
+     * Simply shows view point modal.
+     */
+    onViewPointOpenClick() {
+        if (this.engine.viewPoint) {
+            this.onViewPointExit();
+        }
+        this.interface.viewPointModal.show();
     }
 
     /**
@@ -130,8 +152,10 @@ export default class ViewpointManager {
         this.clearTitleAndURL();
         this.interface.removeHighlightingFromButton();
         this.interface.hideExitButton();
+        this.interface.viewPointDescriptionToast.hide();
+        this.interface.remarkToast.hide();
         this.clearNotes();
-        this.engine.viewPoint = undefined;  //TODO logic with 'previousButton' to maybe restore it if necessary
+        this.engine.viewPoint = undefined;
     }
 
     /**
@@ -153,21 +177,20 @@ export default class ViewpointManager {
                 description = viewPoint.description;
             }
             if (showToast) {
-                this.interface.showDescriptionToast( description );
+                if (viewPoint.remark) {
+                    this.interface.showRemarkToast( viewPoint );
+                } else {
+                    this.interface.showDescriptionToast( description );
+                }
             }
-            const button = this.interface.viewPointsButtonsInsertionElement.querySelectorAll(
+            const button = this.interface.viewPointsMenu.querySelectorAll(
                 `[key="${viewPoint.pk.toString()}"]`
             );
             if ( button.length === 1 ) {
                 this.interface.highlightViewPointButton( button[0] );
             }
-            //FIXME too large.
-            let title = this.engine.model.building.kks + '/ Точка обзора ' + viewPoint.pk;
-            if ( viewPoint.description ) {
-                title = viewPoint.description;
-            }
-            history.replaceState(null, title, viewPoint.viewer_url);
-            document.title = title;
+
+            this.setTitleAndURL( viewPoint );
 
             this.interface.showExitButton();
 
@@ -212,9 +235,9 @@ export default class ViewpointManager {
     /**
      * Starts to listen for a second click to pick a position of note insertion.
      */
-    onNoteSaveClick() {
+    onNoteSaveClick() { //FIXME doesn't work on mobile phones
         setTimeout(() => { this.isWaitingForNote = true; }, 1);
-        window.addEventListener( 'click', this.getPositionToInsertNote.bind(this) );
+        this.interface.settingsElement.addEventListener( 'click', this.getPositionToInsertNote.bind(this) );
     }
 
     /**
@@ -237,7 +260,7 @@ export default class ViewpointManager {
                 this.insertNote( note );
 
                 this.isWaitingForNote = false;
-                window.removeEventListener( 'click', this.getPositionToInsertNote );
+                this.interface.settingsElement.removeEventListener( 'click', this.getPositionToInsertNote );
                 this.interface.noteModal.descriptionInput.value = '';
                 this.interface.viewPointModal.show();
             }
@@ -292,12 +315,35 @@ export default class ViewpointManager {
      * Method that applies view point on click on each view point button.
      *
      * @param { Object } event Click event on view point button.
+     * @param { Boolean } [remark] Defines if it is a remark or not. Default is false.
      */
-    onViewPointClick(event) {
+    onViewPointClick(event, remark = false ) {
         const key = event.target.getAttribute('key');
-        const viewPoint = this.viewPointsList.find( /**ViewPoint*/ point => point.pk.toString() === key);
+        let viewPoint;
+        if (remark) {
+            this.apiService.getViewPointByPK( key ).then( fetchedViewPoint => {
+                viewPoint = fetchedViewPoint;
+                viewPoint.remark = this.apiService.getObject( fetchedViewPoint.remark );
+            } );
+        } else {
+            viewPoint = this.viewPointsList.find( /**ViewPoint*/ point => point.pk.toString() === key);
+        }
         this.clearNotes();
         this.setViewPoint( viewPoint );
+    }
+
+    /**
+     * Method that handles clicking on any remark button. Loads remark and then sets it.
+     * @param { Object } event Click event object.
+     */
+    onRemarkClick( event ) {
+        const key = event.target.getAttribute('key');
+        this.apiService.getViewPointByPK( key ).then( fetchedViewPoint => {
+            this.apiService.getObject( fetchedViewPoint.remark ).then( remark => {
+                fetchedViewPoint.remark = remark;  //FIXME bug: notes render twice, previous ones stay forever.
+                this.setViewPoint( fetchedViewPoint );  //FIXME bug: notes not always have loaded when it sets.
+            } );
+        } );
     }
 
     /**
@@ -322,6 +368,31 @@ export default class ViewpointManager {
         if (currentUrlArray[currentUrlArray.length - 1] === viewPointToDelete.pk.toString()) {
             this.clearTitleAndURL();
         }
+    }
+
+    /**
+     * Handles clicking on 'send response' button.
+     */
+    onSendResponseClick() {
+        this.onViewPointExit();
+        this.interface.remarkToast.hide();
+        this.interface.remarkToast.responseText.value = '';
+        this.interface.remarkToast.sendButton.classList.add('disabled');
+        this.interface.isResponseButtonEnabled = false;
+        this.interface.responseToast.show();
+    }
+
+    /**
+     * Method that sets title and current url of the page off given view point.
+     * @param { ViewPoint } viewPoint view point to set URL/title from.
+     */
+    setTitleAndURL( viewPoint ) {
+        let title = this.engine.model.building.kks + '/ Точка обзора ' + viewPoint.pk;
+        if ( viewPoint.description ) {
+            title = viewPoint.description;
+        }
+        history.replaceState(null, title, viewPoint.viewer_url);
+        document.title = title;
     }
 
     /**

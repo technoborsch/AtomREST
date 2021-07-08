@@ -257,6 +257,6 @@ a.list-group-item > button.btn-close:hover {
     background-color: red;
 }
 
-#pointButtons a.list-group-item.bg-primary {
+#pointButtons a.list-group-item.bg-primary, #remarkButtons a.list-group-item.remark.bg-primary {
     color: white;
 }

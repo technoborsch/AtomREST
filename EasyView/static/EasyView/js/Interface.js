@@ -33,6 +33,18 @@ export default class AppInterface {
         this.viewPointDeletionToast = new bootstrap.Toast(document.getElementById('viewPointDeletionToast'));
         this.viewPointDescriptionToast.text = document.getElementById('descriptionText');
 
+        this.remarkToast = new bootstrap.Toast(document.getElementById('remarkDescriptionToast'));
+        this.remarkToast.description = document.getElementById('remarkDescriptionText');
+        this.remarkToast.author = document.getElementById('remarkAuthor');
+        this.remarkToast.responsible = document.getElementById('remarkResponsible');
+        this.remarkToast.dateCreated = document.getElementById('remarkDateCreated');
+        this.remarkToast.dateTo = document.getElementById('remarkDateTo');
+        this.remarkToast.status = document.getElementById('remarkStatus');
+        this.remarkToast.sendButton = document.getElementById('remarkResponseButton');
+        this.remarkToast.responseText = document.getElementById('remarkResponseInput');
+
+        this.responseToast = new bootstrap.Toast(document.getElementById('responseToast'));
+
         this.viewPointsCollapseButton = document.getElementById('viewPointsCollapseButton');
         this.viewPointsButtonsInsertionElement = document.getElementById( 'pointButtons' );
 
@@ -56,12 +68,13 @@ export default class AppInterface {
         this.isViewpointsMenuOpen = false;
         this.isSaveNoteButtonEnabled = false;
         this.isExitButtonVisible = false;
+        this.isResponseButtonEnabled = false;
 
         //Methods that react on user actions and not depend on some external logic
-        this.viewPointModal.openButton.addEventListener( 'click', this.onViewPointOpenClick.bind(this) );
         this.noteModal.openButton.addEventListener( 'click', this.onNoteOpenClick.bind(this) );
         this.noteModal.descriptionInput.addEventListener( 'input', this.handleSaveNoteButtonState.bind(this) );
         this.noteModal.cancelButton.addEventListener( 'click', this.onNoteCancelClick.bind(this) );
+        this.remarkToast.responseText.addEventListener('input', this.handleResponseButtonState.bind(this));
         this.viewPointsMenuButton.addEventListener( 'click', this.handleViewpointMenuToggle.bind(this) );
         this.openBtn.addEventListener( 'click', this.handleSidebarToggling.bind(this) );
 
@@ -190,6 +203,22 @@ export default class AppInterface {
     }
 
     /**
+     * Shows remark toast based on given view point.
+     * @param { ViewPoint } viewPoint view point with remark that should be showed.
+     * @property { Remark } remark A remark object.
+     */
+    showRemarkToast( viewPoint ) {
+        const remark = viewPoint.remark;
+        const toast = this.remarkToast;
+        toast.description.innerHTML = remark.description;
+        toast.author.innerHTML = remark.reviewer;
+        toast.responsible.innerHTML = remark.responsible_person;
+        toast.dateCreated.innerHTML = new Date( remark.creation_time ).toLocaleString();
+        toast.dateTo.innerHTML = new Date( remark.deadline ).toLocaleDateString();
+        toast.show(); //TODO complete.
+    }
+
+    /**
      * Toggles state of export button.
      */
     toggleExportButton() {
@@ -275,14 +304,6 @@ export default class AppInterface {
 
     // Passive methods
     /**
-     * Method to describe actions on click on camera button.
-     * Simply shows view point modal.
-     */
-    onViewPointOpenClick() {
-        this.viewPointModal.show();
-    }
-
-    /**
      * Method to describe actions on click on button that adds new note into current view point.
      * We need to show note modal and hide view point modal.
      */
@@ -346,6 +367,19 @@ export default class AppInterface {
         ) {
             this.noteModal.saveButton.classList.toggle('disabled');
             this.isSaveNoteButtonEnabled = !this.isSaveNoteButtonEnabled;
+        }
+    }
+
+    /**
+     * Disable 'send response' button if there is no input. Enable if something has been typed.
+     */
+    handleResponseButtonState() {
+        if (
+            (this.remarkToast.responseText.value && !this.isResponseButtonEnabled)
+            || (!this.remarkToast.responseText.value && this.isResponseButtonEnabled)
+        ) {
+            this.remarkToast.sendButton.classList.toggle('disabled');
+            this.isResponseButtonEnabled = !this.isResponseButtonEnabled;
         }
     }
 

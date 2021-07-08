@@ -32,7 +32,7 @@
               <div id="processRemarksList" class="list-group">
               {% if Process_remarks %}
                 {% for remark in Process_remarks %}
-                  <a class="list-group-item list-group-item-action" key="{{ remark.view_point.pk }}">{{ remark.description }}</a>
+                  <a class="list-group-item list-group-item-action remark" key="{{ remark.view_point.pk }}">{{ remark.description|truncatechars:25 }}</a>
                 {% endfor %}
               {% else %}
                 <div class="text-center p-2">
@@ -53,7 +53,7 @@
               <div id="electricalRemarksList" class="list-group">
               {% if Electrical_remarks %}
                 {% for remark in Electrical_remarks %}
-                  <a class="list-group-item list-group-item-action" key="{{ remark.view_point.pk }}">{{ remark.description }}</a>
+                  <a class="list-group-item list-group-item-action remark" key="{{ remark.view_point.pk }}">{{ remark.description|truncatechars:25 }}</a>
                 {% endfor %}
               {% else %}
                 <div class="text-center p-2">
@@ -74,7 +74,7 @@
               <div id="HVACRemarksList" class="list-group">
               {% if HVAC_remarks %}
                 {% for remark in HVAC_remarks %}
-                  <a class="list-group-item list-group-item-action" key="{{ remark.view_point.pk }}">{{ remark.description }}</a>
+                  <a class="list-group-item list-group-item-action remark" key="{{ remark.view_point.pk }}">{{ remark.description|truncatechars:25 }}</a>
                 {% endfor %}
               {% else %}
                 <div class="text-center p-2">
@@ -171,6 +171,20 @@
       </div>
     </div>
 
+    <!--Toast to show successful response sending notification-->
+    <div id="responseToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="toast-header bg-success">
+        <img src="{% static 'icons/card-heading.svg' %}" class="rounded me-2" alt="CardImage">
+        <strong class="me-auto text-white">Ответ на замечание отправлен!</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+      <div class="toast-body">
+        <p>На самом деле не отправлен :)</p>
+        <p>Это всего лишь концепт взаимодействия с группой проверки.</p>
+        <p>Функционал будет реализован при внедрении в текущий рабочий процесс (если это вообще произойдёт).</p>
+      </div>
+    </div>
+
     <!--Toast to show description of a viewpoint-->
     <div id="viewPointDescriptionToast"
          class="toast hide"
@@ -191,17 +205,41 @@
     <!--Toast to show a remark-->
     <div id="remarkDescriptionToast"
          class="toast hide"
-         data-bs-delay="30000"
+         data-bs-delay="300000"
          role="alert"
          aria-live="assertive"
          aria-atomic="true">
-      <div class="toast-header bg-warning">
+      <div class="toast-header bg-info">
         <img src="{% static 'icons/clipboard-x.svg' %}" class="rounded me-2" alt="NoteIcon">
         <strong class="me-auto text-white">Замечание</strong>
         <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
       </div>
-      <div class="toast-body">
-        <p id="descriptionText"></p>
+      <div class="toast-body pb-0">
+        <div class="nowrap">
+          <strong class="d-inline-block">Текст замечания:&nbsp;</strong><p id="remarkDescriptionText" class="d-inline-block mb-0"></p>
+        </div>
+        <div class="nowrap">
+          <strong class="d-inline-block">Автор замечания:&nbsp;</strong><p id="remarkAuthor" class="d-inline-block mb-0"></p>
+        </div>
+        <div class="nowrap">
+          <strong class="d-inline-block">Ответственный за устранение:&nbsp;</strong><p id="remarkResponsible" class="d-inline-block mb-0"></p>
+        </div>
+        <div class="nowrap">
+          <strong class="d-inline-block">Дата выдачи:&nbsp;</strong><p id="remarkDateCreated" class="d-inline-block mb-0"></p>
+        </div>
+        <div class="nowrap">
+          <strong class="d-inline-block">Дата устранения:&nbsp;</strong><p id="remarkDateTo" class="d-inline-block mb-0"></p>
+        </div>
+        <div class="form-floating my-2">
+          <input type="text"
+                 class="form-control"
+                 id="remarkResponseInput"
+                 placeholder="Текст">
+          <label for="remarkResponseInput">Ответ на замечание</label>
+        </div>
+      </div>
+      <div class="mt-1 pt-1 border-top">
+        <button type="button" id="remarkResponseButton" class="btn btn-primary float-end mb-1 mx-2 disabled">Отправить ответ</button>
       </div>
     </div>
 
