@@ -44,6 +44,7 @@ export default class AppInterface {
         this.remarkToast.responseText = document.getElementById('remarkResponseInput');
 
         this.responseToast = new bootstrap.Toast(document.getElementById('responseToast'));
+        this.notePickingFailedToast = new bootstrap.Toast(document.getElementById('notePickingFailedToast'));
 
         this.viewPointsCollapseButton = document.getElementById('viewPointsCollapseButton');
         this.viewPointsButtonsInsertionElement = document.getElementById( 'pointButtons' );
@@ -69,6 +70,8 @@ export default class AppInterface {
         this.isSaveNoteButtonEnabled = false;
         this.isExitButtonVisible = false;
         this.isResponseButtonEnabled = false;
+
+        this.remarkExportButtons = document.querySelectorAll('a.remark-export');
 
         //Methods that react on user actions and not depend on some external logic
         this.noteModal.openButton.addEventListener( 'click', this.onNoteOpenClick.bind(this) );
@@ -162,7 +165,7 @@ export default class AppInterface {
     _insertViewPointButton( viewPoint , clickCallback, deletionCallback, truncationLength = 22 ) {
         const tag = document.createElement( 'a' );
         tag.closeBtn = document.createElement( 'button' );
-        ['list-group-item', 'list-group-item-active'].forEach( className => tag.classList.add(className) );
+        ['list-group-item', 'list-group-item-action'].forEach( className => tag.classList.add(className) );
         tag.setAttribute('key', viewPoint.pk);
         ['btn-close', 'float-end', 'me-1'].forEach( className => tag.closeBtn.classList.add(className) );
         let text = 'Точка обзора ' + viewPoint.pk;
@@ -262,7 +265,7 @@ export default class AppInterface {
     highlightViewPointButton( button ) {
         this.removeHighlightingFromButton();
         this.highlightedViewpointButton = button;
-        button.classList.add('bg-primary');
+        button.classList.add('active');
     }
 
     /**
@@ -271,7 +274,7 @@ export default class AppInterface {
     removeHighlightingFromButton() {
         const button = this.highlightedViewpointButton;
         if (button) {
-            button.classList.remove( 'bg-primary' );
+            button.classList.remove( 'active' );
         }
         this.highlightedViewpointButton = null;
     }
@@ -318,7 +321,7 @@ export default class AppInterface {
             coverElement.classList.add( className );
         } );
         document.querySelector('body').appendChild(coverElement);
-        return coverElement
+        return coverElement;
     }
 
     // Passive methods
@@ -339,7 +342,6 @@ export default class AppInterface {
         this.viewPointModal.show();
         this.noteModal.descriptionInput.value = '';
     }
-
 
     /**
      * Initializes all bootstrap tooltips.

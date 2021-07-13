@@ -11,7 +11,7 @@ export default class ControlPanel {
      * @param { Engine } engine Engine instance that will be manipulated.
      */
     constructor( engine ) {
-        this.gui = new GUI( { width: 275 } );
+        this.gui = new GUI( { width: 275 } ); //FIXME Hardcoded
         this.engine = engine;
         this.params = {
             planeConstantY: 0,

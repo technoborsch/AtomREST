@@ -179,7 +179,7 @@ export default class Engine {
         this.controls.target.set( ...this.modelCenter.toArray() );
         const multiplier = 1 + this.initialDistance;
         this.camera.position.set(
-            this.boundBox.min.x + multiplier * (this.boundBox.max.x - this.boundBox.min.x), //FIXME simplify
+            this.boundBox.min.x + multiplier * (this.boundBox.max.x - this.boundBox.min.x), //TODO simplify
             this.boundBox.min.y + multiplier * (this.boundBox.max.y - this.boundBox.min.y),
             this.boundBox.min.z + multiplier * (this.boundBox.max.z - this.boundBox.min.z),
         );
@@ -200,7 +200,7 @@ export default class Engine {
         const mouse = new THREE.Vector2();
 
         mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-        mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1; //FIXME wrong coordinate picking on usual clicks
+        mouse.y = - ( (event.clientY - 73) / (window.innerHeight - 73) ) * 2 + 1; //FIXME wrong coordinate picking
 
         this.raycaster.setFromCamera(mouse, this.camera);
         const intersects = this.raycaster.intersectObjects(this.scene.children, true);
@@ -209,14 +209,14 @@ export default class Engine {
                 const point = intersects[i].point;
                 if (
                     intersects[i].object.isMesh &&  // avoid sprites
-                    (clipPlanes[4].constant > point.x) && ( point.x > -clipPlanes[5].constant) //FIXME simplify?
+                    (clipPlanes[4].constant > point.x) && ( point.x > -clipPlanes[5].constant)
                     && (clipPlanes[0].constant > point.y) && (point.y > -clipPlanes[1].constant)
                     && (clipPlanes[2].constant > point.z) && (point.z > -clipPlanes[3].constant)
                 ) {
                     return point;
                 }
             }
-        } //TODO add some message that it wasn't able to find intersection.
+        }
     }
 
     /**
@@ -312,7 +312,7 @@ export default class Engine {
         note.borderRadius = 6;
         note.borderColor = 'blue';
         note.name = name;
-        note.position.set( noteObject.position[0], noteObject.position[1], noteObject.position[2] );
+        note.position.set( ...noteObject.position );
         note.material.depthTest = false; // To be visible through walls
         note.material.transparent = true;
         note.material.opacity = 0.5;

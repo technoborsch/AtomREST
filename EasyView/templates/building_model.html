@@ -34,6 +34,14 @@
                 {% for remark in Process_remarks %}
                   <a class="list-group-item list-group-item-action remark" key="{{ remark.view_point.pk }}">{{ remark.description|truncatechars:25 }}</a>
                 {% endfor %}
+
+                <div class="p-2">
+                  <a class="remark-export btn btn-outline-success w-100 mb-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-arrow-up d-inline-block me-2" viewBox="0 0 16 16"><path d="M8.5 11.5a.5.5 0 0 1-1 0V7.707L6.354 8.854a.5.5 0 1 1-.708-.708l2-2a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 7.707V11.5z"></path><path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z"></path></svg>
+                    Экспорт&nbsp;в&nbsp;NW
+                  </a>
+                </div>
+
               {% else %}
                 <div class="text-center p-2">
                   <p class="text-muted" data-bs-toggle="tooltip" title="{{ no_remarks_tips.0 }}">
@@ -55,6 +63,14 @@
                 {% for remark in Electrical_remarks %}
                   <a class="list-group-item list-group-item-action remark" key="{{ remark.view_point.pk }}">{{ remark.description|truncatechars:25 }}</a>
                 {% endfor %}
+
+                <div class="p-2">
+                  <a class="remark-export btn btn-outline-success w-100 mb-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-arrow-up d-inline-block me-2" viewBox="0 0 16 16"><path d="M8.5 11.5a.5.5 0 0 1-1 0V7.707L6.354 8.854a.5.5 0 1 1-.708-.708l2-2a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 7.707V11.5z"></path><path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z"></path></svg>
+                    Экспорт&nbsp;в&nbsp;NW
+                  </a>
+                </div>
+
               {% else %}
                 <div class="text-center p-2">
                   <p class="text-muted" data-bs-toggle="tooltip" title="{{ no_remarks_tips.1 }}">
@@ -76,6 +92,14 @@
                 {% for remark in HVAC_remarks %}
                   <a class="list-group-item list-group-item-action remark" key="{{ remark.view_point.pk }}">{{ remark.description|truncatechars:25 }}</a>
                 {% endfor %}
+
+                <div class="p-2">
+                  <a class="remark-export btn btn-outline-success w-100 mb-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-arrow-up d-inline-block me-2" viewBox="0 0 16 16"><path d="M8.5 11.5a.5.5 0 0 1-1 0V7.707L6.354 8.854a.5.5 0 1 1-.708-.708l2-2a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 7.707V11.5z"></path><path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z"></path></svg>
+                    Экспорт&nbsp;в&nbsp;NW
+                  </a>
+                </div>
+
               {% else %}
                 <div class="text-center p-2">
                   <p class="text-muted" data-bs-toggle="tooltip" title="{{ no_remarks_tips.2 }}">
@@ -156,6 +180,18 @@
       </div>
       <div class="toast-body">
         <p>Точка обзора была успешно удалена</p>
+      </div>
+    </div>
+
+    <!--Toast to show notification that an insertion point wasn't found-->
+    <div id="notePickingFailedToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="toast-header bg-danger">
+        <img src="{% static 'icons/exclamation-diamond.svg' %}" class="rounded me-2" alt="NoteIcon">
+        <strong class="me-auto text-white">Не удалось найти точку вставки</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+      <div class="toast-body">
+        <p>Попробуйте указать точку ещё раз</p>
       </div>
     </div>
 

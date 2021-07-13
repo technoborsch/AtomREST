@@ -39,7 +39,9 @@ export default class ViewpointManager {
         this.remarkButtons.forEach( button => {
             button.addEventListener('click', this.onRemarkClick.bind(this));
         } );
-
+        this.interface.remarkExportButtons.forEach( button => {
+            button.addEventListener('click', this.onRemarkExport.bind(this));
+        } );
     }
 
     /**
@@ -145,13 +147,18 @@ export default class ViewpointManager {
 
     /**
      * Method that handles pressing on 'exit view point' button. Escapes current view point.
+     *
+     * @param { Boolean } forRemark Defines if it should hide description toast, default is false.
      */
-    onViewPointExit() {
+    onViewPointExit( forRemark = false ) {
         this.clearTitleAndURL();
         this.interface.removeHighlightingFromButton();
         this.interface.hideExitButton();
-        this.interface.viewPointDescriptionToast.hide();
-        this.interface.remarkToast.hide();
+        if (forRemark) {
+            this.interface.viewPointDescriptionToast.hide();
+        } else {
+            this.interface.remarkToast.hide();
+        }
         this.clearNotes();
         this.engine.viewPoint = undefined;
     }
@@ -202,6 +209,7 @@ export default class ViewpointManager {
      */
     onViewPointCancelClick() {
         this.clearNotes();
+        this.stopWaitingForNote();
         this.interface.viewPointModal.descriptionInput.value = '';
     }
 
@@ -258,14 +266,27 @@ export default class ViewpointManager {
 
                 this.insertNote( note );
 
-                this.isWaitingForNote = false;
-                document.getElementById('coverElement').remove();
-                this.interface.noteModal.descriptionInput.value = '';
-                this.interface.handleSaveNoteButtonState();
-                this.interface.viewPointModal.show();
+                this.stopWaitingForNote();
+            } else {
+                this.interface.notePickingFailedToast.show();
             }
         }
     }
+
+    /**
+     * Actions needed to perform to make it stop to wait for input of note.
+     */
+    stopWaitingForNote() {
+        this.isWaitingForNote = false;
+        const cover = document.getElementById('coverElement');
+        if (cover) {
+            cover.remove();
+        }
+        this.interface.noteModal.descriptionInput.value = '';
+        this.interface.handleSaveNoteButtonState();
+        this.interface.viewPointModal.show();
+    }
+
     /**
      * Function that handles logic of note insertion.
      *
@@ -318,17 +339,10 @@ export default class ViewpointManager {
      * @param { Boolean } [remark] Defines if it is a remark or not. Default is false.
      */
     onViewPointClick(event, remark = false ) {
+        this.onViewPointExit();
         const key = event.target.getAttribute('key');
         let viewPoint;
-        if (remark) {
-            this.apiService.getViewPointByPK( key ).then( fetchedViewPoint => {
-                viewPoint = fetchedViewPoint;
-                viewPoint.remark = this.apiService.getObject( fetchedViewPoint.remark );
-            } );
-        } else {
-            viewPoint = this.viewPointsList.find( /**ViewPoint*/ point => point.pk.toString() === key);
-        }
-        this.clearNotes();
+        viewPoint = this.viewPointsList.find( /**ViewPoint*/ point => point.pk.toString() === key);
         this.setViewPoint( viewPoint );
     }
 
@@ -336,8 +350,8 @@ export default class ViewpointManager {
      * Method that handles clicking on any remark button. Loads remark and then sets it.
      * @param { Object } event Click event object.
      */
-    async onRemarkClick( event ) {
-        await this.onViewPointExit();
+    onRemarkClick( event ) {
+        this.onViewPointExit( true );
         const key = event.target.getAttribute('key');
         this.apiService.getViewPointByPK( key ).then( fetchedViewPoint => {
             this.apiService.getObject( fetchedViewPoint.remark ).then( remark => {
@@ -345,6 +359,24 @@ export default class ViewpointManager {
                 this.setViewPoint( fetchedViewPoint );  //FIXME bug: notes not always have loaded when it sets.
             } );
         } );
+    }
+
+    /**
+     * Method that handles exporting of remarks to NavisWorks. Collects all keys of remarks and then exports them.
+     *
+     * @param { Object } event Generated click event object.
+     */
+    onRemarkExport( event ) {
+        const listElements = event.target.parentElement.parentElement.children;
+        const listOfKeys = [];
+        for (let i=0; i < listElements.length - 1; i++) {
+            const key = listElements[i].getAttribute('key');
+            if (key) {
+                listOfKeys.push(key);
+            }
+        }
+        const stringOfKeys = listOfKeys.join(',');
+        this.apiService.exportViewpointsByPKString( stringOfKeys );
     }
 
     /**
