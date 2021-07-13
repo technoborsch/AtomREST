@@ -62,7 +62,7 @@ export default class AppInterface {
 
         this.settingsElement = document.getElementById('viewer_settings');
 
-        this.highlightedViewpointButton = undefined;
+        this.highlightedViewpointButton = null;
         this.isExportDisabled = true;
         this.isSidebarOpen = false;
         this.isViewpointsMenuOpen = false;
@@ -74,7 +74,7 @@ export default class AppInterface {
         this.noteModal.openButton.addEventListener( 'click', this.onNoteOpenClick.bind(this) );
         this.noteModal.descriptionInput.addEventListener( 'input', this.handleSaveNoteButtonState.bind(this) );
         this.noteModal.cancelButton.addEventListener( 'click', this.onNoteCancelClick.bind(this) );
-        this.remarkToast.responseText.addEventListener('input', this.handleResponseButtonState.bind(this));
+        this.remarkToast.responseText.addEventListener('input', this.handleResponseButtonState.bind(this) );
         this.viewPointsMenuButton.addEventListener( 'click', this.handleViewpointMenuToggle.bind(this) );
         this.openBtn.addEventListener( 'click', this.handleSidebarToggling.bind(this) );
 
@@ -91,14 +91,15 @@ export default class AppInterface {
      * @param { Note } note Note that needs to be inserted.
      * @param { String } key Key of the note, used later to manipulate it.
      * @param { function } deletionCallback Callback executed when deletion button has been pressed.
+     * @param { Number } truncationLength Note description will be truncated to this length. Default is 30.
      */
-    addNoteToModal( note, key, deletionCallback ) {
+    addNoteToModal( note, key, deletionCallback, truncationLength = 30 ) {
         const tag = document.createElement('a');
         tag.closeBtn = document.createElement( 'button' );
         ['btn', 'btn-secondary', 'm-1'].forEach( className => tag.classList.add( className ) );
         tag.setAttribute('key', key );
         ['btn-close', 'ms-1'].forEach( className => tag.closeBtn.classList.add( className ) );
-        let text = document.createTextNode( truncate( note.text, 30 ) );
+        let text = document.createTextNode( truncate( note.text, truncationLength ) );
         tag.appendChild( text );
         tag.appendChild( tag.closeBtn );
         this.viewPointModal.noteInsertionElement.appendChild( tag );
@@ -114,8 +115,9 @@ export default class AppInterface {
     removeNoteFromModal( key ) {
         const noteLabels = this.viewPointModal.noteInsertionElement.children;
         for (let i=0; i < noteLabels.length; i++) {
-            if (noteLabels[i].getAttribute('key') === key) {
-                noteLabels[i].remove();
+            const label = noteLabels[i];
+            if (label.getAttribute('key') === key) {
+                label.remove();
                 break;
             }
         }
@@ -142,8 +144,9 @@ export default class AppInterface {
      * @return { Promise<void> } Promise fulfilled when all view point buttons were deleted from side menu.
      */
     async _emptyRenderedButtons() {
-        while (this.viewPointsButtonsInsertionElement.firstChild) {
-            this.viewPointsButtonsInsertionElement.firstChild.remove();
+        const insertionElement = this.viewPointsButtonsInsertionElement;
+        while (insertionElement.firstChild) {
+            insertionElement.firstChild.remove();
         }
     }
 
@@ -153,23 +156,24 @@ export default class AppInterface {
      * @param { ViewPoint } viewPoint A view point object that should be inserted.
      * @param { function } clickCallback Function executed on clicking on each button.
      * @param { function } deletionCallback Function executed on view point deletion.
+     * @param { Number } [truncationLength] View point will be truncated by this length, default is 22.
      * @return { Element } Created and inserted viewpoint button.
      */
-    _insertViewPointButton( viewPoint , clickCallback, deletionCallback) {
+    _insertViewPointButton( viewPoint , clickCallback, deletionCallback, truncationLength = 22 ) {
         const tag = document.createElement( 'a' );
         tag.closeBtn = document.createElement( 'button' );
         ['list-group-item', 'list-group-item-active'].forEach( className => tag.classList.add(className) );
         tag.setAttribute('key', viewPoint.pk);
         ['btn-close', 'float-end', 'me-1'].forEach( className => tag.closeBtn.classList.add(className) );
         let text = 'Точка обзора ' + viewPoint.pk;
-        if ( viewPoint.description ) { text = truncate(viewPoint.description, 22); }
+        if ( viewPoint.description ) { text = truncate( viewPoint.description, truncationLength ); }
         const textNode = document.createTextNode( text );
         tag.appendChild( textNode );
         tag.appendChild( tag.closeBtn );
         tag.addEventListener( 'click', clickCallback );
         tag.closeBtn.addEventListener( 'click', deletionCallback );
         this.viewPointsButtonsInsertionElement.prepend( tag );
-        this.viewPointsCollapseButton.classList.remove('disabled');
+        this.viewPointsCollapseButton.classList.remove( 'disabled' );
         return tag;
     }
 
@@ -177,14 +181,14 @@ export default class AppInterface {
      * Method to insert a sign that there are no locally saved view points.
      */
     insertNoViewPointsSign() {
-        const tag = document.createElement('div');
-        const p = document.createElement('p');
+        const tag = document.createElement( 'div' );
+        const p = document.createElement( 'p' );
         const textInP = document.createTextNode( 'Сохраненных точек обзора нет.' );
-        const a = document.createElement('a');
+        const a = document.createElement( 'a' );
         const textInA = document.createTextNode( 'Создать точку обзора' );
-        ['p-2', 'text-center'].forEach( className => tag.classList.add(className) );
-        ['text-muted', 'mb-0'].forEach( className => p.classList.add(className) );
-        ['link', 'link-primary'].forEach( className => a.classList.add(className) );
+        ['p-2', 'text-center'].forEach( className => tag.classList.add( className ) );
+        ['text-muted', 'mb-0'].forEach( className => p.classList.add( className ) );
+        ['link', 'link-primary'].forEach( className => a.classList.add( className ) );
         p.appendChild( textInP );
         a.appendChild( textInA );
         a.addEventListener('click', () => { this.viewPointModal.openButton.click(); } );
@@ -198,8 +202,9 @@ export default class AppInterface {
      * @param { String } text Text that should be shown.
      */
     showDescriptionToast( text ) {
-        this.viewPointDescriptionToast.text.innerHTML = text;
-        this.viewPointDescriptionToast.show();
+        const toast = this.viewPointDescriptionToast;
+        toast.text.innerHTML = text;
+        toast.show();
     }
 
     /**
@@ -234,16 +239,14 @@ export default class AppInterface {
         const ripple = document.createElement( 'span' );
         ripple.classList.add( 'ripple' );
         el.appendChild( ripple );
-        setTimeout( () => {
-            ripple.remove();
-        }, 3000 );
+        setTimeout( () => { ripple.remove(); }, 3000 );
     }
 
     /**
      * Handles visual effects on viewpoint saving.
      */
     applyViewPointSavingEffects() {
-        if (!this.isViewpointsMenuOpen) {
+        if ( !this.isViewpointsMenuOpen ) {
             this.applyRipple( this.viewPointsMenuButton );
         }
         const areViewPointsCollapsed = this.viewPointsCollapseButton.getAttribute('aria-expanded') === 'true';
@@ -266,10 +269,11 @@ export default class AppInterface {
      * Removes highlighting from currently highlighted button.
      */
     removeHighlightingFromButton() {
-        if (this.highlightedViewpointButton) {
-            this.highlightedViewpointButton.classList.remove( 'bg-primary' );
+        const button = this.highlightedViewpointButton;
+        if (button) {
+            button.classList.remove( 'bg-primary' );
         }
-        this.highlightedViewpointButton = undefined;
+        this.highlightedViewpointButton = null;
     }
 
     /**
@@ -277,7 +281,7 @@ export default class AppInterface {
      */
     removeLoadingScreen() {
         this.loadingScreen.classList.add('fade-out');
-        this.loadingScreen.addEventListener('transitionend', (event) => {
+        this.loadingScreen.addEventListener('transitionend', event => {
             event.target.remove();
         });
     }
@@ -300,6 +304,21 @@ export default class AppInterface {
             this.exitButton.classList.toggle('invisible');
             this.isExitButtonVisible = !this.isExitButtonVisible;
         }
+    }
+
+    /**
+     * Method that inserts cover element above all other elements that will catch user's clicks. It was made just to
+     * make it possible to catch both clicks and touchscreen taps.
+     * @return { Element } Inserted cover element.
+     */
+    insertCoverElement() {
+        const coverElement = document.createElement('div');
+        coverElement.id = 'coverElement';
+        ['vh-100', 'position-relative', 'bottom-100', 'start-0', 'bg-transparent'].forEach( className => {
+            coverElement.classList.add( className );
+        } );
+        document.querySelector('body').appendChild(coverElement);
+        return coverElement
     }
 
     // Passive methods
@@ -327,7 +346,7 @@ export default class AppInterface {
      */
     static initTooltips() {
         let tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        tooltipTriggerList.map( (triggerEl) => {
+        tooltipTriggerList.map( triggerEl => {
             new bootstrap.Tooltip(triggerEl);
         } );
     }

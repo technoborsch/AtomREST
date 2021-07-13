@@ -260,3 +260,7 @@ a.list-group-item > button.btn-close:hover {
 #pointButtons a.list-group-item.bg-primary, #remarkButtons a.list-group-item.remark.bg-primary {
     color: white;
 }
+
+button.navbar-toggler {
+    width: 52px;
+}

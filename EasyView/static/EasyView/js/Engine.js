@@ -54,7 +54,7 @@ export default class Engine {
         this.camera = new THREE.PerspectiveCamera(
             defaultFOV,
             window.innerWidth / window.innerHeight,
-            200,
+            200,   //FIXME hardcoded, move to constructor as default values
             2000000);
 
         // Raycaster
@@ -64,7 +64,7 @@ export default class Engine {
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
         this.controls.minDistance = 100;
         this.controls.maxDistance = 100000;
-        this.controls.zoomSpeed = 1.2;
+        this.controls.zoomSpeed = 1.2; //FIXME hardcoded, move to constructor as default values
         this.controls.panSpeed = 2;
         this.controls.keyPanSpeed = 150;
 
@@ -141,17 +141,17 @@ export default class Engine {
     setViewFromViewPoint( point ) {
         this.controlPanel.setClipping( point );
         this.viewPoint = point;
-        this.camera.position.set(point.position[0], point.position[2], (-1 * point.position[1]) );
+        this.camera.position.set(point.position[0], point.position[2], - point.position[1] );
         const quaternion = this.convertFromNWQuaternionToLocal( new THREE.Quaternion().fromArray(point.quaternion) );
         this.camera.quaternion.set( quaternion.x, quaternion.y, quaternion.z, quaternion.w );
         const direction = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.quaternion).normalize();
         const target = new THREE.Vector3().copy(this.camera.position);
         let distance = point.distance_to_target;
         if (!distance) {
-            distance = 2000;  // Default distance to target.
+            distance = 2000;  // Default distance to target.  TODO move to constructor
         }
-        target.add(direction.multiplyScalar(distance));
-        this.controls.target.set(target.x, target.y, target.z);
+        target.add( direction.multiplyScalar( distance ) );
+        this.controls.target.set( ...target.toArray() );
         this.renderNotes( point );
         this.setFOV( point.fov ); // Render's being triggered here
         this.controls.update();
@@ -176,18 +176,14 @@ export default class Engine {
     setDefaultView() {
         // It sets default view depending on loaded model
         this.controlPanel.setClipping();
-        this.controls.target.set(
-            this.modelCenter.x,
-            this.modelCenter.y,
-            this.modelCenter.z,
-        );
+        this.controls.target.set( ...this.modelCenter.toArray() );
         const multiplier = 1 + this.initialDistance;
         this.camera.position.set(
-            this.boundBox.min.x + multiplier * (this.boundBox.max.x - this.boundBox.min.x),
+            this.boundBox.min.x + multiplier * (this.boundBox.max.x - this.boundBox.min.x), //FIXME simplify
             this.boundBox.min.y + multiplier * (this.boundBox.max.y - this.boundBox.min.y),
             this.boundBox.min.z + multiplier * (this.boundBox.max.z - this.boundBox.min.z),
         );
-        this.setFOV(); // Render' being triggered here
+        this.setFOV(); // Render's being triggered here
         this.controls.update();
     }
 
@@ -204,7 +200,7 @@ export default class Engine {
         const mouse = new THREE.Vector2();
 
         mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-        mouse.y = - ( ( event.clientY - 36 ) / window.innerHeight ) * 2 + 1;
+        mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1; //FIXME wrong coordinate picking on usual clicks
 
         this.raycaster.setFromCamera(mouse, this.camera);
         const intersects = this.raycaster.intersectObjects(this.scene.children, true);
@@ -212,15 +208,15 @@ export default class Engine {
             for ( let i = 0; i < intersects.length; i++ ) {
                 const point = intersects[i].point;
                 if (
-                    intersects[i].object.isMesh &&
-                    (clipPlanes[4].constant > point.x) && ( point.x > -clipPlanes[5].constant)
+                    intersects[i].object.isMesh &&  // avoid sprites
+                    (clipPlanes[4].constant > point.x) && ( point.x > -clipPlanes[5].constant) //FIXME simplify?
                     && (clipPlanes[0].constant > point.y) && (point.y > -clipPlanes[1].constant)
                     && (clipPlanes[2].constant > point.z) && (point.z > -clipPlanes[3].constant)
                 ) {
                     return point;
                 }
             }
-        }
+        } //TODO add some message that it wasn't able to find intersection.
     }
 
     /**
@@ -239,24 +235,26 @@ export default class Engine {
             distance_to_target: distance,
             clip_constants_status: [        // In this order to synchronise with Navisworks
                 this.clipPlanes[0].constant !== this.boundBox.max.y,
-                -this.clipPlanes[1].constant !== this.boundBox.min.y,
+                this.clipPlanes[1].constant !== - this.boundBox.min.y,
                 this.clipPlanes[2].constant !== this.boundBox.max.z,
-                -this.clipPlanes[3].constant !== this.boundBox.min.z,
-                -this.clipPlanes[4].constant !== this.boundBox.min.x,
+                this.clipPlanes[3].constant !== - this.boundBox.min.z,
+                this.clipPlanes[4].constant !== - this.boundBox.min.x,
                 this.clipPlanes[5].constant !== this.boundBox.max.x,
             ],
-            clip_constants: [               // In this order to synchronise with Navisworks
+            clip_constants: [         // In this order to synchronise with Navisworks
                 -this.clipPlanes[0].constant, -this.clipPlanes[1].constant,
                 -this.clipPlanes[2].constant, -this.clipPlanes[3].constant,
+                //Note that these two are swapped so I left it like this.
                 -this.clipPlanes[5].constant, -this.clipPlanes[4].constant,
             ],
             model: this.model.url,
+            // All null elements just to match the type.
             description: null,
-            pk: undefined,
-            url: undefined,
-            viewer_url: undefined,
-            creation_time: undefined,
-            notes: undefined,
+            pk: null,
+            url: null,
+            viewer_url: null,
+            creation_time: null,
+            notes: null,
             remark: null,
         }
     }
@@ -305,7 +303,7 @@ export default class Engine {
      * @param { Note } noteObject Note that should be inserted.
      * @param { String } name Name of the note inside a scene. Should be unique.
      */
-    insertNote( noteObject, name ) {
+    insertNote( noteObject, name ) { //TODO customize? Color, size etc.
         const text = prettify( noteObject.text, 20 );
         const note = new SpriteText(text, 200, 'black');
         note.backgroundColor = 'white';
@@ -359,7 +357,7 @@ export default class Engine {
     }
 
     /**
-     * Standard method for Three.js which is called each time when a model should be rendered.
+     * Standard method for Three.js which is called each time when a model should be rendered to canvas.
      */
     render() {
         this.guideSphere.place();
@@ -372,16 +370,17 @@ export default class Engine {
  */
 class GuideSphere {
     /**
-     * @param { Engine } engine An engine this guide sphere should work  with.
+     * @param { Engine } engine An engine this guide sphere should work with.
      * @param { Number } color HEX-color of the sphere. Default is red.
-     * @param { Number } scale Scale of sphere. Scale of sphere, multiplied by distance to it. Default is 0.01.
+     * @param { Number } scale Scale of sphere, multiplied by distance to it. Default is 0.01.
+     * @param { Number } opacity Opacity of the sphere, default is 0.5.
      */
-    constructor( engine, color = 0xFF0000, scale= 0.01 ) {
+    constructor( engine, color = 0xFF0000, scale= 0.01, opacity = 0.5 ) {
         const geometry = new THREE.SphereGeometry(1);
         const material = new THREE.MeshBasicMaterial({
             color: color,
             transparent: true,
-            opacity: 0.5,
+            opacity: opacity,
         });
 
         this.engine = engine;
@@ -412,15 +411,10 @@ class GuideSphere {
      * Method that scales guide sphere and places it in current target. Should be called each time when target moves.
      */
     place() {
-        const distance = this.engine.camera.position.distanceTo(this.engine.controls.target);
+        const target = this.engine.controls.target;
+        const distance = this.engine.camera.position.distanceTo( target );
         const newScale = distance * this.scale;
-        this.sphere.scale.x = newScale;
-        this.sphere.scale.y = newScale;
-        this.sphere.scale.z = newScale;
-        this.sphere.position.set(
-            this.engine.controls.target.x,
-            this.engine.controls.target.y,
-            this.engine.controls.target.z
-        );
+        this.sphere.scale.setScalar( newScale );
+        this.sphere.position.set( target.x, target.y, target.z );
     }
 }

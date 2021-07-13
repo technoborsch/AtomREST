@@ -96,8 +96,10 @@ export default class ViewpointManager {
                 savedViewPoint.notes = [...this.currentNotes];
                 this.viewPointsList.push( savedViewPoint );
                 for (const note of savedViewPoint.notes) {
-                    note.view_point = savedViewPoint.url;
-                    await this.apiService.addNote( note );
+                    if (note) { // because it can contain undefined values after note deletion
+                        note.view_point = savedViewPoint.url;
+                        await this.apiService.addNote( note );
+                    }
                 }
                 await this.renderViewpointsList();
                 this.setViewPoint( savedViewPoint, false, false );
@@ -216,7 +218,7 @@ export default class ViewpointManager {
     }
 
     /**
-     * Clears all notes in scene and in interface.
+     * Clears all notes in the scene and the interface.
      */
     clearNotes() {
         if (this.currentNotes.length > 0) {
@@ -231,9 +233,10 @@ export default class ViewpointManager {
     /**
      * Starts to listen for a second click to pick a position of note insertion.
      */
-    onNoteSaveClick() { //FIXME doesn't work on mobile phones
+    onNoteSaveClick() {
         setTimeout(() => { this.isWaitingForNote = true; }, 1);
-        document.addEventListener( 'click', this.getPositionToInsertNote.bind(this) );
+        const coverElement = this.interface.insertCoverElement();
+        coverElement.addEventListener( 'click', this.getPositionToInsertNote.bind(this) );
     }
 
     /**
@@ -256,8 +259,9 @@ export default class ViewpointManager {
                 this.insertNote( note );
 
                 this.isWaitingForNote = false;
-                document.removeEventListener( 'click', this.getPositionToInsertNote );
+                document.getElementById('coverElement').remove();
                 this.interface.noteModal.descriptionInput.value = '';
+                this.interface.handleSaveNoteButtonState();
                 this.interface.viewPointModal.show();
             }
         }
@@ -302,7 +306,7 @@ export default class ViewpointManager {
             pk = this.engine.viewPoint.pk.toString();
         }
         const key = pk + '_' + i;
-        delete this.currentNotes[i];
+        delete this.currentNotes[i];  // be careful - currentNotes can contain undefined values after this.
         this.interface.removeNoteFromModal( key );
         this.engine.removeNote( key );
     }
@@ -363,7 +367,7 @@ export default class ViewpointManager {
         // This block replaces current browser URL if it points on deleted view point
         const currentUrlArray = window.location.href.split('/');
         if (currentUrlArray[currentUrlArray.length - 1] === viewPointToDelete.pk.toString()) {
-            this.clearTitleAndURL();
+            this.onViewPointExit();
         }
     }
 

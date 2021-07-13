@@ -52,11 +52,11 @@ def export_viewpoint_to_nw(view_point: ViewPoint) -> Element:
     quaternion = camera[1][0]
 
     camera_attributes = (
-        ('height', math.radians(view_point.fov)),
+        ('height', str(math.radians(view_point.fov))),
     )
     view_attributes = (
         ('guid', str(uuid.uuid4())),
-        ('name', view_point.description)
+        ('name', view_point.description)  # FIXME insert generated name if no description
     )
     pos3f_attributes = tuple(zip(('x', 'y', 'z',), map(lambda x: str(x), view_point.position)))
     quaternion_attributes = tuple(zip(('a', 'b', 'c', 'd'), map(lambda x: str(x), view_point.quaternion)))
@@ -120,7 +120,7 @@ def import_viewpoint(view_point: Element) -> ViewPoint:
     description = view_point.get('name')
     position = [float(view_point[0][0][0][0].get(key)) for key in ['x', 'y', 'z']]  # IndexError, ValueError
     quaternion = [float(view_point[0][0][1][0].get(key)) for key in ['a', 'b', 'c', 'd']]  # IndexError, ValueError
-    fov = math.degrees(view_point[0][0].get('height'))  # IndexError, ValueError
+    fov = math.degrees(float(view_point[0][0].get('height')))  # IndexError, ValueError
     clip_constants_status = [False] * 6
     clip_constants = [0.0] * 6
     has_clipping = False
