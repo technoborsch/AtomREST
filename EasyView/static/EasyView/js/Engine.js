@@ -226,7 +226,7 @@ export default class Engine {
         const mouse = new THREE.Vector2();
 
         mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-        mouse.y = - ( (event.clientY - 73) / (window.innerHeight - 73) ) * 2 + 1; //TODO hardcoded height of navbar.
+        mouse.y = - ( (event.clientY - 73) / (window.innerHeight - 73) ) * 2 + 1; //FIXME hardcoded height of navbar.
 
         this.raycaster.setFromCamera(mouse, this.camera);
         const intersects = this.raycaster.intersectObjects(this.scene.children, true);

@@ -1,7 +1,7 @@
 import os
 import uuid
 import math
-import xml.etree.ElementTree as ET  # FIXME replace with defusedXML
+import defusedxml.ElementTree as ET
 from xml.etree.ElementTree import Element
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -54,9 +54,15 @@ def export_viewpoint_to_nw(view_point: ViewPoint) -> Element:
     camera_attributes = (
         ('height', str(math.radians(view_point.fov))),
     )
+    # Either a remark description (if presented), a view point description(if presented) or generated name
+    description = view_point.description
+    if not view_point.description:
+        description = f'Точка обзора {view_point.pk}'
+    if view_point.remark:
+        description = view_point.remark.description
     view_attributes = (
         ('guid', str(uuid.uuid4())),
-        ('name', view_point.description)  # FIXME insert generated name if no description
+        ('name', description),
     )
     pos3f_attributes = tuple(zip(('x', 'y', 'z',), map(lambda x: str(x), view_point.position)))
     quaternion_attributes = tuple(zip(('a', 'b', 'c', 'd'), map(lambda x: str(x), view_point.quaternion)))
