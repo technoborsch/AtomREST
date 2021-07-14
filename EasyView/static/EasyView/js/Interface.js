@@ -73,6 +73,12 @@ export default class AppInterface {
 
         this.remarkExportButtons = document.querySelectorAll('a.remark-export');
 
+        //Register toasts in this array when you add one
+        this.toasts = [
+            this.remarkToast, this.viewPointDescriptionToast, this.viewPointToast, this.responseToast,
+            this.notePickingFailedToast, this.viewPointDeletionToast,
+        ]
+
         //Methods that react on user actions and not depend on some external logic
         this.noteModal.openButton.addEventListener( 'click', this.onNoteOpenClick.bind(this) );
         this.noteModal.descriptionInput.addEventListener( 'input', this.handleSaveNoteButtonState.bind(this) );
@@ -315,13 +321,32 @@ export default class AppInterface {
      * @return { Element } Inserted cover element.
      */
     insertCoverElement() {
-        const coverElement = document.createElement('div');
-        coverElement.id = 'coverElement';
-        ['vh-100', 'position-relative', 'bottom-100', 'start-0', 'bg-transparent'].forEach( className => {
-            coverElement.classList.add( className );
-        } );
-        document.querySelector('body').appendChild(coverElement);
+        let coverElement;
+        coverElement = document.getElementById('coverElement'); //Avoid insertion if it is already there
+        if (!coverElement) {
+            coverElement = document.createElement('div');
+            coverElement.id = 'coverElement';
+            ['vh-100', 'position-relative', 'bottom-100', 'start-0', 'bg-transparent'].forEach( className => {
+                coverElement.classList.add( className );
+            } );
+            document.querySelector('body').appendChild(coverElement);
+        }
         return coverElement;
+    }
+
+    /**
+     * Method that handles hiding toasts. By default hides all of them.
+     *
+     * @param { Toast } [toastThatShouldStay] Toast that should stay on screen. Optional.
+     */
+    hideToasts( toastThatShouldStay ) {
+        const toastsToHide = [...this.toasts];
+        if (toastThatShouldStay && toastsToHide.includes( toastThatShouldStay ) ) {
+            toastsToHide.splice( toastsToHide.indexOf( toastThatShouldStay ), 1);
+        }
+        for (let i = 0; i < toastsToHide.length; i++) {
+            toastsToHide[i].hide()
+        }
     }
 
     // Passive methods

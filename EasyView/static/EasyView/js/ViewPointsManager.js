@@ -146,19 +146,14 @@ export default class ViewpointManager {
     }
 
     /**
-     * Method that handles pressing on 'exit view point' button. Escapes current view point.
-     *
-     * @param { Boolean } forRemark Defines if it should hide description toast, default is false.
+     * Method that handles pressing on 'exit view point' button. Escapes current view point, by default hides both
+     * remark and view point toasts.
      */
-    onViewPointExit( forRemark = false ) {
+    onViewPointExit() {
         this.clearTitleAndURL();
         this.interface.removeHighlightingFromButton();
         this.interface.hideExitButton();
-        if (forRemark) {
-            this.interface.viewPointDescriptionToast.hide();
-        } else {
-            this.interface.remarkToast.hide();
-        }
+        this.interface.hideToasts();
         this.clearNotes();
         this.engine.viewPoint = undefined;
     }
@@ -244,7 +239,9 @@ export default class ViewpointManager {
     onNoteSaveClick() {
         setTimeout(() => { this.isWaitingForNote = true; }, 1);
         const coverElement = this.interface.insertCoverElement();
-        coverElement.addEventListener( 'click', this.getPositionToInsertNote.bind(this) );
+        if (coverElement) { //Can return void if cover is already there.
+            coverElement.addEventListener( 'click', this.getPositionToInsertNote.bind(this) );
+        }
     }
 
     /**
@@ -336,13 +333,12 @@ export default class ViewpointManager {
      * Method that applies view point on click on each view point button.
      *
      * @param { Object } event Click event on view point button.
-     * @param { Boolean } [remark] Defines if it is a remark or not. Default is false.
      */
-    onViewPointClick(event, remark = false ) {
-        this.onViewPointExit();
+    onViewPointClick(event) {
+        this.interface.hideToasts( this.interface.viewPointDescriptionToast );
+        this.clearNotes();
         const key = event.target.getAttribute('key');
-        let viewPoint;
-        viewPoint = this.viewPointsList.find( /**ViewPoint*/ point => point.pk.toString() === key);
+        const viewPoint = this.viewPointsList.find( /**ViewPoint*/ point => point.pk.toString() === key);
         this.setViewPoint( viewPoint );
     }
 
@@ -351,7 +347,8 @@ export default class ViewpointManager {
      * @param { Object } event Click event object.
      */
     onRemarkClick( event ) {
-        this.onViewPointExit( true );
+        this.interface.hideToasts( this.interface.remarkToast );
+        this.clearNotes();
         const key = event.target.getAttribute('key');
         this.apiService.getViewPointByPK( key ).then( fetchedViewPoint => {
             this.apiService.getObject( fetchedViewPoint.remark ).then( remark => {
