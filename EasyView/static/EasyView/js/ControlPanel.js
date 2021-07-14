@@ -9,9 +9,10 @@ GUI.TEXT_OPEN = 'Открыть панель управления';
 export default class ControlPanel {
     /**
      * @param { Engine } engine Engine instance that will be manipulated.
+     * @param { Number } width Width of the panel in pixels, default is 275.
      */
-    constructor( engine ) {
-        this.gui = new GUI( { width: 275 } ); //FIXME Hardcoded
+    constructor( engine , width = 275 ) {
+        this.gui = new GUI( { width: width } );
         this.engine = engine;
         this.params = {
             planeConstantY: 0,
