@@ -218,15 +218,17 @@ export default class Engine {
      * intersection, taking into consideration current clipping.
      *
      * @param { Object } event Generated click event.
+     * @param { Element } navbar Navbar of the app, to consider it's height.
      * @return {Promise<THREE.Vector3>} Promise that is fulfilled with position of first intersection as THREE.Vector3
      * if it gets intersection. May take several clicks.
      */
-    async getFirstIntersectionPosition( event ) {
+    async getFirstIntersectionPosition( event, navbar ) {
         const clipPlanes = this.clipPlanes;
         const mouse = new THREE.Vector2();
+        const navbarHeight = navbar.clientHeight;
 
         mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-        mouse.y = - ( (event.clientY - 73) / (window.innerHeight - 73) ) * 2 + 1; //FIXME hardcoded height of navbar.
+        mouse.y = - ( (event.clientY - navbarHeight) / (window.innerHeight - navbarHeight) ) * 2 + 1;
 
         this.raycaster.setFromCamera(mouse, this.camera);
         const intersects = this.raycaster.intersectObjects(this.scene.children, true);

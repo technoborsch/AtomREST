@@ -252,7 +252,7 @@ export default class ViewpointManager {
      */
     async getPositionToInsertNote( event ) {
         if (this.isWaitingForNote) {
-            const position = await this.engine.getFirstIntersectionPosition( event );
+            const position = await this.engine.getFirstIntersectionPosition( event, this.interface.navbar );
             if ( position ) {
                 const note = {
                     text: this.interface.noteModal.descriptionInput.value,

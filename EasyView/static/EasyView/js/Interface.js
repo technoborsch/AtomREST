@@ -54,7 +54,8 @@ export default class AppInterface {
 
         this.openBtn = document.getElementById('openbtn');
         this.exitButton = document.getElementById('exitButton');
-        this.sidebarMenu = document.getElementById("sidebarMenu");
+        this.sidebarMenu = document.getElementById("sidebarMenu")
+        this.navbar = document.getElementById('navbarPanel');
         this.viewPointsMenu = document.getElementById('viewpointsMenu');
         this.viewPointsMenuButton = document.getElementById('viewpointsMenuToggleButton');
         this.viewPointsMenuButtonPlacer = document.getElementById('btnPlacer');
