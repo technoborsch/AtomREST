@@ -18,10 +18,33 @@ export default class Engine {
      * @param { Number } defaultFOV Default camera FOV.
      * @param { Number } initialDistance Distance from upper bound box corner, proportional to main bound box diagonal
      * length, at which camera will appear by default.
+     * @param { Number } backgroundColor HEX-color of background color of the scene.
+     * @param { Number } near Rendered objects will be cut before this distance.
+     * @param { Number } far Rendered objects will be cut after this distance.
+     * @param { Number } minDistance Minimum distance between camera and target.
+     * @param { Number } maxDistance Maximum distance between camera and target.
+     * @param { Number } zoomSpeed Zoom speed of controls.
+     * @param { Number } panSpeed Speed of controls panning.
+     * @param { Number } keyPanSpeed Speed of panning when controlled by keys.
+     * @param { Number } defaultDistanceToTarget If a view point doesn't contain distance to target, this value will
+     * be used.
      * @property { Model } model Current loaded model.
      * @property { ViewPoint } viewPoint Current view point.
      */
-    constructor( rootElement, defaultFOV = 60, initialDistance = 0.2 ) {
+    constructor(
+        rootElement,
+        defaultFOV = 60,
+        initialDistance = 0.2,
+        backgroundColor = 0xe8f9fc,
+        near = 200,
+        far = 2000000,
+        minDistance = 100,
+        maxDistance = 100000,
+        zoomSpeed = 1.2,
+        panSpeed = 2,
+        keyPanSpeed = 150,
+        defaultDistanceToTarget = 2000,
+    ) {
 
         // Create six clipping planes for each side of a model
         this.clipPlanes = [];
@@ -47,26 +70,27 @@ export default class Engine {
         this.scene = new THREE.Scene();
         const environment = new RoomEnvironment();
         const pmremGenerator = new THREE.PMREMGenerator(this.renderer);
-        this.scene.background = new THREE.Color(0xe8f9fc);
+        this.scene.background = new THREE.Color( backgroundColor );
         this.scene.environment = pmremGenerator.fromScene(environment).texture;
 
         // Camera settings
         this.camera = new THREE.PerspectiveCamera(
             defaultFOV,
             window.innerWidth / window.innerHeight,
-            200,   //FIXME hardcoded, move to constructor as default values
-            2000000);
+            near,
+            far,
+        );
 
         // Raycaster
         this.raycaster = new THREE.Raycaster();
 
         // Controls settings
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-        this.controls.minDistance = 100;
-        this.controls.maxDistance = 100000;
-        this.controls.zoomSpeed = 1.2; //FIXME hardcoded, move to constructor as default values
-        this.controls.panSpeed = 2;
-        this.controls.keyPanSpeed = 150;
+        this.controls.minDistance = minDistance;
+        this.controls.maxDistance = maxDistance;
+        this.controls.zoomSpeed = zoomSpeed;
+        this.controls.panSpeed = panSpeed;
+        this.controls.keyPanSpeed = keyPanSpeed;
 
         // Loading manager to define actions after model's load
         this.loadingManager = new THREE.LoadingManager();
@@ -89,6 +113,8 @@ export default class Engine {
         this.controlPanel = new ControlPanel(this);
 
         this.guideSphere = new GuideSphere(this);
+
+        this.defaultDistanceToTarget = defaultDistanceToTarget;
 
         window.addEventListener('resize', this.onWindowResize.bind(this));
     }
@@ -148,7 +174,7 @@ export default class Engine {
         const target = new THREE.Vector3().copy(this.camera.position);
         let distance = point.distance_to_target;
         if (!distance) {
-            distance = 2000;  // Default distance to target.  TODO move to constructor
+            distance = this.defaultDistanceToTarget;
         }
         target.add( direction.multiplyScalar( distance ) );
         this.controls.target.set( ...target.toArray() );
@@ -179,7 +205,7 @@ export default class Engine {
         this.controls.target.set( ...this.modelCenter.toArray() );
         const multiplier = 1 + this.initialDistance;
         this.camera.position.set(
-            this.boundBox.min.x + multiplier * (this.boundBox.max.x - this.boundBox.min.x), //TODO simplify
+            this.boundBox.min.x + multiplier * (this.boundBox.max.x - this.boundBox.min.x),
             this.boundBox.min.y + multiplier * (this.boundBox.max.y - this.boundBox.min.y),
             this.boundBox.min.z + multiplier * (this.boundBox.max.z - this.boundBox.min.z),
         );
@@ -200,7 +226,7 @@ export default class Engine {
         const mouse = new THREE.Vector2();
 
         mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-        mouse.y = - ( (event.clientY - 73) / (window.innerHeight - 73) ) * 2 + 1; //FIXME wrong coordinate picking
+        mouse.y = - ( (event.clientY - 73) / (window.innerHeight - 73) ) * 2 + 1; //TODO hardcoded height of navbar.
 
         this.raycaster.setFromCamera(mouse, this.camera);
         const intersects = this.raycaster.intersectObjects(this.scene.children, true);
