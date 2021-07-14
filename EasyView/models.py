@@ -46,7 +46,7 @@ class ViewPoint(models.Model):
     position = ArrayField(models.FloatField(), size=3)  # x, y, z
     quaternion = ArrayField(models.FloatField(), size=4)  # x, y, z, w
     fov = models.FloatField(
-        validators=[MinValueValidator(0.1), MaxValueValidator(180)],
+        validators=[MinValueValidator(0.1), MaxValueValidator(179)],
         default=60.0,
         blank=True
     )  # FOV angle
