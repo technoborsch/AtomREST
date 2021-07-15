@@ -57,9 +57,6 @@ export default class ViewpointManager {
         let initialViewPoint;
         if (initialViewPointPK) {
             initialViewPoint = await this.apiService.getViewPointByPK(initialViewPointPK);
-            if (initialViewPoint.remark) {
-                initialViewPoint.remark = await this.apiService.getObject( initialViewPoint.remark );
-            }
         }
         this.engine.model = model;
         this.engine.loadingManager.onLoad = () => {
@@ -351,10 +348,7 @@ export default class ViewpointManager {
         this.clearNotes();
         const key = event.target.getAttribute('key');
         this.apiService.getViewPointByPK( key ).then( fetchedViewPoint => {
-            this.apiService.getObject( fetchedViewPoint.remark ).then( remark => {
-                fetchedViewPoint.remark = remark;
-                this.setViewPoint( fetchedViewPoint );  //FIXME bug: notes not always have loaded when it sets.
-            } );
+            this.setViewPoint( fetchedViewPoint );
         } );
     }
 
@@ -473,13 +467,8 @@ export default class ViewpointManager {
      */
     async getSavedViewpoints() {
         const pkList = this.storage.getList();
-        const viewPointsList = [];
-        for (let i = 0; i < pkList.length; i++) {
-            const pk = pkList[i];
-            const viewPoint = await this.apiService.getViewPointByPK( pk );
-            viewPointsList.push( viewPoint );
-        }
-        this.viewPointsList = viewPointsList;
+        const promises = pkList.map( pk => this.apiService.getViewPointByPK( pk ) );
+        this.viewPointsList = await Promise.all(promises);
     }
 
     /**

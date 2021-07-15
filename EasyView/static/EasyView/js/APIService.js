@@ -114,15 +114,18 @@ export default class APIService {
     async getViewPointByPK(pk) {
         const url = `${this.APIRootURL}/view_points/${pk}/`;
         let viewPoint;
-        await axios.get(url).then( (response) => {
-            viewPoint = response.data;
-            // A viewpoint contains only URLs to notes, so load all those notes here
-            const notes = [];
-            viewPoint.notes.forEach( ( noteUrl ) => {
-                this.getObject(noteUrl).then(result => notes.push(result));
-            } );
-            viewPoint.notes = notes;
-        });
+        const response = await axios.get(url);
+        viewPoint = response.data;
+        // A viewpoint contains only URLs to notes, so load all those notes here
+        const notes = [];
+        for (const noteURL of viewPoint.notes) {
+            notes.push( await this.getObject(noteURL) );
+        }
+        viewPoint.notes = notes;
+        //The same is with remark if it exists
+        if (viewPoint.remark) {
+            viewPoint.remark = await this.getObject(viewPoint.remark);
+        }
         return viewPoint;
     }
 
