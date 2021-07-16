@@ -253,7 +253,7 @@ span.ripple {
     }
 }
 
-a.list-group-item > button.btn-close:hover {
+a.list-group-item > div > button.btn-close:hover {
     background-color: red;
 }
 
@@ -269,6 +269,10 @@ a {
     cursor: pointer;
 }
 
-#descriptionText {
+#descriptionText, a.list-group-item p {
     margin: 0;
+}
+
+.nowrap {
+    white-space: nowrap;!important;
 }

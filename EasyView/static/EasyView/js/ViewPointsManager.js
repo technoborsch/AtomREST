@@ -334,7 +334,15 @@ export default class ViewpointManager {
     onViewPointClick(event) {
         this.interface.hideToasts( this.interface.viewPointDescriptionToast );
         this.clearNotes();
-        const key = event.target.getAttribute('key');
+        let key = event.target.getAttribute('key');
+        if (!key) {
+            key = event.target.parentElement.getAttribute('key');
+            if (!key) {
+                key = event.target.parentElement.parentElement.getAttribute('key');
+            }
+        }
+        console.dir(event);
+        console.dir(key);
         const viewPoint = this.viewPointsList.find( /**ViewPoint*/ point => point.pk.toString() === key);
         this.setViewPoint( viewPoint );
     }
@@ -379,13 +387,14 @@ export default class ViewpointManager {
      */
     onDeleteViewPointClick(event) {
         event.stopPropagation();  //It will cause click event on the hosting view point button element otherwise
-        const key = event.target.parentElement.getAttribute('key');
+        const mainElement = event.target.parentElement.parentElement;
+        const key = mainElement.getAttribute('key');
         const viewPointToDelete = this.viewPointsList.find(point => point.pk.toString() === key);
         const index = this.viewPointsList.indexOf(viewPointToDelete);
         this.viewPointsList.splice(index, 1);
         this.storage.removeViewPoint(viewPointToDelete);
         this.interface.viewPointDeletionToast.show();
-        event.target.parentElement.remove();
+        mainElement.remove();
         this.checkIfViewPointsAreEmpty();
         // This block replaces current browser URL if it points on deleted view point
         const currentUrlArray = window.location.href.split('/');

@@ -174,17 +174,22 @@ export default class AppInterface {
      */
     _insertViewPointButton( viewPoint , clickCallback, deletionCallback, truncationLength = 22 ) {
         const tag = document.createElement( 'a' );
-        tag.closeBtn = document.createElement( 'button' );
+        const closeBtn = document.createElement( 'button' );
+        const container = document.createElement( 'div' );
+        const paragraph = document.createElement( 'p' );
         ['list-group-item', 'list-group-item-action'].forEach( className => tag.classList.add(className) );
         tag.setAttribute('key', viewPoint.pk);
-        ['btn-close', 'float-end', 'me-1'].forEach( className => tag.closeBtn.classList.add(className) );
+        ['d-flex', 'justify-content-between'].forEach( className => container.classList.add( className ) );
+        ['d-inline-block'].forEach( className => paragraph.classList.add( className ) );
+        ['btn-close', 'd-inline-block', 'me-1'].forEach( className => closeBtn.classList.add(className) );
         let text = 'Точка обзора ' + viewPoint.pk;
         if ( viewPoint.description ) { text = truncate( viewPoint.description, truncationLength ); }
         const textNode = document.createTextNode( text );
-        tag.appendChild( textNode );
-        tag.appendChild( tag.closeBtn );
+        paragraph.appendChild( textNode );
+        [paragraph, closeBtn].forEach( node => container.appendChild( node ) );
+        tag.appendChild( container );
         tag.addEventListener( 'click', clickCallback );
-        tag.closeBtn.addEventListener( 'click', deletionCallback );
+        closeBtn.addEventListener( 'click', deletionCallback );
         this.viewPointsButtonsInsertionElement.prepend( tag );
         this.viewPointsCollapseButton.classList.remove( 'disabled' );
         return tag;
@@ -199,7 +204,7 @@ export default class AppInterface {
         const textInP = document.createTextNode( 'Сохраненных точек обзора нет.' );
         const a = document.createElement( 'a' );
         const textInA = document.createTextNode( 'Создать точку обзора' );
-        ['p-2', 'text-center'].forEach( className => tag.classList.add( className ) );
+        ['p-2', 'text-center', 'nowrap'].forEach( className => tag.classList.add( className ) );
         ['text-muted', 'mb-0'].forEach( className => p.classList.add( className ) );
         ['link', 'link-primary'].forEach( className => a.classList.add( className ) );
         p.appendChild( textInP );
