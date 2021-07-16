@@ -42,6 +42,7 @@ export default class AppInterface {
         this.remarkToast.status = document.getElementById('remarkStatus');
         this.remarkToast.sendButton = document.getElementById('remarkResponseButton');
         this.remarkToast.responseText = document.getElementById('remarkResponseInput');
+        this.remarkToast.showButton = document.getElementById('remarkShowButton');
 
         this.responseToast = new bootstrap.Toast(document.getElementById('responseToast'));
         this.notePickingFailedToast = new bootstrap.Toast(document.getElementById('notePickingFailedToast'));
@@ -71,6 +72,7 @@ export default class AppInterface {
         this.isSaveNoteButtonEnabled = false;
         this.isExitButtonVisible = false;
         this.isResponseButtonEnabled = false;
+        this.isRemarkContentVisible = false;
 
         this.remarkExportButtons = document.querySelectorAll('a.remark-export');
 
@@ -85,6 +87,7 @@ export default class AppInterface {
         this.noteModal.descriptionInput.addEventListener( 'input', this.handleSaveNoteButtonState.bind(this) );
         this.noteModal.cancelButton.addEventListener( 'click', this.onNoteCancelClick.bind(this) );
         this.remarkToast.responseText.addEventListener('input', this.handleResponseButtonState.bind(this) );
+        this.remarkToast.showButton.addEventListener('click', this.handleShowRemarkClick.bind(this) );
         this.viewPointsMenuButton.addEventListener( 'click', this.handleViewpointMenuToggle.bind(this) );
         this.openBtn.addEventListener( 'click', this.handleSidebarToggling.bind(this) );
 
@@ -437,5 +440,20 @@ export default class AppInterface {
         this.viewPointsMenu.classList.toggle('sidebar-shifted');
         this.viewPointsMenuButtonPlacer.classList.toggle('button-placer-shifted');
         this.isViewpointsMenuOpen = !this.isViewpointsMenuOpen;
+    }
+
+    /**
+     * Handles clicking on 'hide/show' button, replaces its inner text.
+     *
+     * @param { Object } event Generated click event.
+     */
+    handleShowRemarkClick( event ) {
+        const button = event.target;
+        if (this.isRemarkContentVisible) {
+            button.innerHTML = 'Развернуть';
+        } else {
+            button.innerHTML = 'Свернуть';
+        }
+        this.isRemarkContentVisible = !this.isRemarkContentVisible;
     }
 }

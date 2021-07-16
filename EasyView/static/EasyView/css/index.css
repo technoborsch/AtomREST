@@ -227,7 +227,7 @@ button.float-action-button svg {
 }
 
 /* Bootstrap toast bugfix */
-.toast {
+.toast, .toast-header, .toast-body {
     border: none;
 }
 
@@ -267,4 +267,8 @@ button, a {
 
 a {
     cursor: pointer;
+}
+
+#descriptionText {
+    margin: 0;
 }
