@@ -103,12 +103,15 @@ export default class ControlPanel {
         if ( viewPoint ) {
             const clipConstants = viewPoint.clip_constants;
             const clipStatuses = viewPoint.clip_constants_status;
-            const prepared_array = clipConstants.map( num => -num );
-            // Has to do this swap for some reason
-            [ prepared_array[5], prepared_array[4] ] = [ prepared_array[4], prepared_array[5] ];
-            for (let i=0; i<array.length; i++) {
-                if (clipStatuses[i]) {
-                    array[i] = prepared_array[i];
+            let prepared_array;
+            if (clipConstants) { // do not present when the view point was imported
+                prepared_array = clipConstants.map( num => -num );
+                // Has to do this swap for some reason
+                [ prepared_array[5], prepared_array[4] ] = [ prepared_array[4], prepared_array[5] ];
+                for (let i=0; i<array.length; i++) {
+                    if (clipStatuses[i]) {
+                        array[i] = prepared_array[i];
+                    }
                 }
             }
         }

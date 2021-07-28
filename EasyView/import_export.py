@@ -142,7 +142,7 @@ def import_viewpoint(view_point: Element) -> ViewPoint:
             clip_constants_status[i] = plane_state
             clip_constants[i] = float(clip_plane[0].get('distance'))  # ValueError
     if not has_clipping:
-        clip_constants_status, clip_constants = None, None
+        clip_constants = None
     viewpoint_object = ViewPoint(
         description=description,
         position=position,
