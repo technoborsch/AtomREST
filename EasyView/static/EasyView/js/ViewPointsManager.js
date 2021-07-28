@@ -341,8 +341,6 @@ export default class ViewpointManager {
                 key = event.target.parentElement.parentElement.getAttribute('key');
             }
         }
-        console.dir(event);
-        console.dir(key);
         const viewPoint = this.viewPointsList.find( /**ViewPoint*/ point => point.pk.toString() === key);
         this.setViewPoint( viewPoint );
     }

@@ -8,7 +8,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.uploadedfile import InMemoryUploadedFile
 
 from AtomREST.settings import BASE_DIR
-from EasyView.models import ViewPoint, Model3D
+from EasyView.models import ViewPoint, Model3D, Remark
 
 
 def create_exported_viewpoints_xml(pk_list: list) -> ET:
@@ -58,7 +58,8 @@ def export_viewpoint_to_nw(view_point: ViewPoint) -> Element:
     description = view_point.description
     if not view_point.description:
         description = f'Точка обзора {view_point.pk}'
-    if view_point.remark:
+    related_remark = Remark.objects.filter(view_point=view_point)
+    if related_remark:
         description = view_point.remark.description
     view_attributes = (
         ('guid', str(uuid.uuid4())),
