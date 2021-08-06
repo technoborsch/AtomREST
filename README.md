@@ -7,7 +7,7 @@ Based on an API with RESTful design, it can do plenty of things and be integrate
 
 - AtomBase. Base app, that serves as the source of basic information about structure of current working process.
 
-- [WIP] EasyView. App that allows to work with 3D-models right in a browser. Live demo: http://easyviewapp.herokuapp.com/
+- [WIP] EasyView. App that allows to work with 3D-models right in a browser. Live demo: https://easyviewapp.herokuapp.com/
 
 - [TODO] Checker. App that checks documents in .docx format and inserts remarks if something is wrong with it.
 
