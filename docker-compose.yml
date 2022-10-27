@@ -1,0 +1,34 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=atomrest
+      - POSTGRES_USER=atomrest
+      - POSTGRES_PASSWORD=atomproekt
+  web:
+    build: .
+    command: sh -c "python manage.py makemigrations; python manage.py migrate; gunicorn --bind :8000 AtomREST.wsgi --timeout=30"
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - CLOUD_TOKEN=oB9eLPGqyD4AAAAAAAAAAfgiuoa3d3joVV9196fO_xVJxnXtZ9qylxvS_OAbJ624
+      - SECRET_KEY=-k7l(h)*8588d+28+$_k)x%kdh1$t=ob&%*-cox3qz-)he3%!z
+      - DJANGO_SUPERUSER_USERNAME=atomrest
+      - DJANGO_SUPERUSER_PASSWORD=atomproekt
+      - DJANGO_SUPERUSER_EMAIL=atomrest@example.com
+      - CURRENT_HOST=127.0.0.1
+      - CURRENT_PORT=8000
+      - DB_HOST=db
+      - DB_NAME=atomrest
+      - DB_PASSWORD=atomproekt
+      - DB_PORT=5432
+      - DB_USER=atomrest
+      - DJANGO_SETTINGS_MODULE=AtomREST.settings

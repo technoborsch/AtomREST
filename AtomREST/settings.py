@@ -10,7 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 import os
-import django_heroku
+
 from pathlib import Path
 
 
@@ -25,21 +25,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-a1n*9k^3-v%twnp#7@k#x59mxhnjm0o2)m3h%%i#sds@$(t7sx')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = bool(os.getenv('DEBUG', True))
+DEBUG = False  # bool(os.getenv('DEBUG', True))
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['127.0.0.1', '0.0.0.0', 'easyview.myk8s.ru']
 
-heroku_app_name = os.getenv('HEROKU_APP_NAME')
-if heroku_app_name:
-    CURRENT_HOST = f'https://{heroku_app_name}.herokuapp.com'
-    CURRENT_PORT = None
-    CURRENT_URL = CURRENT_HOST
-else:
-    CURRENT_HOST = 'http://127.0.0.1'
-    CURRENT_PORT = 8000
+
+CURRENT_HOST = os.getenv('CURRENT_HOST')
+CURRENT_PORT = os.getenv('CURRENT_PORT')
+
+CURRENT_URL = CURRENT_HOST
+
+if CURRENT_PORT:
     CURRENT_URL = CURRENT_HOST + ':' + str(CURRENT_PORT)
 
-CURRENT_API_URL = CURRENT_URL + '/v1'
+CURRENT_API_URL = str(CURRENT_URL) + '/v1'
 
 
 # Application definition
@@ -66,6 +65,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
 ]
 
@@ -97,11 +97,11 @@ WSGI_APPLICATION = 'AtomREST.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'atomrest',
-        'USER': 'atomrest',
-        'PASSWORD': 'atomproekt',
-        'HOST': 'localhost',
-        'POST': '',
+        'NAME': str(os.getenv('DB_NAME')),
+        'USER': str(os.getenv('DB_USER')),
+        'PASSWORD': str(os.getenv('DB_PASSWORD')),
+        'HOST': str(os.getenv('DB_HOST')),
+        'PORT': int(os.getenv('DB_PORT')),
     }
 }
 
@@ -144,14 +144,14 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# Celery settings
-CELERY_BROKER_URL = 'amqp://atomrest:atomproekt@localhost:5672/rabbitmq'
-CELERY_RESULT_BACKEND = 'django-db'
 
 # Media files storage
 MEDIA_ROOT = os.path.join(BASE_DIR, 'storage')
@@ -160,10 +160,7 @@ MEDIA_URL = '/storage/'
 # CORS settings (to allow work with frontend)
 CORS_ORIGIN_ALLOW_ALL = True
 
-# If hosted on Heroku, it should use Dropbox cloud storage
 DROPBOX_OAUTH2_TOKEN = os.getenv('CLOUD_TOKEN')
 if DROPBOX_OAUTH2_TOKEN:
     DEFAULT_FILE_STORAGE = 'storages.backends.dropbox.DropBoxStorage'
     DROPBOX_WRITE_MODE = 'overwrite'
-
-django_heroku.settings(locals())
