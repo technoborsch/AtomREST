@@ -25,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-a1n*9k^3-v%twnp#7@k#x59mxhnjm0o2)m3h%%i#sds@$(t7sx')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False  # bool(os.getenv('DEBUG', True))
+DEBUG = False
 
 ALLOWED_HOSTS = ['127.0.0.1', '0.0.0.0', 'easyview.myk8s.ru']
 
@@ -38,7 +38,7 @@ CURRENT_URL = CURRENT_HOST
 if CURRENT_PORT:
     CURRENT_URL = CURRENT_HOST + ':' + str(CURRENT_PORT)
 
-CURRENT_API_URL = str(CURRENT_URL) + '/v1'
+CURRENT_API_URL = str(CURRENT_URL) + 'api/v1'
 
 
 # Application definition

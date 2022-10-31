@@ -20,10 +20,10 @@ router.register(r'notes', model_views.NotesViewSet)
 router.register(r'remarks', model_views.RemarksViewSet)
 
 urlpatterns = [
-    path('v1/view_points_export', model_views.ExportViewPointsView.as_view(), name='view_points_export'),
-    path('v1/view_points_import', model_views.ImportViewPointsView.as_view(), name='view_points_import'),
+    path('api/v1/view_points_export', model_views.ExportViewPointsView.as_view(), name='view_points_export'),
+    path('api/v1/view_points_import', model_views.ImportViewPointsView.as_view(), name='view_points_import'),
     path('', include('EasyView.urls')),
-    path('v1/', include(router.urls)),
+    path('api/v1/', include(router.urls)),
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework'))
 ]
