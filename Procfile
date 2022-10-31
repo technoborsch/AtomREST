@@ -1,1 +1,0 @@
-web: gunicorn AtomREST.wsgi --log-file -

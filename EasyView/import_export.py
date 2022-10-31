@@ -133,7 +133,7 @@ def import_viewpoint(view_point: Element) -> ViewPoint:
     has_clipping = False
     clip_planes = view_point[1][1]  # IndexError
     if len(clip_planes) != 6:
-        raise ValueError('Неверное число секущих плоскостей в файле')
+        raise ValueError('Wrong number of clipping planes in a file')
     for i, clip_plane in enumerate(clip_planes):
         plane_state = clip_plane.get('state') == 'enabled'
         if plane_state:
