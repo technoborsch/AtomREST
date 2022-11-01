@@ -19,10 +19,11 @@ spec:
     volumeMounts:
     - mountPath: /var/run/docker.sock
       name: docker-sock
-  - name: curl
-    image: curlimages/curl:latest
+  - name: kubectl
+    image: bitnami/kubectl:latest
     command:
-    - cat
+    - sleep
+    - "infinity"
     tty: true
   volumes:
     - name: docker-sock
@@ -64,11 +65,9 @@ spec:
     }
     stage('Deploy') {
       steps {
-        container('curl') {
+        container('kubectl') {
           withKubeConfig([credentialsId: 'kubeconfig', serverUrl: 'https://45.9.75.226']) {
-             sh 'curl -LO "https://storage.googleapis.com/kubernetes-release/release/v1.25.3/bin/linux/amd64/kubectl"'
-             sh 'chmod u+x ./kubectl'
-             sh './kubectl set image -n easyview deployment/easyview nixite/easyview=nixite/easyview:latest'
+             sh 'set image -n easyview deployment/easyview nixite/easyview=nixite/easyview:latest'
           }
         }
       }
