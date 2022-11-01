@@ -27,24 +27,6 @@ spec:
 }
    }
   stages {
-    stage('Copy') {
-      steps {
-        container('docker') {
-          sh """
-             git clone https://github.com/technoborsch/AtomREST.git
-             """
-        }
-      }
-    }
-    stage('Test') {
-      steps {
-        container('docker') {
-          sh """
-             echo 'All tests have been passed successfully!'
-             """
-        }
-      }
-    }
     stage('Build') {
       steps {
         container('docker') {
