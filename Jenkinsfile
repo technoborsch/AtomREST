@@ -59,9 +59,12 @@ spec:
     }
     stage('Deploy') {
       steps {
-        sh """
-           kubectl set image deployment/easyview nixite/easyview=nixite/easyview:latest
-           """
+        withKubeConfig([credentialsId: 'kubeconfig', serverUrl: 'https://45.9.75.226']) {
+           sh """
+              kubectl set image deployment/easyview nixite/easyview=nixite/easyview:latest
+              """
+        }
+
       }
     }
   }
