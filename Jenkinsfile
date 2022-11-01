@@ -19,11 +19,6 @@ spec:
     volumeMounts:
     - mountPath: /var/run/docker.sock
       name: docker-sock
-  - name: kubectl
-    image: bitnami/kubectl:latest
-    command:
-    - cat
-    tty: true
   volumes:
     - name: docker-sock
       hostPath:
@@ -64,10 +59,10 @@ spec:
     }
     stage('Deploy') {
       steps {
-        container('kubectl') {
+        container('docker') {
           withKubeConfig([credentialsId: 'kubeconfig', serverUrl: 'https://45.9.75.226']) {
              sh """
-                kubectl set image deployment/easyview nixite/easyview=nixite/easyview:latest
+                docker run --rm --name kubectl bitnami/kubectl:latest version set image deployment/easyview nixite/easyview=nixite/easyview:latest
                 """
           }
         }
