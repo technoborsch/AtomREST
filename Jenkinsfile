@@ -36,15 +36,15 @@ spec:
         }
       }
     }
-    stage('Test') {
-      steps {
-        container('docker') {
-          sh """
-             docker-compose run web python manage.py test;
-             """
-        }
-      }
-    }
+//    stage('Test') {
+//      steps {
+//        container('docker') {
+//          sh """
+//             docker-compose run web python manage.py test;
+//             """
+//        }
+//      }
+//    }
     stage('Push') {
       steps {
         container('docker') {

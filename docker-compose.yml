@@ -10,7 +10,7 @@ services:
       - POSTGRES_USER=atomrest
       - POSTGRES_PASSWORD=atomproekt
   web:
-    build: nixite/easyview
+    image: nixite/easyview
     volumes:
       - .:/code
     ports:
