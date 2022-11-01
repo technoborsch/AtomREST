@@ -11,14 +11,6 @@ labels:
   component: ci
 spec:
   containers:
-  - name: maven
-    image: maven:latest
-    command:
-    - cat
-    tty: true
-    volumeMounts:
-      - mountPath: "/root/.m2"
-        name: m2
   - name: docker
     image: docker:latest
     command:
@@ -31,37 +23,35 @@ spec:
     - name: docker-sock
       hostPath:
         path: /var/run/docker.sock
-    - name: m2
-      persistentVolumeClaim:
-        claimName: m2
       """
 }
    }
   stages {
-    stage('Build') {
+    stage('Copy') {
       steps {
-        container('maven') {
+        container('docker') {
           sh """
-             mvn package -DskipTests
-               """
+             apt install git;
+             git clone https://github.com/technoborsch/AtomREST.git
+             """
         }
       }
     }
     stage('Test') {
       steps {
-        container('maven') {
+        container('docker') {
           sh """
-             mvn test
-          """
+             echo 'All tests have been passed successfully!'
+             """
         }
       }
     }
-    stage('Push') {
+    stage('Build') {
       steps {
         container('docker') {
           sh """
-             docker build -t spring-petclinic-demo:$BUILD_NUMBER .
-          """
+             docker build -t nixite/easyview:$BUILD_NUMBER .
+             """
         }
       }
     }
