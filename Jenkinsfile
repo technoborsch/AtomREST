@@ -31,7 +31,7 @@ spec:
       steps {
         container('docker') {
           sh """
-             docker build -t nixite/easyview:$BUILD_NUMBER .
+             docker build -t nixite/easyview .
              """
         }
       }
@@ -40,8 +40,7 @@ spec:
       steps {
         container('docker') {
           sh """
-             docker run -d --name easyview nixite/easyview:$BUILD_NUMBER;
-             docker exec easyview python manage.py test
+             docker-compose run web python manage.py test;
              """
         }
       }
@@ -49,10 +48,12 @@ spec:
     stage('Push') {
       steps {
         container('docker') {
-          sh """
-             docker login -u nixite -p NotSoFast42;
-             docker push nixite/easyview
-             """
+          withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+             sh """
+                docker login -u $USERNAME -p $PASSWORD;
+                docker push nixite/easyview
+                """
+          }
         }
       }
     }
