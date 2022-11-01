@@ -34,7 +34,7 @@ spec:
     - name: m2
       persistentVolumeClaim:
         claimName: m2
-"""
+      """
 }
    }
   stages {
