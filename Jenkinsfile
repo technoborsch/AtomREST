@@ -31,7 +31,6 @@ spec:
       steps {
         container('docker') {
           sh """
-             apt install git;
              git clone https://github.com/technoborsch/AtomREST.git
              """
         }
