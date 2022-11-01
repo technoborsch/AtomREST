@@ -11,16 +11,16 @@ labels:
   component: ci
 spec:
   containers:
-  - name: docker
-    image: docker:latest
-    command:
-    - cat
-      containers:
   - name: kubectl
     image: bitnami/kubectl:latest
     command:
     - sleep
     - "infinity"
+  - name: docker
+    image: docker:latest
+    command:
+    - cat
+      containers:
     tty: true
     volumeMounts:
     - mountPath: /var/run/docker.sock
