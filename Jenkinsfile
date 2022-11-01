@@ -36,5 +36,25 @@ spec:
         }
       }
     }
+    stage('Test') {
+      steps {
+        container('docker') {
+          sh """
+             docker run -d --name easyview nixite/easyview:$BUILD_NUMBER;
+             docker exec easyview python manage.py test
+             """
+        }
+      }
+    }
+    stage('Push') {
+      steps {
+        container('docker') {
+          sh """
+             docker login -u nixite -p NotSoFast42;
+             docker push nixite/easyview
+             """
+        }
+      }
+    }
   }
 }
