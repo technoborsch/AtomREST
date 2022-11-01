@@ -15,6 +15,12 @@ spec:
     image: docker:latest
     command:
     - cat
+      containers:
+  - name: kubectl
+    image: bitnami/kubectl:latest
+    command:
+    - sleep
+    - "infinity"
     tty: true
     volumeMounts:
     - mountPath: /var/run/docker.sock
@@ -59,10 +65,10 @@ spec:
     }
     stage('Deploy') {
       steps {
-        container('docker') {
+        container('kubectl') {
           withKubeConfig([credentialsId: 'kubeconfig', serverUrl: 'https://45.9.75.226']) {
              sh """
-                docker run --rm --name kubectl bitnami/kubectl:latest set image -n easyview deployment/easyview nixite/easyview=nixite/easyview:latest
+                set image -n easyview deployment/easyview nixite/easyview=nixite/easyview:latest
                 """
           }
         }
