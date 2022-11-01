@@ -19,8 +19,8 @@ spec:
     volumeMounts:
     - mountPath: /var/run/docker.sock
       name: docker-sock
-  - name: docker
-    image: docker:latest
+  - name: curl
+    image: curlimages/curl:latest
     command:
     - cat
     tty: true
