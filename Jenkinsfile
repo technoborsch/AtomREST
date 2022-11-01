@@ -11,21 +11,19 @@ labels:
   component: ci
 spec:
   containers:
-  - name: curl
-    image: curlimages/curl:latest
-    command:
-    - cat
-      containers:
-    tty: true
   - name: docker
     image: docker:latest
     command:
     - cat
-      containers:
     tty: true
     volumeMounts:
     - mountPath: /var/run/docker.sock
       name: docker-sock
+  - name: docker
+    image: docker:latest
+    command:
+    - cat
+    tty: true
   volumes:
     - name: docker-sock
       hostPath:
