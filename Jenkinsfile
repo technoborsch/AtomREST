@@ -11,11 +11,11 @@ labels:
   component: ci
 spec:
   containers:
-  - name: kubectl
-    image: bitnami/kubectl:latest
+  - name: curl
+    image: curlimages/curl:latest
     command:
-    - sleep
-    - "infinity"
+    - cat
+    tty: true
   - name: docker
     image: docker:latest
     command:
@@ -65,11 +65,11 @@ spec:
     }
     stage('Deploy') {
       steps {
-        container('kubectl') {
+        container('curl') {
           withKubeConfig([credentialsId: 'kubeconfig', serverUrl: 'https://45.9.75.226']) {
-             sh """
-                set image -n easyview deployment/easyview nixite/easyview=nixite/easyview:latest
-                """
+             sh 'curl -LO "https://storage.googleapis.com/kubernetes-release/release/v1.25.3/bin/linux/amd64/kubectl"'
+             sh 'chmod u+x ./kubectl'
+             sh './kubectl set image -n easyview deployment/easyview nixite/easyview=nixite/easyview:latest'
           }
         }
       }
