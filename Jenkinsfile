@@ -57,5 +57,12 @@ spec:
         }
       }
     }
+    stage('Deploy') {
+      steps {
+        sh """
+           kubectl set image deployment/easyview nixite/easyview=nixite/easyview:latest
+           """
+      }
+    }
   }
 }
