@@ -43,7 +43,7 @@ spec:
         container('maven') {
           sh """
              mvn package -DskipTests
-              """
+               """
         }
       }
     }
