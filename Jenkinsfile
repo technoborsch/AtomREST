@@ -15,6 +15,7 @@ spec:
     image: curlimages/curl:latest
     command:
     - cat
+      containers:
     tty: true
   - name: docker
     image: docker:latest
