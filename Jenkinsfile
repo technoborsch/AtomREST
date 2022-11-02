@@ -65,8 +65,10 @@ spec:
     stage('Deploy') {
       steps {
         container('kubectl') {
-          withKubeConfig([namespace: 'easyview']) {
-            sh 'kubectl set image deployment/easyview nixite/easyview=nixite/easyview:latest'
+          withKubeConfig([credentialsId: 'kubeconfig', serverUrl: 'https://45.9.75.226:6443', namespace: 'easyview']) {
+            sh """
+               kubectl set image deployment/easyview nixite/easyview=nixite/easyview:latest
+               """
           }
         }
       }
