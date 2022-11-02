@@ -20,10 +20,9 @@ spec:
     - mountPath: /var/run/docker.sock
       name: docker-sock
   - name: kubectl
-    image: bitnami/kubectl:latest
+    image: nixite/kubectl:latest
     command:
-    - sleep
-    - "infinity"
+    - cat
     tty: true
   volumes:
     - name: docker-sock
@@ -65,9 +64,9 @@ spec:
 //    }
     stage('Deploy') {
       steps {
-        container('docker') {
+        container('kubectl') {
           withKubeConfig([namespace: 'easyview']) {
-            sh 'docker run --rm --name kubectl bitnami/kubectl:latest set image deployment/easyview nixite/easyview=nixite/easyview:latest'
+            sh 'kubectl set image deployment/easyview nixite/easyview=nixite/easyview:latest'
           }
         }
       }
