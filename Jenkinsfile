@@ -67,7 +67,7 @@ spec:
         container('kubectl') {
           withKubeConfig([credentialsId: 'kubeconfig', serverUrl: 'https://45.9.75.226:6443', namespace: 'easyview']) {
             sh """
-               kubectl set image deployment/easyview easyview=nixite/easyview:latest
+               kubectl rollout restart deployment easyview
                """
           }
         }
