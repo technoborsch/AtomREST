@@ -17,19 +17,6 @@ RUN set -ex \
     && apk del .build-deps
 COPY . /code/
 WORKDIR /code
-RUN rm -r .vs; \
-    rm -r htmlcov;  \
-    rm -r venv;  \
-    rm .coverage;  \
-    rm .gitignore;  \
-    rm docker-compose.yml; \
-    rm Dockerfile; \
-    rm LICENCE; \
-    rm README.md; \
-    rm -r EasyView/static; \
-    rm -r staticfiles/threejs/examples/textures; \
-    rm -r staticfiles/threejs/docs; \
-    rm -r staticfiles/threejs/test
 
 ENV VIRTUAL_ENV /env
 ENV PATH /env/bin:$PATH

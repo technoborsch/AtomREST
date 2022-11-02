@@ -11,14 +11,6 @@ labels:
   component: ci
 spec:
   containers:
-  - name: maven
-    image: maven:latest
-    command:
-    - cat
-    tty: true
-    volumeMounts:
-      - mountPath: "/root/.m2"
-        name: m2
   - name: docker
     image: docker:latest
     command:
@@ -27,41 +19,57 @@ spec:
     volumeMounts:
     - mountPath: /var/run/docker.sock
       name: docker-sock
+  - name: kubectl
+    image: nixite/kubectl:latest
+    command:
+    - cat
+    tty: true
   volumes:
     - name: docker-sock
       hostPath:
         path: /var/run/docker.sock
-    - name: m2
-      persistentVolumeClaim:
-        claimName: m2
-"""
-}
-   }
+     """
+      }
+    }
   stages {
     stage('Build') {
       steps {
-        container('maven') {
+        container('docker') {
           sh """
-             mvn package -DskipTests
+             docker build -t nixite/easyview .
              """
         }
       }
     }
     stage('Test') {
       steps {
-        container('maven') {
+        container('docker') {
           sh """
-             mvn test
-          """
+             docker compose run web python manage.py test;
+             """
         }
       }
     }
     stage('Push') {
       steps {
         container('docker') {
-          sh """
-             docker build -t spring-petclinic-demo:$BUILD_NUMBER .
-          """
+          withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+             sh """
+                docker login -u $USERNAME -p $PASSWORD;
+                docker push nixite/easyview
+                """
+          }
+        }
+      }
+    }
+    stage('Deploy') {
+      steps {
+        container('kubectl') {
+          withKubeConfig([credentialsId: 'kubeconfig', serverUrl: 'https://45.9.75.226:6443', namespace: 'easyview']) {
+            sh """
+               kubectl rollout restart deployment easyview
+               """
+          }
         }
       }
     }
