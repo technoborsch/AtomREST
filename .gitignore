@@ -15,7 +15,6 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-build/
 develop-eggs/
 dist/
 downloads/
@@ -143,7 +142,9 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
-/EasyView/static/
+/EasyView/static/threejs/examples/textures/
+/EasyView/static/threejs/docs/
+/EasyView/static/threejs/test/
 /staticfiles/threejs/examples/textures/
 /staticfiles/threejs/docs/
 /staticfiles/threejs/test/
