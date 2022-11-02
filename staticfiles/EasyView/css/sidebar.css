@@ -1,0 +1,87 @@
+/* The sidebar menu */
+.sidebar {
+  height: 100vh;
+  width: 0;
+  position: fixed; /* Stay in place */
+  z-index: 1;
+  top: 0;
+  left: 0;
+  overflow-x: hidden; /* Disable horizontal scroll */
+  padding-top: 73px; /* Compensation for navbar */
+  transition: 0.5s; /* 0.5 second transition effect to slide in the sidebar */
+}
+
+.sidebar-shifted { /* apply to make it shift */
+  width: 270px;
+}
+
+/* The button used to open the sidebar */
+#openbtn {
+  font-size: 25px;
+  cursor: pointer;
+  border-radius: 10px;
+  background-color: inherit;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+}
+
+#openbtn:hover, .openbtn-pressed {
+  background-color: rgba(141, 169, 184, 0.34)!important;
+}
+
+/* On smaller screens, where height is less than 450px, change the style of the sidenav (less padding and a smaller font size) */
+@media screen and (max-height: 450px) {
+  .sidebar div {font-size: 18px;}
+}
+
+div.list-group {
+  border-radius: 0;
+  color: white;
+}
+
+#sidebarMenu button.list-group-item, div.list-group div.list-group {
+  background-color: inherit;
+  color: white;
+  margin-top: -1px;
+  margin-bottom: -1px;
+}
+
+#sidebarMenu a.list-group-item {
+  background-color: white;
+  color: black;
+  padding-left: 40px;
+}
+
+#sidebarMenu a.list-group-item:hover {
+  background-color: #7bb6e8;
+}
+
+#sidebarMenu button.list-group-item.disabled {
+  color: #7b7979;
+}
+
+#sidebarMenu button.list-group-item:hover {
+  background-color: #525558;
+}
+
+a.list-group-item, button.list-group-item, #viewpointsMenu div a.btn {
+  white-space: nowrap;
+  overflow-x: hidden;
+}
+
+svg.bi.bi-chevron-right {
+  -webkit-transition: transform 0.35s ease;
+  transition: transform 0.35s ease;
+}
+
+svg.bi.bi-chevron-right.rotated {
+  -ms-transform: rotate(90deg);
+  -webkit-transform: rotate(90deg);
+  transform: rotate(90deg);
+}
+
+aside div button.btn.btn-link {
+  color: grey;
+  font-size: small;
+}
