@@ -17,7 +17,3 @@ document.addEventListener('DOMContentLoaded', () => {
         openBtn.classList.toggle("openbtn-pressed");
     }
 });
-
-export function something() {
-    let a = 5;
-}
