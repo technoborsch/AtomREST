@@ -77,7 +77,7 @@
 
   node {
     stage ('Deploy') {
-      withCredentials([credentialsId: 'kubeconfig', variable: 'FILE']) {
+      withKubeConfig([credentialsId: 'kubeconfig', serverUrl: 'https://45.9.75.226']) {
         sh 'docker run --rm --name kubectl -v $FILE bitnami/kubectl:latest set image -n easyview deployment/easyview nixite/easyview=nixite/easyview:latest'
       }
     }
