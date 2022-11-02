@@ -74,10 +74,12 @@ pipeline {
 //    }
 //  }
   node {
-    stage ('Deploy') {
-      steps {
-        withCredentials([credentialsId: 'kubeconfig', variable: 'FILE']) {
-          sh 'docker run --rm --name kubectl -v $FILE bitnami/kubectl:latest set image -n easyview deployment/easyview nixite/easyview=nixite/easyview:latest'
+    stages {
+      stage ('Deploy') {
+        steps {
+          withCredentials([credentialsId: 'kubeconfig', variable: 'FILE']) {
+            sh 'docker run --rm --name kubectl -v $FILE bitnami/kubectl:latest set image -n easyview deployment/easyview nixite/easyview=nixite/easyview:latest'
+          }
         }
       }
     }
