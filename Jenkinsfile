@@ -66,8 +66,8 @@ spec:
     stage('Deploy') {
       steps {
         container('docker') {
-          withKubeConfig() {
-            sh 'docker run --rm --name kubectl bitnami/kubectl:latest set image -n easyview deployment/easyview nixite/easyview=nixite/easyview:latest'
+          withKubeConfig([namespace: easyview]) {
+            sh 'docker run --rm --name kubectl bitnami/kubectl:latest set image deployment/easyview nixite/easyview=nixite/easyview:latest'
           }
         }
       }
