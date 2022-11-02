@@ -90,6 +90,13 @@ export default class APIService {
         this.APIRootURL = APIRootURL;
     }
 
+    makeUrlStartWithHTTPS(url) {
+        if (url[4] === ':') {
+            url = url.replace('http', 'https');
+        }
+        return url;
+    }
+
     /**
      * A method that gets a model by its primary key from an API.
      *
@@ -98,7 +105,7 @@ export default class APIService {
      */
     getModelByPK(pk) {
         const url = `${this.APIRootURL}/models/${pk}/`;
-        return axios.get(url).then( (response) => {
+        return axios.get(this.makeUrlStartWithHTTPS(url)).then( (response) => {
             const model = response.data;
             this.getObject(model.building).then((result) => {model.building = result});
             return model;
@@ -114,7 +121,7 @@ export default class APIService {
     async getViewPointByPK(pk) {
         const url = `${this.APIRootURL}/view_points/${pk}/`;
         let viewPoint;
-        const response = await axios.get(url);
+        const response = await axios.get(this.makeUrlStartWithHTTPS(url));
         viewPoint = response.data;
         // A viewpoint contains only URLs to notes, so load all those notes here
         const notes = [];
@@ -136,7 +143,7 @@ export default class APIService {
      * @return { Promise } Promise that is fulfilled with some object.
      */
     getObject(link) {
-        return axios.get(link).then(response => response.data);
+        return axios.get(this.makeUrlStartWithHTTPS(link)).then(response => response.data);
     }
 
     /**
@@ -146,7 +153,7 @@ export default class APIService {
      * @return { Promise } Promise that is fulfilled when deletion was successful.
      */
     deleteObject(link) {
-        return axios.delete(link);
+        return axios.delete(this.makeUrlStartWithHTTPS(link));
     }
 
     /**
@@ -157,7 +164,7 @@ export default class APIService {
      */
     addViewPoint(viewPoint) {
         const url = `${this.APIRootURL}/view_points/`;
-        return axios.post(url, viewPoint).then(result => result.data);
+        return axios.post(this.makeUrlStartWithHTTPS(url), viewPoint).then(result => result.data);
     }
 
     /**
@@ -168,7 +175,7 @@ export default class APIService {
      */
     addNote(note) {
         const url =`${this.APIRootURL}/notes/`;
-        return axios.post(url, note);
+        return axios.post(this.makeUrlStartWithHTTPS(url), note);
     }
 
     /**
@@ -179,7 +186,7 @@ export default class APIService {
      */
     exportViewpointsByPKString( pk_string ) {
         const url = `${this.APIRootURL}/view_points_export`;
-        return axios.get(url, {
+        return axios.get(this.makeUrlStartWithHTTPS(url), {
             params: {
                 viewpoints_pk_list: pk_string,
             },
@@ -207,7 +214,7 @@ export default class APIService {
         formData.append('model', model_pk);
         formData.append('file', file);
         const url = `${this.APIRootURL}/view_points_import`;
-        return axios.post(url, formData, {
+        return axios.post(this.makeUrlStartWithHTTPS(url), formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
             }
