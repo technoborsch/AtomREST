@@ -1,4 +1,4 @@
-pipeline {
+//pipeline {
 //  agent {
 //    kubernetes {
 //      label 'easyview'
@@ -73,11 +73,12 @@ pipeline {
 //      }
 //    }
 //  }
-  stage ('Deploy') {
-    node {
+//}
+
+  node {
+    stage ('Deploy') {
       withCredentials([credentialsId: 'kubeconfig', variable: 'FILE']) {
         sh 'docker run --rm --name kubectl -v $FILE bitnami/kubectl:latest set image -n easyview deployment/easyview nixite/easyview=nixite/easyview:latest'
       }
     }
   }
-}
