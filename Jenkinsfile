@@ -1,38 +1,38 @@
-//pipeline {
-//  agent {
-//    kubernetes {
-//      label 'easyview'
-//      defaultContainer 'jnlp'
-//      yaml """
-//apiVersion: v1
-//kind: Pod
-//metadata:
-//labels:
-//  component: ci
-//spec:
-//  containers:
-//  - name: docker
-//    image: docker:latest
-//    command:
-//    - cat
-//    tty: true
-//    volumeMounts:
-//    - mountPath: /var/run/docker.sock
-//      name: docker-sock
-//  - name: kubectl
-//    image: bitnami/kubectl:latest
-//    command:
-//    - sleep
-//    - "infinity"
-//    tty: true
-//  volumes:
-//    - name: docker-sock
-//      hostPath:
-//        path: /var/run/docker.sock
-//     """
-//      }
-//    }
-//  stages {
+pipeline {
+  agent {
+    kubernetes {
+      label 'easyview'
+      defaultContainer 'jnlp'
+      yaml """
+apiVersion: v1
+kind: Pod
+metadata:
+labels:
+  component: ci
+spec:
+  containers:
+  - name: docker
+    image: docker:latest
+    command:
+    - cat
+    tty: true
+    volumeMounts:
+    - mountPath: /var/run/docker.sock
+      name: docker-sock
+  - name: kubectl
+    image: bitnami/kubectl:latest
+    command:
+    - sleep
+    - "infinity"
+    tty: true
+  volumes:
+    - name: docker-sock
+      hostPath:
+        path: /var/run/docker.sock
+     """
+      }
+    }
+  stages {
 //    stage('Build') {
 //      steps {
 //        container('docker') {
@@ -63,22 +63,14 @@
 //        }
 //      }
 //    }
-//    stage('Deploy') {
-//      steps {
-//        container('kubectl') {
-//          withKubeConfig([credentialsId: 'kubeconfig', serverUrl: 'https://45.9.75.226']) {
-//             sh 'set image -n easyview deployment/easyview nixite/easyview=nixite/easyview:latest'
-//          }
-//        }
-//      }
-//    }
-//  }
-//}
-
-  node {
-    stage ('Deploy') {
-      withKubeConfig([credentialsId: 'kubeconfig', serverUrl: 'https://45.9.75.226']) {
-        sh 'docker run --rm --name kubectl -v $FILE bitnami/kubectl:latest set image -n easyview deployment/easyview nixite/easyview=nixite/easyview:latest'
+    stage('Deploy') {
+      steps {
+        container('docker') {
+          withKubeConfig([credentialsId: 'kubeconfig', serverUrl: 'https://45.9.75.226']) {
+            sh 'docker run --rm --name kubectl bitnami/kubectl:latest set image -n easyview deployment/easyview nixite/easyview=nixite/easyview:latest'
+          }
+        }
       }
     }
   }
+}
