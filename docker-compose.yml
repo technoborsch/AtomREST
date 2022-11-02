@@ -10,12 +10,12 @@ services:
       - POSTGRES_USER=atomrest
       - POSTGRES_PASSWORD=atomproekt
   web:
-    image: nixite/easyview:latest
+    build: .
     ports:
       - "8000:8000"
     depends_on:
       - db
-    command: sh -c 'sleep 10 && python manage.py migrate && python manage.py test'
+    #command: sh -c 'sleep 10 && python manage.py migrate && python manage.py test'
     environment:
       - CLOUD_TOKEN=oB9eLPGqyD4AAAAAAAAAAfgiuoa3d3joVV9196fO_xVJxnXtZ9qylxvS_OAbJ624
       - SECRET_KEY=-k7l(h)*8588d+28+$_k)x%kdh1$t=ob&%*-cox3qz-)he3%!z
