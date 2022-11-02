@@ -88,6 +88,7 @@ export default class APIService {
      */
     constructor(APIRootURL) {
         this.APIRootURL = APIRootURL;
+        console.log(APIRootURL);
     }
 
     /**
@@ -98,6 +99,7 @@ export default class APIService {
      */
     getModelByPK(pk) {
         const url = `${this.APIRootURL}/models/${pk}/`;
+        console.log(url);
         return axios.get(url).then( (response) => {
             const model = response.data;
             this.getObject(model.building).then((result) => {model.building = result});
