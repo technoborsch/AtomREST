@@ -32,36 +32,36 @@ spec:
       }
     }
   stages {
-//    stage('Build') {
-//      steps {
-//        container('docker') {
-//          sh """
-//             docker build -t nixite/easyview .
-//             """
-//        }
-//      }
-//    }
-//    stage('Test') {
-//      steps {
-//        container('docker') {
-//          sh """
-//             docker-compose run web python manage.py test;
-//             """
-//        }
-//      }
-//    }
-//    stage('Push') {
-//      steps {
-//        container('docker') {
-//          withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-//             sh """
-//                docker login -u $USERNAME -p $PASSWORD;
-//                docker push nixite/easyview
-//                """
-//          }
-//        }
-//      }
-//    }
+    stage('Build') {
+      steps {
+        container('docker') {
+          sh """
+             docker build -t nixite/easyview .
+             """
+        }
+      }
+    }
+    stage('Test') {
+      steps {
+        container('docker') {
+          sh """
+             docker compose run web python manage.py test;
+             """
+        }
+      }
+    }
+    stage('Push') {
+      steps {
+        container('docker') {
+          withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+             sh """
+                docker login -u $USERNAME -p $PASSWORD;
+                docker push nixite/easyview
+                """
+          }
+        }
+      }
+    }
     stage('Deploy') {
       steps {
         container('kubectl') {
