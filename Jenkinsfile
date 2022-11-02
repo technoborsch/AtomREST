@@ -66,7 +66,7 @@ spec:
     stage('Deploy') {
       steps {
         container('docker') {
-          withKubeConfig([credentialsId: 'kubeconfig', serverUrl: 'https://45.9.75.226']) {
+          withKubeConfig() {
             sh 'docker run --rm --name kubectl bitnami/kubectl:latest set image -n easyview deployment/easyview nixite/easyview=nixite/easyview:latest'
           }
         }
