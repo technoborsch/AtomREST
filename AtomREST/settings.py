@@ -38,7 +38,7 @@ CURRENT_URL = CURRENT_HOST
 if CURRENT_PORT:
     CURRENT_URL = CURRENT_HOST + ':' + str(CURRENT_PORT)
 
-CURRENT_API_URL = str(CURRENT_URL) + '/api/v1'
+CURRENT_API_URL = CURRENT_URL + '/api/v1'
 
 
 # Application definition
