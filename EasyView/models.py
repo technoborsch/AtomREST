@@ -61,7 +61,7 @@ class ViewPoint(models.Model):
         ordering = ['-creation_time']
 
     def get_absolute_url(self):
-        return CURRENT_URL + reverse(
+        return 'https://' + CURRENT_URL + reverse(
             'view_point',
             kwargs={
                 'project': self.model.building.project.slug,
