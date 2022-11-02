@@ -30,18 +30,18 @@ spec:
       hostPath:
         path: /var/run/docker.sock
       """
-}
-   }
-  stages {
-    stage('Build') {
-      steps {
-        container('docker') {
-          sh """
-             docker build -t nixite/easyview .
-             """
-        }
       }
     }
+  stages {
+//    stage('Build') {
+//      steps {
+//        container('docker') {
+//          sh """
+//             docker build -t nixite/easyview .
+//             """
+//        }
+//      }
+//    }
 //    stage('Test') {
 //      steps {
 //        container('docker') {
@@ -51,24 +51,33 @@ spec:
 //        }
 //      }
 //    }
-    stage('Push') {
+//    stage('Push') {
+//      steps {
+//        container('docker') {
+//          withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+//             sh """
+//                docker login -u $USERNAME -p $PASSWORD;
+//                docker push nixite/easyview
+//                """
+//          }
+//        }
+//      }
+//    }
+//    stage('Deploy') {
+//      steps {
+//        container('kubectl') {
+//          withKubeConfig([credentialsId: 'kubeconfig', serverUrl: 'https://45.9.75.226']) {
+//             sh 'set image -n easyview deployment/easyview nixite/easyview=nixite/easyview:latest'
+//          }
+//        }
+//      }
+//    }
+  }
+  node {
+    stage ('Deploy') {
       steps {
-        container('docker') {
-          withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-             sh """
-                docker login -u $USERNAME -p $PASSWORD;
-                docker push nixite/easyview
-                """
-          }
-        }
-      }
-    }
-    stage('Deploy') {
-      steps {
-        container('kubectl') {
-          withKubeConfig([credentialsId: 'kubeconfig', serverUrl: 'https://45.9.75.226']) {
-             sh 'set image -n easyview deployment/easyview nixite/easyview=nixite/easyview:latest'
-          }
+        withCredentials([credentialsId: 'kubeconfig', variable: 'FILE']) {
+          sh 'docker run --rm --name kubectl -v $FILE bitnami/kubectl:latest set image -n easyview deployment/easyview nixite/easyview=nixite/easyview:latest'
         }
       }
     }
