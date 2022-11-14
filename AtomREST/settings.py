@@ -165,6 +165,13 @@ CORS_ALLOWED_ORIGINS = [
     'http://127.0.0.1:8000',
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://localhost:3000',
+    'https://127.0.0.1:8000',
+    'http://localhost:3000',
+    'http://127.0.0.1:8000',
+]
+
 DROPBOX_OAUTH2_TOKEN = os.getenv('CLOUD_TOKEN')
 if DROPBOX_OAUTH2_TOKEN:
     DEFAULT_FILE_STORAGE = 'storages.backends.dropbox.DropBoxStorage'
