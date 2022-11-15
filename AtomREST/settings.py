@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'AtomproektBase',
+    'knox',
     'EasyView',
 ]
 
@@ -177,6 +178,13 @@ SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SAMESITE = 'None'
 CSRF_COOKIE_HTTPONLY = False
 SESSION_COOKIE_SAMESITE = 'None'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'knox.auth.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    )
+}
 
 DROPBOX_OAUTH2_TOKEN = os.getenv('CLOUD_TOKEN')
 if DROPBOX_OAUTH2_TOKEN:

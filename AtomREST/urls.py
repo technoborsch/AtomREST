@@ -22,6 +22,7 @@ router.register(r'remarks', model_views.RemarksViewSet)
 urlpatterns = [
     path('api/v1/view_points_export', model_views.ExportViewPointsView.as_view(), name='view_points_export'),
     path('api/v1/view_points_import', model_views.ImportViewPointsView.as_view(), name='view_points_import'),
+    path('api/auth/', include('knox.urls')),
     path('', include('EasyView.urls')),
     path('api/v1/', include(router.urls)),
     path('admin/', admin.site.urls),
