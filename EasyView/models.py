@@ -10,7 +10,7 @@ from AtomproektBase import models as base_models
 # Model
 def get_upload_path(instance, filename):
     """Returns uploading path for a file here"""
-    return f'models/{instance.building.slug}/{filename}'
+    return "test/" + "models/" + instance.building.slug + "/" + filename
 
 
 class Model3D(models.Model):

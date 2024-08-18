@@ -25,13 +25,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-a1n*9k^3-v%twnp#7@k#x59mxhnjm0o2)m3h%%i#sds@$(t7sx')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = bool(os.getenv('DEBUG'))
+DEBUG = bool(os.getenv('DEBUG', True))
 
 ALLOWED_HOSTS = ['127.0.0.1', '0.0.0.0', 'easyview.myk8s.ru']
 
 
-CURRENT_HOST = os.getenv('CURRENT_HOST')
-CURRENT_PORT = os.getenv('CURRENT_PORT')
+CURRENT_HOST = os.getenv('CURRENT_HOST', "127.0.0.1")
+CURRENT_PORT = os.getenv('CURRENT_PORT', "8000")
 
 CURRENT_URL = CURRENT_HOST
 
@@ -98,10 +98,10 @@ WSGI_APPLICATION = 'AtomREST.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': str(os.getenv('DB_NAME')),
-        'USER': str(os.getenv('DB_USER')),
-        'PASSWORD': str(os.getenv('DB_PASSWORD')),
-        'HOST': str(os.getenv('DB_HOST')),
+        'NAME': str(os.getenv('DB_NAME', "postgres")),
+        'USER': str(os.getenv('DB_USER', "postgres")),
+        'PASSWORD': str(os.getenv('DB_PASSWORD', "BetteRlifE")),
+        'HOST': str(os.getenv('DB_HOST', "localhost")),
         'PORT': int(os.getenv('DB_PORT', 5432)),
     }
 }
@@ -156,6 +156,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Media files storage
 MEDIA_ROOT = os.path.join(BASE_DIR, 'storage')
+# MEDIA_ROOT = "/"
 MEDIA_URL = '/storage/'
 
 # CORS settings (to allow work with frontend)
@@ -188,7 +189,7 @@ REST_FRAMEWORK = {
     )
 }
 
-DROPBOX_OAUTH2_TOKEN = os.getenv('CLOUD_TOKEN')
-if DROPBOX_OAUTH2_TOKEN:
-    DEFAULT_FILE_STORAGE = 'storages.backends.dropbox.DropBoxStorage'
-    DROPBOX_WRITE_MODE = 'overwrite'
+DROPBOX_OAUTH2_TOKEN = os.getenv('CLOUD_TOKEN', "oB9eLPGqyD4AAAAAAAAAAfgiuoa3d3joVV9196fO_xVJxnXtZ9qylxvS_OAbJ624")
+DEFAULT_FILE_STORAGE = 'storages.backends.dropbox.DropboxStorage'
+DROPBOX_WRITE_MODE = 'overwrite'
+DROPBOX_ROOT_PATH = "/"
